@@ -36,6 +36,30 @@ abstract final class AppColors {
   // White at 61%: fine print on the onboarding gradient.
   static const Color whiteFaint = Color(0x9CFFFFFF);
 
+  // White at 10%: date box on the event flyer.
+  static const Color glassSubtle = Color(0x1AFFFFFF);
+
+  // Navy at 80%: location pill over post photos.
+  static const Color navyScrim = Color(0xCC0A192F);
+
+  // Red at 15%: softer flare on the marketplace trust banner.
+  static const Color redFlareSoft = Color(0x26C8102E);
+
+  // Red at 30%: blurred flare in the corner of the event flyer.
+  static const Color redFlare = Color(0x4DC8102E);
+
+  // White at 20%: translucent pill fields on navy (composer prompt).
+  static const Color glassFill = Color(0x33FFFFFF);
+
+  // Lavender white at 50%: frosted bottom navigation bar.
+  static const Color frostedLavender = Color(0x80FAF8FF);
+
+  // Navy at 5%: shadow cast upward by the bottom navigation bar.
+  static const Color navyShadowSoft = Color(0x0D0A192F);
+
+  // Red at 35%: glow under the active nav circle and red floating buttons.
+  static const Color redGlow = Color(0x59C8102E);
+
   // Black at 5%: soft card shadows.
   static const Color blackShadow = Color(0x0D000000);
 
@@ -121,6 +145,81 @@ abstract final class AppColors {
   // Card drop shadows.
   static const Color shadow = blackShadow;
 
+  // Frosted background of the bottom navigation bar.
+  static const Color navBarBackground = frostedLavender;
+
+  // Navy header behind the top bar on main tabs.
+  static const Color topBarBackground = navyPrimary;
+
+  // Search field sitting on the navy header.
+  static const Color searchFieldOnDark = navyTint;
+
+  // Composer prompt pill on the navy header.
+  static const Color composerFieldOnDark = glassFill;
+
+  // Small round action button inside the search field.
+  static const Color searchActionBackground = grey50;
+
+  // Unselected filter chip.
+  static const Color chipBackground = grey200;
+
+  // Selected filter chip.
+  static const Color chipSelectedBackground = navyPrimary;
+
+  // Online status dot.
+  static const Color online = greenPrimary;
+
+  // Liked thumb and count.
+  static const Color likeActive = redPrimary;
+
+  // Location pill over post photos.
+  static const Color imageCaptionBackground = navyScrim;
+
+  // Empty photo slot while an image is missing.
+  static const Color imagePlaceholder = grey200;
+
+  // Event flyer background.
+  static const Color eventBannerBackground = navyPrimary;
+
+  // Kicker label and month on the event flyer.
+  static const Color eventHighlight = orangeAccent;
+
+  // Date box on the event flyer.
+  static const Color eventDateBackground = glassSubtle;
+
+  // Orange flare in the top-right corner of the event flyer.
+  static const Color eventFlareWarm = orangeSurface;
+
+  // Red flare in the bottom-left corner of the event flyer.
+  static const Color eventFlareCool = redFlare;
+
+  // "Free Entry" badge.
+  static const Color freeEntryBackground = redPrimary;
+
+  // Ticket price badge.
+  static const Color priceTagBackground = orangeAccent;
+
+  // Listing prices.
+  static const Color price = redPrimary;
+
+  // Round favourite button over listing photos.
+  static const Color favoriteButtonBackground = whiteSoft;
+
+  // Location pill in the marketplace quick filters.
+  static const Color locationPillBackground = navyTint;
+
+  // Dark tag over listing photos ("Kigali Pickup").
+  static const Color listingTagDark = navyScrim;
+
+  // Light tag over listing photos ("Hostel Block B").
+  static const Color listingTagLight = grey400;
+
+  // Blurred flare on the marketplace trust banner.
+  static const Color trustBannerFlare = redFlareSoft;
+
+  // Icon circle on navy banners.
+  static const Color iconCircleOnDark = glassSubtle;
+
   // Underline under links on dark backgrounds.
   static const Color linkUnderlineOnDark = glassBorder;
 
@@ -164,5 +263,8 @@ abstract final class AppColors {
     stops: [0, 0.40385],
   );
 
-
+  // Thin accent strip on top of pinned announcement cards.
+  static const LinearGradient announcementStripGradient = LinearGradient(
+    colors: [navyPrimary, orangeAccent, redPrimary],
+  );
 }
