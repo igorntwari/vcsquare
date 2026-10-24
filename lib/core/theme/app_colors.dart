@@ -24,6 +24,18 @@ abstract final class AppColors {
   // Navy at 20%: search field, filter chips and inputs sitting on light or hero areas.
   static const Color navyTint = Color(0x330A192F);
 
+  // White at 60%: glossy highlight at the top of the primary button.
+  static const Color glassHighlight = Color(0x99FFFFFF);
+
+  // White at 40%: outline of glossy buttons on dark backgrounds.
+  static const Color glassBorder = Color(0x66FFFFFF);
+
+  // White at 80%: primary button label.
+  static const Color whiteSoft = Color(0xCCFFFFFF);
+
+  // Navy at 60%: lower half of the primary button sheen.
+  static const Color navyGlass = Color(0x990A192F);
+
   // Lightest lavender grey: sell screen body, bottom nav, checkbox fill.
   static const Color grey50 = Color(0xFFFAF8FF);
 
@@ -94,6 +106,9 @@ abstract final class AppColors {
   // Secondary text on navy cards.
   static const Color textOnDarkMuted = grey500;
 
+  // Slightly dimmed text on navy buttons ("GET STARTED").
+  static const Color textOnDarkSoft = whiteSoft;
+
   // Input and card outlines.
   static const Color border = grey200;
 
@@ -126,6 +141,14 @@ abstract final class AppColors {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [navyIndigo, redPrimary],
+  );
+
+  // Glossy sheen painted over the navy fill of the primary button.
+  static const LinearGradient primaryButtonSheen = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [glassHighlight, navyGlass],
+    stops: [0, 0.40385],
   );
 
   // Thin accent strip on top of pinned announcement cards.
