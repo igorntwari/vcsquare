@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "281732041231",
+    "project_id": "vcsquared-131f0",
+    "storage_bucket": "vcsquared-131f0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:281732041231:android:2a2edce6199ba774df717a",
+        "android_client_info": {
+          "package_name": "com.example.vsquare"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "281732041231-etml9nslsi25nvo32g0ak383ic6k95m1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrEbm3W7iiw9pwqI60IQggaPvEyJOjR50"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "281732041231-etml9nslsi25nvo32g0ak383ic6k95m1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "281732041231-h848e39tl4gvb39hgf1ee3ctr4ag34k5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.vsquare"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
