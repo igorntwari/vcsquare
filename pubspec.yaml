@@ -67,6 +67,7 @@ flutter:
     - assets/images/listings/
     - assets/images/posts/
     - assets/images/onboarding/
+    - assets/images/communities/
     - assets/icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see

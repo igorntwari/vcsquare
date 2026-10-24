@@ -10,11 +10,12 @@ abstract final class AppTypography {
   // Onboarding welcome title, event banner headline.
   static const TextStyle displayLarge = TextStyle(
     fontFamily: headingFamily,
-    fontSize: 28,
+    fontSize: 34,
     fontWeight: FontWeight.w800,
     height: 36 / 28,
     letterSpacing: -0.7,
   );
+  
 
   // Profile name.
   static const TextStyle headingLarge = TextStyle(
@@ -60,6 +61,14 @@ abstract final class AppTypography {
     height: 22.75 / 14,
   );
 
+  // Bold lead-in at the start of a post body.
+  static const TextStyle bodyLargeStrong = TextStyle(
+    fontFamily: bodyFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    height: 22.75 / 14,
+  );
+
   // Card descriptions, comments, search placeholder.
   static const TextStyle bodyMedium = TextStyle(
     fontFamily: bodyFamily,
@@ -77,12 +86,29 @@ abstract final class AppTypography {
     letterSpacing: 0.12,
   );
 
+  // Small regular-weight labels ("CONTINUE WITH GOOGLE", text links).
+  static const TextStyle bodySmallRegular = TextStyle(
+    fontFamily: bodyFamily,
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    height: 16 / 12,
+  );
+
   // Tiny meta text in badges and listing footers.
   static const TextStyle caption = TextStyle(
     fontFamily: bodyFamily,
     fontSize: 10,
     fontWeight: FontWeight.w400,
     height: 16 / 10,
+  );
+
+  // Tiny bold labels (category tiles, listing photo tags).
+  static const TextStyle captionStrong = TextStyle(
+    fontFamily: bodyFamily,
+    fontSize: 10,
+    fontWeight: FontWeight.w600,
+    height: 16 / 10,
+    letterSpacing: 0.12,
   );
 
   // Form labels and filter chip labels.
