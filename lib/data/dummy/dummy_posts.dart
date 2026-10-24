@@ -50,6 +50,33 @@ final List<PostModel> dummyPosts = [
     ),
   ),
   PostModel(
+    id: 'p21',
+    author: amaraKamau,
+    createdAt: _ago(days: 1, hours: 1),
+    audience: 'Campus Tech Guild',
+    body:
+        "Huge turnout at today's ALU Google Developer Club hackathon "
+        'workshop! We built decentralized payment rails mockups on Flutter. '
+        'Thrilled by the ingenuity of first-year cohorts. 🚀💡',
+    imagePath: 'assets/images/communities/software_engineers.jpg',
+    imageCaption: 'Innovation Lab Hub 2',
+    likeCount: 42,
+    commentCount: 9,
+    isLiked: true,
+  ),
+  PostModel(
+    id: 'p22',
+    author: amaraKamau,
+    createdAt: _ago(days: 3, hours: 2),
+    audience: 'Peer Mentorship',
+    body:
+        'Reminder: Office hours for Data Structures and Algorithm design are '
+        'scheduled for Thursday at Innovation Lab Hub 2. Bring your tough '
+        'graph traversal questions! 📐',
+    likeCount: 18,
+    commentCount: 4,
+  ),
+  PostModel(
     id: 'p03',
     author: roboticsClub,
     createdAt: _ago(hours: 3),

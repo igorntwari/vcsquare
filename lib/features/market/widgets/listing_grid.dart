@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../data/models/listing_model.dart';
-import 'listing_card.dart';
+import '../../../shared/widgets/cards/listing_card.dart';
 
 // Two-column sliver grid, meant to sit inside a CustomScrollView.
 class ListingGrid extends StatelessWidget {

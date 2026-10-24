@@ -146,4 +146,52 @@ abstract final class AppSizes {
 
   // Round send button in the chat input bar.
   static const double sendButton = 44;
+
+  // Profile cover banner height.
+  static const double profileCoverHeight = 144;
+
+  // Large profile avatar (including its white ring).
+  static const double avatarXxl = 96;
+
+  // How far the profile avatar overlaps the cover banner.
+  static const double profileAvatarOverlap = 64;
+
+  // Online pulse badge on the profile avatar.
+  static const double profileStatusBadge = 20;
+
+  // Height of the Student ID / Edit buttons on the profile.
+  static const double profileActionHeight = 40;
+
+  // Square icon box on settings tiles.
+  static const double settingsIconBox = 36;
+
+  // Images inside profile post cards.
+  static const double profilePostImageHeight = 128;
+
+  // Height of the progress track on the sell form.
+  static const double progressTrack = 6;
+
+  // Height of the cover photo slot on the sell form.
+  static const double coverPhotoHeight = 176;
+
+  // Height of the condition option cards.
+  static const double conditionCardHeight = 80;
+
+  // Height of single-line form inputs.
+  static const double inputHeight = 48;
+
+  // Height of the large price input.
+  static const double priceInputHeight = 56;
+
+  // Radio circles on option cards.
+  static const double radioSize = 20;
+
+  // Height of the sell form's bottom action buttons.
+  static const double bottomActionHeight = 48;
+
+  // Max lengths on the sell form.
+  static const int listingTitleMaxLength = 80;
+  static const int descriptionMaxLength = 1000;
+  static const int maxListingPhotos = 6;
+  static const int priceMaxDigits = 9;
 }

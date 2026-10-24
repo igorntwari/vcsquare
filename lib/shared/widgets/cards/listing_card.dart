@@ -10,8 +10,8 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/listing_model.dart';
-import '../../../shared/widgets/avatars/user_avatar.dart';
-import '../../../shared/widgets/chips/status_tag.dart';
+import '../avatars/user_avatar.dart';
+import '../chips/status_tag.dart';
 
 // Photo with a pickup tag and favourite button, then price, condition,
 // title, details and seller.
