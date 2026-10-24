@@ -109,8 +109,6 @@ abstract final class AppColors {
   // Slightly dimmed text on navy buttons ("GET STARTED").
   static const Color textOnDarkSoft = whiteSoft;
 
-  // Input and card outlines.
-  static const Color border = grey200;
 
   // Hairline separators between rows and sections.
   static const Color divider = grey200;
@@ -151,8 +149,5 @@ abstract final class AppColors {
     stops: [0, 0.40385],
   );
 
-  // Thin accent strip on top of pinned announcement cards.
-  static const LinearGradient announcementStripGradient = LinearGradient(
-    colors: [navyPrimary, orangeAccent, redPrimary],
-  );
+
 }

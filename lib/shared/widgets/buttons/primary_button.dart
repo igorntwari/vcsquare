@@ -1,4 +1,5 @@
 // Primary filled button used across the app.
+<<<<<<< HEAD
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_sizes.dart';
@@ -50,3 +51,5 @@ class PrimaryButton extends StatelessWidget {
     );
   }
 }
+=======
+>>>>>>> dev

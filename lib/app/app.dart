@@ -13,6 +13,7 @@ class App extends StatelessWidget {
       theme: AppTheme.light,
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(),
+
     );
   }
 }

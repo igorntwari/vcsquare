@@ -5,3 +5,4 @@ abstract final class AppRadius {
   static const double lg = 16;
   static const double pill = 9999;
 }
+

@@ -1,0 +1,1 @@
+// Circular user profile image.
