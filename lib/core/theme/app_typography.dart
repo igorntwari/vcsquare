@@ -10,11 +10,12 @@ abstract final class AppTypography {
   // Onboarding welcome title, event banner headline.
   static const TextStyle displayLarge = TextStyle(
     fontFamily: headingFamily,
-    fontSize: 28,
+    fontSize: 34,
     fontWeight: FontWeight.w800,
     height: 36 / 28,
     letterSpacing: -0.7,
   );
+  
 
   // Profile name.
   static const TextStyle headingLarge = TextStyle(
@@ -75,6 +76,14 @@ abstract final class AppTypography {
     fontWeight: FontWeight.w500,
     height: 16 / 12,
     letterSpacing: 0.12,
+  );
+
+  // Small regular-weight labels ("CONTINUE WITH GOOGLE", text links).
+  static const TextStyle bodySmallRegular = TextStyle(
+    fontFamily: bodyFamily,
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    height: 16 / 12,
   );
 
   // Tiny meta text in badges and listing footers.

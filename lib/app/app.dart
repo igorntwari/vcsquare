@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme/app_theme.dart';
-import '../features/onboarding/screens/splash_screen.dart';
+import 'routes/app_router.dart';
+import 'routes/route_names.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -12,8 +13,8 @@ class App extends StatelessWidget {
     return MaterialApp(
       theme: AppTheme.light,
       debugShowCheckedModeBanner: false,
-      home: const SplashScreen(),
-
+      initialRoute: RouteNames.splash,
+      routes: AppRouter.routes,
     );
   }
 }

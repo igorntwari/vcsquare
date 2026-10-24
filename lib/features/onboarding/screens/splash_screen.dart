@@ -8,19 +8,19 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/buttons/primary_button.dart';
+import '../../../shared/widgets/layout/gradient_background.dart';
 
 class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({super.key, this.onGetStarted});
+
+  final VoidCallback? onGetStarted;
 
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        body: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: AppColors.onboardingGradient,
-          ),
+        body: GradientBackground(
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(
@@ -53,8 +53,10 @@ class SplashScreen extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  // Navigation to login is wired up with routing later.
-                  PrimaryButton(label: AppStrings.getStarted, onPressed: () {}),
+                  PrimaryButton(
+                    label: AppStrings.getStarted,
+                    onPressed: onGetStarted,
+                  ),
                 ],
               ),
             ),

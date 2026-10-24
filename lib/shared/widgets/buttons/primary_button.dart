@@ -9,13 +9,26 @@ import '../../../core/theme/app_typography.dart';
 
 // Full-width glossy navy button with a soft white outline.
 class PrimaryButton extends StatelessWidget {
-  const PrimaryButton({super.key, required this.label, this.onPressed});
+  const PrimaryButton({
+    super.key,
+    required this.label,
+    this.icon,
+    this.onPressed,
+  });
 
   final String label;
+  final IconData? icon;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
+    final labelText = Text(
+      label,
+      textAlign: TextAlign.center,
+      style: AppTypography.button.copyWith(color: AppColors.textOnDarkSoft),
+    );
+
+
     return SizedBox(
       width: double.infinity,
       child: Material(
@@ -36,13 +49,20 @@ class PrimaryButton extends StatelessWidget {
             onTap: onPressed,
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: AppTypography.button.copyWith(
-                  color: AppColors.textOnDarkSoft,
-                ),
-              ),
+              child: icon == null
+                  ? labelText
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          icon,
+                          size: AppSizes.iconMd,
+                          color: AppColors.textOnDarkSoft,
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        labelText,
+                      ],
+                    ),
             ),
           ),
         ),

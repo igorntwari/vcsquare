@@ -33,6 +33,12 @@ abstract final class AppColors {
   // White at 80%: primary button label.
   static const Color whiteSoft = Color(0xCCFFFFFF);
 
+  // White at 61%: fine print on the onboarding gradient.
+  static const Color whiteFaint = Color(0x9CFFFFFF);
+
+  // Black at 5%: soft card shadows.
+  static const Color blackShadow = Color(0x0D000000);
+
   // Navy at 60%: lower half of the primary button sheen.
   static const Color navyGlass = Color(0x990A192F);
 
@@ -108,6 +114,15 @@ abstract final class AppColors {
 
   // Slightly dimmed text on navy buttons ("GET STARTED").
   static const Color textOnDarkSoft = whiteSoft;
+
+  // Fine print on the onboarding gradient (terms, footer).
+  static const Color textOnDarkFaint = whiteFaint;
+
+  // Card drop shadows.
+  static const Color shadow = blackShadow;
+
+  // Underline under links on dark backgrounds.
+  static const Color linkUnderlineOnDark = glassBorder;
 
 
   // Hairline separators between rows and sections.
