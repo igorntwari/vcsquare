@@ -1,17 +1,23 @@
-// Red floating "Sell an Item" button on the marketplace.
+// Red floating pill button with an icon ("Sell an Item", "New Chat").
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_sizes.dart';
-import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 
-class SellItemButton extends StatelessWidget {
-  const SellItemButton({super.key, this.onPressed});
+class FloatingPillButton extends StatelessWidget {
+  const FloatingPillButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    this.onPressed,
+  });
 
+  final IconData icon;
+  final String label;
   final VoidCallback? onPressed;
 
   @override
@@ -35,14 +41,10 @@ class SellItemButton extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.photo_camera_outlined,
-                  size: AppSizes.iconSm,
-                  color: AppColors.textOnDark,
-                ),
+                Icon(icon, size: AppSizes.iconSm, color: AppColors.textOnDark),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
-                  AppStrings.sellAnItem,
+                  label,
                   style: AppTypography.button.copyWith(
                     color: AppColors.textOnDark,
                   ),

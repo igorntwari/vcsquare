@@ -110,4 +110,40 @@ abstract final class AppSizes {
 
   // Blurred flare on the trust banner.
   static const double trustBannerFlare = 96;
+
+  // Avatar on handle cards and people suggestions.
+  static const double avatarXl = 48;
+
+  // Width of an official handle card in the sideways list.
+  static const double handleCardWidth = 220;
+
+  // Height of the sideways official handles list.
+  static const double handleCardHeight = 224;
+
+  // Cover image on a community card.
+  static const double communityImage = 56;
+
+  // Height of the prominent Follow / Join pill buttons.
+  static const double pillButtonHeight = 36;
+
+  // Round connect button on people suggestions.
+  static const double connectButton = 36;
+
+  // Small activity dot ("Next meetup").
+  static const double activityDot = 6;
+
+  // Thumbnail in the listing chip on chats.
+  static const double listingThumb = 40;
+
+  // Unread count bubble on a conversation.
+  static const double unreadBadge = 20;
+
+  // Status dot on inbox avatars.
+  static const double avatarStatusDot = 14;
+
+  // Widest a chat bubble can grow, as a share of the screen width.
+  static const double bubbleMaxWidthFactor = 0.75;
+
+  // Round send button in the chat input bar.
+  static const double sendButton = 44;
 }

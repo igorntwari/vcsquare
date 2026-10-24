@@ -23,6 +23,22 @@ abstract final class Formatters {
     return '${text.endsWith('.0') ? text.substring(0, text.length - 2) : text}k';
   }
 
+  static const List<String> _weekdays = [
+    'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun',
+  ];
+
+  // Inbox timestamps: "16:30" today, "Yesterday", "Tue" this week, then "12 Oct".
+  static String chatTimestamp(DateTime time, {DateTime? now}) {
+    final today = now ?? DateTime.now();
+    final startOfToday = DateTime(today.year, today.month, today.day);
+    final startOfDay = DateTime(time.year, time.month, time.day);
+    final daysAgo = startOfToday.difference(startOfDay).inDays;
+    if (daysAgo <= 0) return time24(time);
+    if (daysAgo == 1) return 'Yesterday';
+    if (daysAgo < 7) return _weekdays[time.weekday - 1];
+    return '${time.day} ${monthShort(time)}';
+  }
+
   // "Oct"
   static String monthShort(DateTime date) => _months[date.month - 1];
 

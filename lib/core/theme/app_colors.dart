@@ -220,6 +220,24 @@ abstract final class AppColors {
   // Icon circle on navy banners.
   static const Color iconCircleOnDark = glassSubtle;
 
+  // Warm section kicker ("CAMPUS HUBS") and warm trending tags.
+  static const Color kickerWarm = orangeAccent;
+
+  // Chat bubble the current user sent.
+  static const Color bubbleMine = navyPrimary;
+
+  // Chat bubble someone else sent.
+  static const Color bubbleTheirs = white;
+
+  // Search field sitting on a light background.
+  static const Color searchFieldOnLight = grey100;
+
+  // Text field fill in the chat input bar.
+  static const Color inputFill = grey100;
+
+  // Read receipt ticks.
+  static const Color readReceipt = greenPrimary;
+
   // Underline under links on dark backgrounds.
   static const Color linkUnderlineOnDark = glassBorder;
 

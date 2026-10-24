@@ -1,4 +1,5 @@
 // Bottom navigation bar for the main tabs.
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -30,7 +31,7 @@ class BottomNavBar extends StatelessWidget {
     (Icons.home_outlined, AppStrings.navHome),
     (Icons.storefront_outlined, AppStrings.navMarket),
     (Icons.explore_outlined, AppStrings.navExplore),
-    (Icons.chat_bubble_outline, AppStrings.navMessages),
+    (Icons.send_outlined, AppStrings.navMessages),
     (Icons.person_outline, AppStrings.navProfile),
   ];
 
@@ -69,13 +70,24 @@ class BottomNavBar extends StatelessWidget {
   Widget _buildItem(int index) {
     final (icon, label) = _items[index];
     final isActive = index == currentIndex;
-    final badgeCount = index == messagesIndex ? messagesBadgeCount : 0;
+    // No badge on the tab you are already looking at.
+    final badgeCount = index == messagesIndex && !isActive
+        ? messagesBadgeCount
+        : 0;
 
     Widget iconWidget = Icon(
       icon,
       size: AppSizes.iconMd,
       color: isActive ? AppColors.textOnDark : AppColors.iconMuted,
     );
+    if (index == messagesIndex) {
+      // Figma uses a paper plane pointing up-left: tilt the send arrow up,
+      // then mirror it.
+      iconWidget = Transform.flip(
+        flipX: true,
+        child: Transform.rotate(angle: -math.pi / 4, child: iconWidget),
+      );
+    }
     if (badgeCount > 0) {
       iconWidget = Stack(
         clipBehavior: Clip.none,

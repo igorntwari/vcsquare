@@ -2,8 +2,10 @@
 import 'package:flutter/material.dart';
 
 import '../../data/dummy/dummy_conversations.dart';
+import '../../features/explore/screens/explore_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/market/screens/market_screen.dart';
+import '../../features/messages/screens/messages_screen.dart';
 import '../../features/onboarding/screens/login_screen.dart';
 import '../../features/onboarding/screens/splash_screen.dart';
 import '../../features/onboarding/screens/why_institutional_login_screen.dart';
@@ -28,14 +30,14 @@ abstract final class AppRouter {
     RouteNames.whyInstitutionalLogin: (context) => WhyInstitutionalLoginScreen(
       onGoBack: () => Navigator.of(context).pop(),
     ),
-    // Explore, Messages and Profile are blank until those screens are built.
-    RouteNames.home: (context) => const MainShell(
+    // Profile is blank until that screen is built.
+    RouteNames.home: (context) => MainShell(
       messagesBadgeCount: dummyUnreadConversationCount,
-      tabs: [
+      tabs: const [
         HomeScreen(),
         MarketScreen(),
-        SizedBox.shrink(),
-        SizedBox.shrink(),
+        ExploreScreen(),
+        MessagesScreen(),
         SizedBox.shrink(),
       ],
     ),

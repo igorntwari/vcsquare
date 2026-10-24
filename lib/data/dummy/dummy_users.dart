@@ -60,6 +60,22 @@ const fatimaDiallo = UserModel(
   avatarPath: 'assets/images/avatars/fatima_diallo.jpg',
 );
 
+const aminaWanjiku = UserModel(
+  id: 'u_amina_w',
+  name: 'Amina Wanjiku',
+  handle: '@amina.w',
+  cohort: "ALU '26",
+  avatarPath: 'assets/images/avatars/amina_wanjiku.jpg',
+  isOnline: true,
+);
+const tendaiMoyo = UserModel(
+  id: 'u_tendai',
+  name: 'Tendai Moyo',
+  handle: '@tendai.m',
+  cohort: "ALU '27",
+  avatarPath: 'assets/images/avatars/tendai_moyo.jpg',
+);
+
 // Campus offices
 const aluRegistry = UserModel(
   id: 'o_registry',
@@ -128,6 +144,8 @@ const List<UserModel> dummyUsers = [
   zainabKamara,
   chidiOkafor,
   fatimaDiallo,
+  aminaWanjiku,
+  tendaiMoyo,
   aluRegistry,
   aluStudentLife,
   aluCareers,

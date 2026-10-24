@@ -39,9 +39,13 @@ class StatusTag extends StatelessWidget {
             Icon(icon, size: AppSizes.iconXs, color: foregroundColor),
             const SizedBox(width: AppSpacing.xs),
           ],
-          Text(
-            label,
-            style: AppTypography.chip.copyWith(color: foregroundColor),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.chip.copyWith(color: foregroundColor),
+            ),
           ),
         ],
       ),

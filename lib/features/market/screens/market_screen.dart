@@ -9,6 +9,7 @@ import '../../../data/dummy/dummy_categories.dart';
 import '../../../data/dummy/dummy_listings.dart';
 import '../../../data/dummy/dummy_users.dart';
 import '../../../data/models/listing_model.dart';
+import '../../../shared/widgets/buttons/floating_pill_button.dart';
 import '../../../shared/widgets/chips/app_chip.dart';
 import '../../../shared/widgets/chips/status_tag.dart';
 import '../../../shared/widgets/feedback/empty_state.dart';
@@ -17,7 +18,6 @@ import '../../../shared/widgets/layout/app_top_bar.dart';
 import '../widgets/category_grid.dart';
 import '../widgets/exchange_tip_card.dart';
 import '../widgets/listing_grid.dart';
-import '../widgets/sell_item_button.dart';
 import '../widgets/sort_chips.dart';
 import '../widgets/trust_banner.dart';
 
@@ -184,7 +184,11 @@ class _MarketScreenState extends State<MarketScreen> {
                 right: 0,
                 bottom: bottomInset + AppSpacing.lg,
                 child: Center(
-                  child: SellItemButton(onPressed: widget.onSellItem),
+                  child: FloatingPillButton(
+                    icon: Icons.photo_camera_outlined,
+                    label: AppStrings.sellAnItem,
+                    onPressed: widget.onSellItem,
+                  ),
                 ),
               ),
             ],

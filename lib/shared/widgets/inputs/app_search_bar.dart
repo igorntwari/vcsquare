@@ -13,11 +13,17 @@ class AppSearchBar extends StatelessWidget {
   const AppSearchBar({
     super.key,
     required this.hintText,
+    this.onDark = true,
+    this.showFilter = true,
     this.onChanged,
     this.onFilterTap,
   });
 
   final String hintText;
+
+  // True on the navy header, false on light backgrounds.
+  final bool onDark;
+  final bool showFilter;
   final ValueChanged<String>? onChanged;
   final VoidCallback? onFilterTap;
 
@@ -27,17 +33,20 @@ class AppSearchBar extends StatelessWidget {
       borderSide: BorderSide.none,
       borderRadius: BorderRadius.all(Radius.circular(AppRadius.pill)),
     );
+    final textColor = onDark ? AppColors.textOnDark : AppColors.textPrimary;
 
     return SizedBox(
       height: AppSizes.tapTarget,
       child: TextField(
         onChanged: onChanged,
         textInputAction: TextInputAction.search,
-        cursorColor: AppColors.textOnDark,
-        style: AppTypography.bodyMedium.copyWith(color: AppColors.textOnDark),
+        cursorColor: textColor,
+        style: AppTypography.bodyMedium.copyWith(color: textColor),
         decoration: InputDecoration(
           filled: true,
-          fillColor: AppColors.searchFieldOnDark,
+          fillColor: onDark
+              ? AppColors.searchFieldOnDark
+              : AppColors.searchFieldOnLight,
           hintText: hintText,
           hintStyle: AppTypography.bodyMedium.copyWith(
             color: AppColors.textMuted,
@@ -51,7 +60,7 @@ class AppSearchBar extends StatelessWidget {
             size: AppSizes.iconSm,
             color: AppColors.textMuted,
           ),
-          suffixIcon: Padding(
+          suffixIcon: !showFilter ? null : Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: Material(
               color: AppColors.searchActionBackground,

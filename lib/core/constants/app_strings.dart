@@ -100,6 +100,58 @@ abstract final class AppStrings {
   static const String noListingsMessage =
       'Try another category or clear your filters.';
 
+  // Explore
+  static const String exploreSearchHint =
+      'Search posts, listings, students, clubs...';
+  static const String filterAll = 'All';
+  static const String filterPosts = 'Posts';
+  static const String filterListings = 'Listings';
+  static const String filterPeople = 'People';
+  static const String filterCommunities = 'Communities';
+  static const String trendingTitle = 'Trending on ALU Campus';
+  static const String livePulse = 'Live Pulse';
+  static const String verifiedInstitutional = 'VERIFIED INSTITUTIONAL';
+  static const String officialHandles = 'Official School Handles';
+  static const String seeDirectory = 'See directory';
+  static const String campusHubs = 'CAMPUS HUBS';
+  static const String discoverCommunities = 'Discover Communities';
+  static const String exploreAll = 'Explore all';
+  static const String peerNetwork = 'PEER NETWORK';
+  static const String peopleYouMayKnow = 'People You May Know';
+  static const String syncContacts = 'Sync Contacts';
+  static const String follow = 'Follow';
+  static const String following = 'Following';
+  static const String join = 'Join';
+  static const String connect = 'Connect';
+  static const String requestSent = 'Request sent';
+  static String activeMembers(int count) => '$count active members';
+  static String mutualPeers(int count, String interest) =>
+      '$count mutual peers $bulletSeparator $interest';
+
+  // Messages
+  static const String messagesSearchHint =
+      'Search chats, items, or classmates...';
+  static const String newMessage = 'New message';
+  static const String newChat = 'New Chat';
+  static const String filterAllChats = 'All Chats';
+  static const String filterMarketplace = 'Marketplace';
+  static const String filterOfficial = 'Official';
+  static const String filterUnread = 'Unread';
+  static const String official = 'Official';
+  static const String handover = 'Handover';
+  static const String pickupPrefix = 'Pickup:';
+  static const String you = 'You:';
+  static const String online = 'Online';
+  static const String messageHint = 'Write a message...';
+  static const String send = 'Send';
+  static const String attach = 'Attach';
+  static const String back = 'Back';
+  static const String viewListing = 'View';
+  static const String noChatsTitle = 'No chats here yet';
+  static const String noChatsMessage =
+      'Start a conversation with a classmate or seller.';
+  static String unreadMessages(int count) => '$count unread';
+
   // Listing conditions
   static const String conditionNew = 'New';
   static const String conditionLikeNew = 'Like New';
