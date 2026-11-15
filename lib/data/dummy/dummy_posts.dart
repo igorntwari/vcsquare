@@ -62,7 +62,6 @@ final List<PostModel> dummyPosts = [
     imageCaption: 'Innovation Lab Hub 2',
     likeCount: 42,
     commentCount: 9,
-    isLiked: true,
   ),
   PostModel(
     id: 'p22',
@@ -115,7 +114,6 @@ final List<PostModel> dummyPosts = [
         "Thursday's quiz? Library Foyer, 8pm. Bring snacks 🍪",
     likeCount: 23,
     commentCount: 11,
-    isLiked: true,
   ),
   PostModel(
     id: 'p06',
@@ -270,7 +268,6 @@ final List<PostModel> dummyPosts = [
         'game changer 🍛',
     likeCount: 132,
     commentCount: 26,
-    isLiked: true,
   ),
   PostModel(
     id: 'p17',

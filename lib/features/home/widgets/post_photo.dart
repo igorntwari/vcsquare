@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../shared/widgets/media/app_image.dart';
 
 class PostPhoto extends StatelessWidget {
   const PostPhoto({super.key, required this.imagePath, this.caption});
@@ -23,7 +24,7 @@ class PostPhoto extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset(
+            AppImage(
               imagePath,
               fit: BoxFit.cover,
               // Soft placeholder until the photo is added to assets/images/posts.

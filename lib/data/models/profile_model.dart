@@ -1,4 +1,5 @@
 // Model representing the signed-in student's profile details.
+import 'firestore_helpers.dart';
 import 'user_model.dart';
 
 class ProfileModel {
@@ -35,4 +36,35 @@ class ProfileModel {
   final int followingCount;
   final String recognitionTitle;
   final String recognitionSubtitle;
+
+  // Profile fields live in the same users/{id} document as UserModel.
+  factory ProfileModel.fromFirestore(FirestoreMap data, {required UserModel user}) =>
+      ProfileModel(
+        user: user,
+        emailDomain: readString(data['emailDomain']),
+        roleTag: readString(data['roleTag']),
+        campus: readString(data['campus']),
+        program: readString(data['program']),
+        bio: readString(data['bio']),
+        bioHighlight: data['bioHighlight'] as String?,
+        followerCount: readInt(data['followerCount']),
+        followingCount: readInt(data['followingCount']),
+        recognitionTitle: readString(data['recognitionTitle']),
+        recognitionSubtitle: readString(data['recognitionSubtitle']),
+      );
+
+  // Merged into users/{id} together with user.toFirestore().
+  FirestoreMap toFirestore() => {
+    ...user.toFirestore(),
+    'emailDomain': emailDomain,
+    'roleTag': roleTag,
+    'campus': campus,
+    'program': program,
+    'bio': bio,
+    'bioHighlight': bioHighlight,
+    'followerCount': followerCount,
+    'followingCount': followingCount,
+    'recognitionTitle': recognitionTitle,
+    'recognitionSubtitle': recognitionSubtitle,
+  };
 }

@@ -61,7 +61,6 @@ final List<ListingModel> dummyListings = [
     imagePath: 'assets/images/listings/milk_and_honey.jpg',
     tag: 'Book Swap',
     tagStyle: ListingTagStyle.light,
-    isFavorited: true,
   ),
   ListingModel(
     id: 'l05',
@@ -89,7 +88,6 @@ final List<ListingModel> dummyListings = [
     imagePath: 'assets/images/listings/retro_fridge.jpg',
     tag: 'Hostel Block A',
     tagStyle: ListingTagStyle.light,
-    isFavorited: true,
   ),
   ListingModel(
     id: 'l07',
@@ -198,7 +196,6 @@ final List<ListingModel> dummyListings = [
     distanceKm: 1.6,
     imagePath: 'assets/images/listings/city_bike.jpg',
     tag: 'Kigali Pickup',
-    isFavorited: true,
   ),
   ListingModel(
     id: 'l15',
@@ -215,13 +212,3 @@ final List<ListingModel> dummyListings = [
   ),
 ];
 
-// Stand-in for the camera / gallery picker on the sell form: tapping an
-// "add photo" slot adds the next one of these.
-const List<String> dummySellPhotoSamples = [
-  'assets/images/listings/sony_headphones.jpg',
-  'assets/images/listings/macbook_air.jpg',
-  'assets/images/listings/desk_lamp.jpg',
-  'assets/images/listings/backpack.jpg',
-  'assets/images/listings/running_sneakers.jpg',
-  'assets/images/listings/city_bike.jpg',
-];

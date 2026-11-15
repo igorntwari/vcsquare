@@ -1,4 +1,6 @@
 // Model representing a campus event attached to a post.
+import 'firestore_helpers.dart';
+
 class EventModel {
   const EventModel({
     required this.title,
@@ -27,4 +29,25 @@ class EventModel {
   final bool showAsBanner;
 
   bool get isFree => priceRwf == null;
+
+  // Stored inside the post document as posts/{id}.event.
+  factory EventModel.fromFirestore(FirestoreMap data) => EventModel(
+    title: readString(data['title']),
+    startsAt: readDate(data['startsAt']),
+    venue: readString(data['venue']),
+    label: data['label'] as String?,
+    note: data['note'] as String?,
+    priceRwf: (data['priceRwf'] as num?)?.toInt(),
+    showAsBanner: data['showAsBanner'] as bool? ?? true,
+  );
+
+  FirestoreMap toFirestore() => {
+    'title': title,
+    'startsAt': writeDate(startsAt),
+    'venue': venue,
+    'label': label,
+    'note': note,
+    'priceRwf': priceRwf,
+    'showAsBanner': showAsBanner,
+  };
 }

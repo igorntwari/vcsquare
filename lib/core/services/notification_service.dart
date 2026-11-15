@@ -107,6 +107,10 @@ class NotificationService with WidgetsBindingObserver {
       if (launch?.didNotificationLaunchApp ?? false) _requestOpenInbox();
     }
 
+    // The newer register()/onRegistered API returns an installation id, not
+    // the FCM token that Firebase Console's "Send test message" asks for.
+    // Keep the token API until we send from our own backend.
+    // ignore: deprecated_member_use
     messaging.onTokenRefresh.listen(_logToken);
   }
 
@@ -121,6 +125,8 @@ class NotificationService with WidgetsBindingObserver {
     }
     try {
       await messaging.subscribeToTopic(broadcastTopic);
+      // See the note on onTokenRefresh in init().
+      // ignore: deprecated_member_use
       _logToken(await messaging.getToken());
     } catch (error) {
       // Usually no network or no Google Play services on the emulator.

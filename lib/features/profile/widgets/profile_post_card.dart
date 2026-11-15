@@ -11,6 +11,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/post_model.dart';
 import '../../../shared/widgets/avatars/user_avatar.dart';
 import '../../../shared/widgets/cards/app_card.dart';
+import '../../../shared/widgets/media/app_image.dart';
 
 class ProfilePostCard extends StatelessWidget {
   const ProfilePostCard({
@@ -91,7 +92,7 @@ class ProfilePostCard extends StatelessWidget {
               borderRadius: const BorderRadius.all(
                 Radius.circular(AppRadius.sm),
               ),
-              child: Image.asset(
+              child: AppImage(
                 post.imagePath!,
                 height: AppSizes.profilePostImageHeight,
                 width: double.infinity,

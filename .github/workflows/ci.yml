@@ -1,0 +1,35 @@
+# Runs the analyzer and tests on every pull request into dev.
+name: CI
+
+on:
+  pull_request:
+    branches: [dev]
+  # Lets you re-run it by hand from the Actions tab.
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          # Keep in step with the version the team develops on.
+          flutter-version: 3.47.2
+          cache: true
+
+      - name: Install packages
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test

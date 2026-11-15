@@ -1,7 +1,9 @@
 // Form screen for creating a new listing.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
@@ -9,9 +11,6 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../data/dummy/dummy_categories.dart';
-import '../../../data/dummy/dummy_listings.dart';
-import '../../../data/dummy/dummy_pickup_hubs.dart';
 import '../../../data/models/listing_model.dart';
 import '../../../shared/widgets/cards/app_card.dart';
 import '../../../shared/widgets/chips/app_chip.dart';
@@ -19,6 +18,7 @@ import '../../../shared/widgets/chips/status_tag.dart';
 import '../../../shared/widgets/inputs/app_text_area.dart';
 import '../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../shared/widgets/inputs/app_toggle_row.dart';
+import '../providers/market_providers.dart';
 import '../widgets/condition_selector.dart';
 import '../widgets/photo_upload_section.dart';
 import '../widgets/pickup_hub_selector.dart';
@@ -26,17 +26,17 @@ import '../widgets/price_input.dart';
 
 // Step 1 of 2: photos, title, category, condition, price, pickup hub and
 // description. The completion percentage updates as fields are filled.
-class SellItemScreen extends StatefulWidget {
+class SellItemScreen extends ConsumerStatefulWidget {
   const SellItemScreen({super.key, this.onClose, this.onPreview});
 
   final VoidCallback? onClose;
   final VoidCallback? onPreview;
 
   @override
-  State<SellItemScreen> createState() => _SellItemScreenState();
+  ConsumerState<SellItemScreen> createState() => _SellItemScreenState();
 }
 
-class _SellItemScreenState extends State<SellItemScreen> {
+class _SellItemScreenState extends ConsumerState<SellItemScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -87,7 +87,8 @@ class _SellItemScreenState extends State<SellItemScreen> {
     if (_photos.length >= AppSizes.maxListingPhotos) return;
     setState(() {
       _photos.add(
-        dummySellPhotoSamples[_photos.length % dummySellPhotoSamples.length],
+        AppAssets.sellPhotoPlaceholders[_photos.length %
+            AppAssets.sellPhotoPlaceholders.length],
       );
     });
   }
@@ -289,9 +290,7 @@ class _SellItemScreenState extends State<SellItemScreen> {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.xs),
-                const Expanded(
-                  child: ColoredBox(color: AppColors.blueSurface),
-                ),
+                const Expanded(child: ColoredBox(color: AppColors.blueSurface)),
               ],
             ),
           ),
@@ -459,7 +458,9 @@ class _SellItemScreenState extends State<SellItemScreen> {
           clipBehavior: Clip.none,
           child: Row(
             children: [
-              for (final category in dummyCategories) ...[
+              for (final category
+                  in ref.watch(sellFormOptionsProvider).value?.categories ??
+                      const []) ...[
                 AppChip(
                   label: category.name,
                   icon: category.icon,
@@ -537,7 +538,9 @@ class _SellItemScreenState extends State<SellItemScreen> {
           ),
           const SizedBox(height: AppSpacing.md),
           PickupHubSelector(
-            hubs: dummyPickupHubs,
+            hubs:
+                ref.watch(sellFormOptionsProvider).value?.pickupHubs ??
+                const [],
             selectedId: _hubId,
             onSelected: (id) => setState(() => _hubId = id),
           ),
