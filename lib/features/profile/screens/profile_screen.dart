@@ -76,7 +76,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         AppTopBar(
           title: AppStrings.navProfile,
           avatarImagePath: dummyProfile.user.avatarPath,
-          hasUnreadNotifications: true,
         ),
         Expanded(
           child: CustomScrollView(

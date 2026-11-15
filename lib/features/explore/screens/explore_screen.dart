@@ -55,7 +55,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
         AppTopBar(
           title: AppStrings.navExplore,
           avatarImagePath: dummyCurrentUser.avatarPath,
-          hasUnreadNotifications: true,
         ),
         Expanded(
           child: CustomScrollView(

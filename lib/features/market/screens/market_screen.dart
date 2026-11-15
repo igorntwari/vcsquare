@@ -83,7 +83,6 @@ class _MarketScreenState extends State<MarketScreen> {
         AppTopBar(
           title: AppStrings.navMarket,
           avatarImagePath: dummyCurrentUser.avatarPath,
-          hasUnreadNotifications: true,
         ),
         Expanded(
           child: Stack(

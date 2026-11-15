@@ -69,7 +69,6 @@ class _HomeScreenState extends State<HomeScreen> {
         AppTopBar(
           title: AppStrings.navHome,
           avatarImagePath: dummyCurrentUser.avatarPath,
-          hasUnreadNotifications: true,
         ),
         Expanded(
           child: CustomScrollView(
