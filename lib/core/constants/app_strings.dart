@@ -42,6 +42,15 @@ abstract final class AppStrings {
   static const String notifications = 'Notifications';
   static const String profile = 'Profile';
 
+  // Notifications inbox
+  static const String markAllRead = 'Mark all read';
+  static const String notificationsSubtitle = 'Campus alerts and activity';
+  static const String noNotificationsTitle = 'You\'re all caught up';
+  static const String noNotificationsMessage =
+      'Announcements, messages and activity will show up here.';
+  static const String notificationRemoved = 'Notification removed';
+  static const String untitledNotification = 'New notification';
+
   // Home header
   static const String searchHint = 'Search campus pulses, clubs, classmates...';
   static const String searchFilter = 'Filter';

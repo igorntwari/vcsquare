@@ -5,4 +5,5 @@ abstract final class RouteNames {
   static const String whyInstitutionalLogin = '/why-institutional-login';
   static const String home = '/home';
   static const String sellItem = '/sell';
+  static const String notifications = '/notifications';
 }

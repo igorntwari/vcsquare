@@ -77,7 +77,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
         AppTopBar(
           title: AppStrings.navMessages,
           avatarImagePath: dummyCurrentUser.avatarPath,
-          hasUnreadNotifications: true,
         ),
         Expanded(
           child: Stack(
