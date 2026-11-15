@@ -2,7 +2,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 
 import '../core/config/app_config.dart';
@@ -11,7 +10,6 @@ import '../firebase_options.dart';
 // Ports match the "emulators" block in firebase.json.
 const int _authPort = 9099;
 const int _firestorePort = 8080;
-const int _storagePort = 9199;
 
 Future<void> initializeFirebase() async {
   // On Android, google-services.json already configures the default app
@@ -38,7 +36,6 @@ Future<void> initializeFirebase() async {
         : 'localhost';
     await FirebaseAuth.instance.useAuthEmulator(host, _authPort);
     FirebaseFirestore.instance.useFirestoreEmulator(host, _firestorePort);
-    await FirebaseStorage.instance.useStorageEmulator(host, _storagePort);
     debugPrint('[Firebase] Using local emulators on $host');
   }
 }

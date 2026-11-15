@@ -1,7 +1,7 @@
-// Image from a bundled asset path or a web URL (e.g. Firebase Storage).
+// Image from a bundled asset path or a web URL (e.g. Cloudinary).
 import 'package:flutter/material.dart';
 
-// Sample data uses "assets/..." paths; Firebase data uses https URLs.
+// Sample data uses "assets/..." paths; real data uses Cloudinary https URLs.
 // Both go through here so screens work with either.
 class AppImage extends StatelessWidget {
   const AppImage(

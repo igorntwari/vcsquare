@@ -19,7 +19,7 @@ This doc is the source of truth. If you change a collection or field, update the
 - **Money:** whole Rwandan francs as an integer (`priceRwf: 750000`).
 - **Enums:** stored as their Dart name (`"likeNew"`, `"official"`).
 - **Icons:** stored as a name string (`"laptop"`), looked up in [`AppIcons`](../lib/core/constants/app_icons.dart). Add the name there before using it in data.
-- **Images:** `imagePath` / `avatarPath` hold either a bundled `assets/...` path (sample data) or an `https://` Firebase Storage download URL. [`AppImage`](../lib/shared/widgets/media/app_image.dart) handles both.
+- **Images:** `imagePath` / `avatarPath` hold either a bundled `assets/...` path (sample data) or an `https://` Cloudinary URL. Uploads go to Cloudinary (owned by another teammate); Firestore only stores the URL. [`AppImage`](../lib/shared/widgets/media/app_image.dart) handles both.
 - **Per-user state:** likes, saves, follows and memberships live under `users/{uid}/…` as one empty-ish document per item. That keeps them private to the user and easy to add or remove.
 - **Display order:** fixed lists have an `order` int, lowest first.
 
@@ -52,7 +52,7 @@ One document per account: students, campus offices (`type: "official"`) and club
 | `name` | string | |
 | `handle` | string | e.g. `"@amara.builds"` |
 | `type` | string | `student` \| `official` \| `club` |
-| `avatarPath` | string? | asset path or Storage URL |
+| `avatarPath` | string? | asset path or Cloudinary URL |
 | `cohort` | string? | students only, e.g. `"ALU '26"` |
 | `isVerified` | bool | set by the backend |
 | `isOnline` | bool | |
@@ -120,7 +120,7 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | `sellerId` | string | → `users/{sellerId}` |
 | `createdAt` | timestamp | |
 | `distanceKm` | number | placeholder until we compute distance from the buyer's pickup hub |
-| `imagePath` | string? | Storage path `listings/{uid}/{listingId}/…` |
+| `imagePath` | string? | Cloudinary URL |
 | `tag` | string? | label over the photo |
 | `tagStyle` | string | `dark` \| `accent` \| `light` |
 
@@ -176,13 +176,9 @@ Written by [`tool/seed`](../tool/seed/seed.mjs) with the Admin SDK. The app can'
 ### trendingTopics/{autoId}
 `tag` (with `#`) · `activity` (e.g. `"1.4k talks"`) · `rank` int, lowest first. Meant to be written by a backend job; not seeded.
 
-## Storage paths
+## Images
 
-See [`storage.rules`](../storage.rules). Each user writes only their own folder, images only, under 5 MB:
-
-- `avatars/{uid}/…`
-- `listings/{uid}/{listingId}/…`
-- `posts/{uid}/{postId}/…`
+Photos and avatars are uploaded to **Cloudinary**, not Firebase Storage. Firestore stores only the resulting `https://res.cloudinary.com/...` URL in `imagePath` / `avatarPath`. The Cloudinary upload setup (preset, folders, who can upload) is owned by another teammate and documented with that work.
 
 ## Not built yet
 
