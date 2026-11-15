@@ -60,6 +60,27 @@ abstract final class AppColors {
   // Red at 35%: glow under the active nav circle and red floating buttons.
   static const Color redGlow = Color(0x59C8102E);
 
+  // Black at 60%: round delete button over photos, bottom of photo scrims.
+  static const Color blackScrim = Color(0x99000000);
+
+  // Black at 20%: top of photo scrims.
+  static const Color blackScrimLight = Color(0x33000000);
+
+  // Fully transparent black: middle of photo scrims.
+  static const Color blackTransparent = Color(0x00000000);
+
+  // Fully transparent white: start of white fades.
+  static const Color whiteTransparent = Color(0x00FFFFFF);
+
+  // Navy at 16%: option cards and notes on the sell form.
+  static const Color navyTintSoft = Color(0x290A192F);
+
+  // Navy at 60%: secondary text on navy-tinted fields.
+  static const Color navyMuted = Color(0x990A192F);
+
+  // Lavender white at 95%: frosted header and bottom bar on the sell form.
+  static const Color frostedStrong = Color(0xF2FAF8FF);
+
   // Black at 5%: soft card shadows.
   static const Color blackShadow = Color(0x0D000000);
 
@@ -237,6 +258,44 @@ abstract final class AppColors {
 
   // Read receipt ticks.
   static const Color readReceipt = greenPrimary;
+
+  // Translucent round button over the profile cover.
+  static const Color coverButtonBackground = navyGlass;
+
+  // White fade at the bottom of the profile cover.
+  static const LinearGradient coverFade = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [whiteTransparent, white],
+    stops: [0.15, 1],
+  );
+
+  // Navy-to-crimson cover banner on the profile.
+  static const LinearGradient profileCoverGradient = LinearGradient(
+    colors: [navyPrimary, navyIndigo, redPrimary],
+  );
+
+  // Option cards and fields on the sell form (navy at 16%).
+  static const Color formOptionBackground = navyTintSoft;
+
+  // Secondary text on light navy-tinted fields (navy at 60%).
+  static const Color textOnTint = navyMuted;
+
+  // Selected option ring on the sell form.
+  static const Color selectionRing = orangeSurface;
+
+  // Frosted header and bottom bar on the sell form.
+  static const Color frostedSurface = frostedStrong;
+
+  // Round delete button over uploaded photos.
+  static const Color photoActionBackground = blackScrim;
+
+  // Darkens the top and bottom of the cover photo so overlays stay readable.
+  static const LinearGradient photoScrim = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [blackScrimLight, blackTransparent, blackScrim],
+  );
 
   // Underline under links on dark backgrounds.
   static const Color linkUnderlineOnDark = glassBorder;

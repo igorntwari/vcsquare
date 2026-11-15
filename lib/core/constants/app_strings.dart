@@ -152,6 +152,91 @@ abstract final class AppStrings {
       'Start a conversation with a classmate or seller.';
   static String unreadMessages(int count) => '$count unread';
 
+  // Profile
+  static const String accountSettings = 'Account settings';
+  static const String studentId = 'Student ID';
+  static const String edit = 'Edit';
+  static const String statPosts = 'Posts';
+  static const String statListings = 'Listings';
+  static const String statFollowers = 'Followers';
+  static const String statFollowing = 'Following';
+  static const String tabMyPosts = 'My Posts';
+  static String tabListings(int count) => 'Listings ($count)';
+  static const String tabSaved = 'Saved Items';
+  static const String accountVerification = 'ACCOUNT & CAMPUS VERIFICATION';
+  static const String studentIdCardTitle = 'Digital Student ID Card';
+  static const String studentIdCardSubtitle =
+      'Verified for Academic Year 2026–2027';
+  static const String securitySettingsTitle = 'Account & Security Settings';
+  static const String securitySettingsSubtitle =
+      '2FA, email alerts, payment payout methods';
+  static const String campusAccessTitle = 'Kigali Innovation City Access';
+  static const String campusAccessSubtitle =
+      'Smart lock badge • ALU Hub access enabled';
+  static const String noPostsTitle = 'No posts yet';
+  static const String noPostsMessage = 'Share an update from the Home tab.';
+  static const String noSavedTitle = 'Nothing saved yet';
+  static const String noSavedMessage =
+      'Tap the heart on a listing to keep it here.';
+
+  // Sell an item
+  static const String close = 'Close';
+  static const String sellSubtitle = 'Pan-African Campus Exchange';
+  static const String drafts = 'Drafts';
+  static const String draftSaved = 'Draft saved';
+  static const String stepOneOfTwo = 'Step 1 of 2';
+  static const String photosAndDetails = 'Photos & Item Details';
+  static String percentComplete(int percent) => '$percent% complete';
+  static const String visualProof = 'Visual Proof';
+  static const String visualProofHint =
+      '1 to 6 photos. Drag to set cover hero shot.';
+  static String photosAdded(int count, int max) => '$count of $max added';
+  static const String coverPhoto = 'COVER PHOTO';
+  static const String holdToReorder = 'Hold to reorder';
+  static const String deletePhoto = 'Delete photo';
+  static const String addAngle = 'Add Angle';
+  static const String receiptBox = 'Receipt/Box';
+  static const String extraPhoto = 'Extra Photo';
+  static const String proTipLead = 'Pro tip:';
+  static const String proTipBody =
+      ' Items with 3+ clear campus photos sell ';
+  static const String proTipHighlight = '2x faster';
+  static const String proTipEnd = ' during term start.';
+  static const String itemSpecifics = 'Item Specifics';
+  static const String itemSpecificsHint =
+      'Be clear and searchable for peer students.';
+  static const String listingTitle = 'Listing Title';
+  static const String listingTitleHint = 'e.g. Sony WH-1000XM4 Headphones';
+  static const String category = 'Category';
+  static const String condition = 'Condition';
+  static const String conditionNewHint = 'Unopened with seals';
+  static const String conditionLikeNewHint = 'Mint condition, rarely used';
+  static const String conditionUsedHint = 'Good working, minor wear';
+  static const String conditionForPartsHint = 'Non-functional / DIY';
+  static const String askingPrice = 'Asking Price';
+  static const String currencyRwf = 'RWF';
+  static const String openToNegotiation = 'Open to negotiation';
+  static const String openToNegotiationHint =
+      'Allows buyers to offer counter-prices';
+  static const String campusPickupHub = 'Campus Pickup Hub';
+  static const String campusPickupHubHint = 'Designated safe exchange zones';
+  static const String pickupTrustNote =
+      'Peer-to-peer campus exchanges require no digital payment in-app. '
+      'Inspect items thoroughly before cash or MoMo exchange.';
+  static const String descriptionTitle = 'Description & Highlights';
+  static const String descriptionHint =
+      'What makes it great? Mention accessories, battery life, and where '
+      'to pick it up.';
+  static const String quickAdd = 'Quick add:';
+  static const String quickAddOriginalBox = 'Original box';
+  static const String quickAddWarranty = 'Under warranty';
+  static const String quickAddMovingOut = 'Moving out sale';
+  static const String saveDraft = 'Save Draft';
+  static const String previewListing = 'Preview Listing';
+  static const String completeToPreview =
+      'Add a title, category, condition and price to preview.';
+  static String characterCount(int used, int max) => '$used/$max';
+
   // Listing conditions
   static const String conditionNew = 'New';
   static const String conditionLikeNew = 'Like New';
