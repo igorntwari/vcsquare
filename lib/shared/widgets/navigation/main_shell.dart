@@ -16,12 +16,22 @@ class MainShell extends StatefulWidget {
   final List<Widget> tabs;
   final int messagesBadgeCount;
 
+  // Switches to [index] from anywhere inside the shell, e.g. the top bar
+  // avatar opening Profile. Does nothing outside the shell.
+  static void selectTab(BuildContext context, int index) =>
+      context.findAncestorStateOfType<_MainShellState>()?._select(index);
+
   @override
   State<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
+
+  void _select(int index) {
+    if (index < 0 || index >= widget.tabs.length) return;
+    setState(() => _currentIndex = index);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +42,7 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
         messagesBadgeCount: widget.messagesBadgeCount,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: _select,
       ),
     );
   }
