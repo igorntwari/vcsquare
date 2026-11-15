@@ -10,6 +10,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../avatars/user_avatar.dart';
+import '../navigation/bottom_nav_bar.dart';
+import '../navigation/main_shell.dart';
 
 // Navy header with the ALU crest, screen title, notifications and avatar.
 class AppTopBar extends StatelessWidget {
@@ -25,6 +27,7 @@ class AppTopBar extends StatelessWidget {
   final String? avatarImagePath;
   // Defaults to opening the notifications inbox.
   final VoidCallback? onNotificationsTap;
+  // Defaults to switching to the Profile tab.
   final VoidCallback? onProfileTap;
 
   @override
@@ -116,7 +119,12 @@ class AppTopBar extends StatelessWidget {
                     button: true,
                     label: AppStrings.profile,
                     child: GestureDetector(
-                      onTap: onProfileTap,
+                      onTap:
+                          onProfileTap ??
+                          () => MainShell.selectTab(
+                            context,
+                            BottomNavBar.profileIndex,
+                          ),
                       child: SizedBox.square(
                         dimension: AppSizes.tapTarget,
                         child: Center(
