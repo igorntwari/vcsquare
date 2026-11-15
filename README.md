@@ -4,6 +4,7 @@ Virtual Campus Community: a closed social network and marketplace for African Le
 
 - Architecture rules: [lib/README.md](lib/README.md)
 - Database schema: [docs/firestore-schema.md](docs/firestore-schema.md)
+- Images (photos, avatars) are hosted on Cloudinary, not Firebase Storage. The database stores the image URL.
 
 ## Run the app
 
@@ -74,13 +75,12 @@ Google sign-in on iOS also needs an iOS OAuth client:
 
 ## Firebase Emulator Suite
 
-The emulators let you test against Auth, Firestore and Storage on your own machine, without touching the live project. Ports are set in `firebase.json`:
+The emulators let you test against Auth and Firestore on your own machine, without touching the live project. Ports are set in `firebase.json`:
 
 | Emulator | Port |
 | --- | --- |
 | Auth | 9099 |
 | Firestore | 8080 |
-| Storage | 9199 |
 | Emulator UI | 4000 |
 
 You need the Firebase CLI (`npm install -g firebase-tools`) and Java 11+.
@@ -112,10 +112,10 @@ The JSON files must match the sample data in `lib/data/dummy`. `test/seed_data_t
 
 ## Deploying rules and indexes
 
-`firestore.rules`, `storage.rules` and `firestore.indexes.json` are deployed by hand by the project owner:
+`firestore.rules` and `firestore.indexes.json` are deployed by hand by the project owner:
 
 ```sh
-firebase deploy --only firestore:rules,firestore:indexes,storage
+firebase deploy --only firestore:rules,firestore:indexes
 ```
 
 ## Tests and CI
