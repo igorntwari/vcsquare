@@ -1,7 +1,10 @@
 // Central router mapping route names to screens.
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/constants/app_strings.dart';
 import '../../data/dummy/dummy_conversations.dart';
+import '../../data/repositories/repository_providers.dart';
 import '../../features/explore/screens/explore_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/market/screens/market_screen.dart';
@@ -39,17 +42,18 @@ abstract final class AppRouter {
       onGetStarted: () =>
           Navigator.of(context).pushReplacementNamed(RouteNames.login),
     ),
-    RouteNames.login: (context) => LoginScreen(
-      onContinueWithGoogle: () => Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil(RouteNames.home, (_) => false),
-      onWhyInstitutionalLogin: () =>
-          Navigator.of(context).pushNamed(RouteNames.whyInstitutionalLogin),
+    RouteNames.login: (context) => Consumer(
+      builder: (context, ref, _) => LoginScreen(
+        onContinueWithGoogle: () => _signIn(context, ref),
+        onWhyInstitutionalLogin: () =>
+            Navigator.of(context).pushNamed(RouteNames.whyInstitutionalLogin),
+      ),
     ),
     RouteNames.whyInstitutionalLogin: (context) => WhyInstitutionalLoginScreen(
       onGoBack: () => Navigator.of(context).pop(),
     ),
     RouteNames.home: (context) => MainShell(
+      // Messages/chats are owned separately; still on dummy data.
       messagesBadgeCount: dummyUnreadConversationCount,
       tabs: [
         const HomeScreen(),
@@ -68,4 +72,19 @@ abstract final class AppRouter {
     RouteNames.notifications: (context) =>
         NotificationsScreen(onBack: () => Navigator.of(context).pop()),
   };
+
+  static Future<void> _signIn(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref.read(authRepositoryProvider).signInWithGoogle();
+      if (!context.mounted) return;
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil(RouteNames.home, (_) => false);
+    } catch (error) {
+      debugPrint('[signIn] $error');
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text(AppStrings.signInFailed)));
+    }
+  }
 }

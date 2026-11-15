@@ -1,4 +1,5 @@
 // Model representing a marketplace listing.
+import 'firestore_helpers.dart';
 import 'user_model.dart';
 
 enum ListingCondition { brandNew, likeNew, good, used, forParts }
@@ -20,7 +21,6 @@ class ListingModel {
     this.imagePath,
     this.tag,
     this.tagStyle = ListingTagStyle.dark,
-    this.isFavorited = false,
   });
 
   final String id;
@@ -44,6 +44,45 @@ class ListingModel {
   final String? tag;
   final ListingTagStyle tagStyle;
 
-  // Whether the current user had saved it when the market loaded.
-  final bool isFavorited;
+  // listings/{id}. [seller] is looked up from sellerId.
+  factory ListingModel.fromFirestore(
+    String id,
+    FirestoreMap data, {
+    required UserModel seller,
+  }) => ListingModel(
+    id: id,
+    title: readString(data['title']),
+    details: readString(data['details']),
+    priceRwf: readInt(data['priceRwf']),
+    condition: readEnum(
+      ListingCondition.values,
+      data['condition'],
+      ListingCondition.used,
+    ),
+    categoryId: readString(data['categoryId']),
+    seller: seller,
+    createdAt: readDate(data['createdAt']),
+    distanceKm: (data['distanceKm'] as num?)?.toDouble() ?? 0,
+    imagePath: data['imagePath'] as String?,
+    tag: data['tag'] as String?,
+    tagStyle: readEnum(
+      ListingTagStyle.values,
+      data['tagStyle'],
+      ListingTagStyle.dark,
+    ),
+  );
+
+  FirestoreMap toFirestore() => {
+    'title': title,
+    'details': details,
+    'priceRwf': priceRwf,
+    'condition': condition.name,
+    'categoryId': categoryId,
+    'sellerId': seller.id,
+    'createdAt': writeDate(createdAt),
+    'distanceKm': distanceKm,
+    'imagePath': imagePath,
+    'tag': tag,
+    'tagStyle': tagStyle.name,
+  };
 }

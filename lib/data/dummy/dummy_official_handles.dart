@@ -1,6 +1,4 @@
 // Placeholder official handles for building screens before real data.
-import 'package:flutter/material.dart';
-
 import '../models/official_handle_model.dart';
 
 const List<OfficialHandleModel> dummyOfficialHandles = [
@@ -12,8 +10,8 @@ const List<OfficialHandleModel> dummyOfficialHandles = [
     description:
         'Course registration, transcripts, exam timetables and academic '
         'calendar updates.',
-    icon: Icons.school,
-    isFollowing: true,
+    iconName: 'school',
+    order: 0,
   ),
   OfficialHandleModel(
     id: 'h_student_life',
@@ -22,7 +20,8 @@ const List<OfficialHandleModel> dummyOfficialHandles = [
     category: 'STUDENT LIFE',
     description:
         'Campus residence, wellbeing, student council updates and events.',
-    icon: Icons.diversity_3,
+    iconName: 'diversity_3',
+    order: 1,
   ),
   OfficialHandleModel(
     id: 'h_careers',
@@ -31,7 +30,8 @@ const List<OfficialHandleModel> dummyOfficialHandles = [
     category: 'CAREERS',
     description:
         'Pan-African internships, global fellowships, and alumni mentoring.',
-    icon: Icons.work_outline,
+    iconName: 'work_outline',
+    order: 2,
   ),
   OfficialHandleModel(
     id: 'h_sports',
@@ -40,6 +40,7 @@ const List<OfficialHandleModel> dummyOfficialHandles = [
     category: 'ATHLETICS',
     description:
         'Intramural soccer, basketball tournaments, gym hours, and fixtures.',
-    icon: Icons.sports_soccer,
+    iconName: 'sports_soccer',
+    order: 3,
   ),
 ];

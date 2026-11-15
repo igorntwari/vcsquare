@@ -1,0 +1,93 @@
+// Firestore posts: posts/{id}, likes in users/{uid}/likedPosts/{postId}.
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../../models/firestore_helpers.dart';
+import '../../models/post_model.dart';
+import '../firebase/firestore_collections.dart';
+import '../firebase/user_lookup.dart';
+import 'posts_repository.dart';
+
+class FirebasePostsRepository implements PostsRepository {
+  FirebasePostsRepository(this._db) : _users = UserLookup(_db);
+
+  final FirebaseFirestore _db;
+  final UserLookup _users;
+
+  static const int _feedLimit = 50;
+
+  CollectionReference<Map<String, dynamic>> get _posts =>
+      _db.collection(FirestoreCollections.posts);
+
+  @override
+  Future<List<PostModel>> fetchFeed() async {
+    final snapshot = await _posts
+        .orderBy('createdAt', descending: true)
+        .limit(_feedLimit)
+        .get();
+    return _toPosts(snapshot.docs);
+  }
+
+  @override
+  Future<List<PostModel>> fetchPostsByAuthor(String authorId) async {
+    final snapshot = await _posts
+        .where('authorId', isEqualTo: authorId)
+        .orderBy('createdAt', descending: true)
+        .get();
+    return _toPosts(snapshot.docs);
+  }
+
+  @override
+  Future<Set<String>> fetchLikedPostIds(String userId) =>
+      readIdSet(_db, userId, FirestoreCollections.likedPosts);
+
+  @override
+  Future<void> setLiked({
+    required String userId,
+    required String postId,
+    required bool liked,
+  }) {
+    final likeRef = _db
+        .collection(FirestoreCollections.users)
+        .doc(userId)
+        .collection(FirestoreCollections.likedPosts)
+        .doc(postId);
+    // A transaction so a double tap can't count the same like twice.
+    return _db.runTransaction((tx) async {
+      final existing = await tx.get(likeRef);
+      if (existing.exists == liked) return;
+      if (liked) {
+        tx.set(likeRef, {'createdAt': FieldValue.serverTimestamp()});
+      } else {
+        tx.delete(likeRef);
+      }
+      tx.update(_posts.doc(postId), {
+        'likeCount': FieldValue.increment(liked ? 1 : -1),
+      });
+    });
+  }
+
+  Future<List<PostModel>> _toPosts(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
+  ) async {
+    final users = await _users.byIds([
+      for (final doc in docs) ...[
+        readString(doc.data()['authorId']),
+        readString(readMap(doc.data()['commentPreview'])?['authorId']),
+      ],
+    ]);
+    return [
+      for (final doc in docs)
+        PostModel.fromFirestore(
+          doc.id,
+          doc.data(),
+          author:
+              users[readString(doc.data()['authorId'])] ??
+              UserLookup.placeholder(readString(doc.data()['authorId'])),
+          commentAuthor:
+              users[readString(
+                readMap(doc.data()['commentPreview'])?['authorId'],
+              )],
+        ),
+    ];
+  }
+}

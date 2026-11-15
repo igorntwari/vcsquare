@@ -12,6 +12,7 @@ import '../../../shared/widgets/avatars/user_avatar.dart';
 import '../../../shared/widgets/buttons/follow_join_button.dart';
 import '../../../shared/widgets/cards/app_card.dart';
 import '../../../shared/widgets/chips/status_tag.dart';
+import '../../../shared/widgets/media/app_image.dart';
 
 class CommunityCard extends StatelessWidget {
   const CommunityCard({
@@ -151,7 +152,7 @@ class CommunityCard extends StatelessWidget {
         dimension: AppSizes.communityImage,
         child: community.imagePath == null
             ? placeholder
-            : Image.asset(
+            : AppImage(
                 community.imagePath!,
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => placeholder,

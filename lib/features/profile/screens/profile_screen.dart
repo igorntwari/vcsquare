@@ -1,5 +1,6 @@
 // User profile screen.
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
@@ -8,14 +9,16 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../data/dummy/dummy_listings.dart';
-import '../../../data/dummy/dummy_posts.dart';
-import '../../../data/dummy/dummy_profile.dart';
+import '../../../core/utils/optimistic_toggle.dart';
 import '../../../data/models/listing_model.dart';
 import '../../../data/models/post_model.dart';
+import '../../../data/repositories/repository_providers.dart';
 import '../../../shared/widgets/cards/listing_card.dart';
 import '../../../shared/widgets/feedback/empty_state.dart';
+import '../../../shared/widgets/feedback/error_state.dart';
+import '../../../shared/widgets/feedback/loading_indicator.dart';
 import '../../../shared/widgets/layout/app_top_bar.dart';
+import '../providers/profile_providers.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_post_card.dart';
 import '../widgets/profile_stats_row.dart';
@@ -25,134 +28,171 @@ import '../widgets/settings_list_tile.dart';
 
 enum _ProfileTab { posts, listings, saved }
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   _ProfileTab _tab = _ProfileTab.posts;
 
-  final List<PostModel> _myPosts = dummyPosts
-      .where((post) => post.author.id == dummyProfile.user.id)
-      .toList();
+  // The data these local copies were made from. A refetch replaces them.
+  ProfileData? _data;
+  Set<String> _likedPostIds = {};
+  Set<String> _savedListingIds = {};
 
-  final List<ListingModel> _myListings = dummyListings
-      .where((listing) => listing.seller.id == dummyProfile.user.id)
-      .toList();
-
-  late final Set<String> _likedPostIds = {
-    for (final post in _myPosts)
-      if (post.isLiked) post.id,
-  };
-
-  late final Set<String> _savedListingIds = {
-    for (final listing in dummyListings)
-      if (listing.isFavorited) listing.id,
-  };
-
-  // Adds the id if missing, removes it if present.
-  void _toggle(Set<String> ids, String id) {
-    setState(() {
-      if (!ids.remove(id)) ids.add(id);
-    });
+  void _adopt(ProfileData data) {
+    if (data == _data) return;
+    _data = data;
+    _likedPostIds = {...data.likedPostIds};
+    _savedListingIds = {...data.savedListingIds};
   }
 
+  void _update(VoidCallback change) {
+    if (mounted) setState(change);
+  }
+
+  void _showSaveFailed() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text(AppStrings.saveFailed)));
+  }
+
+  void _toggleLike(String userId, String postId) => optimisticToggle(
+    ids: _likedPostIds,
+    id: postId,
+    update: _update,
+    save: (liked) => ref
+        .read(postsRepositoryProvider)
+        .setLiked(userId: userId, postId: postId, liked: liked),
+    onError: _showSaveFailed,
+  );
+
+  void _toggleSaved(String userId, String listingId) => optimisticToggle(
+    ids: _savedListingIds,
+    id: listingId,
+    update: _update,
+    save: (saved) => ref
+        .read(listingsRepositoryProvider)
+        .setSaved(userId: userId, listingId: listingId, saved: saved),
+    onError: _showSaveFailed,
+  );
+
+  // The stored count already includes the user's own like if it was there
+  // when the profile loaded, so only adjust for changes since then.
   int _likeCount(PostModel post) =>
       post.likeCount +
       (_likedPostIds.contains(post.id) ? 1 : 0) -
-      (post.isLiked ? 1 : 0);
+      ((_data?.likedPostIds.contains(post.id) ?? false) ? 1 : 0);
 
   @override
   Widget build(BuildContext context) {
-    final saved = dummyListings
-        .where((listing) => _savedListingIds.contains(listing.id))
-        .toList();
+    final user = ref.watch(currentUserProvider).value;
+    final loaded = ref.watch(profileProvider);
+    if (loaded.value case final value?) _adopt(value);
+    final data = _data;
 
     return Column(
       children: [
         AppTopBar(
           title: AppStrings.navProfile,
-          avatarImagePath: dummyProfile.user.avatarPath,
+          avatarImagePath: user?.avatarPath,
         ),
         Expanded(
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: ProfileHeader(
-                  profile: dummyProfile,
-                  onSettings: () {},
-                  onStudentId: () {},
-                  onEdit: () {},
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                sliver: SliverList.list(
-                  children: [
-                    ProfileStatsRow(
-                      posts: _myPosts.length,
-                      listings: _myListings.length,
-                      followers: dummyProfile.followerCount,
-                      following: dummyProfile.followingCount,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    RecognitionBanner(
-                      title: dummyProfile.recognitionTitle,
-                      subtitle: dummyProfile.recognitionSubtitle,
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    ProfileTabBar(
-                      labels: [
-                        AppStrings.tabMyPosts,
-                        AppStrings.tabListings(_myListings.length),
-                        AppStrings.tabSaved,
-                      ],
-                      selectedIndex: _tab.index,
-                      onSelected: (index) =>
-                          setState(() => _tab = _ProfileTab.values[index]),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                  ],
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                sliver: switch (_tab) {
-                  _ProfileTab.posts => _buildPosts(),
-                  _ProfileTab.listings => _buildListingGrid(
-                    _myListings,
-                    emptyTitle: AppStrings.noListingsTitle,
-                    emptyMessage: AppStrings.noListingsMessage,
-                  ),
-                  _ProfileTab.saved => _buildListingGrid(
-                    saved,
-                    emptyTitle: AppStrings.noSavedTitle,
-                    emptyMessage: AppStrings.noSavedMessage,
-                  ),
-                },
-              ),
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  AppSpacing.xl,
-                  AppSpacing.lg,
-                  MediaQuery.paddingOf(context).bottom + AppSpacing.lg,
-                ),
-                sliver: SliverToBoxAdapter(child: _buildAccountSection()),
-              ),
-            ],
-          ),
+          child: data == null
+              ? (loaded.hasError
+                    ? ErrorState(onRetry: () => ref.invalidate(profileProvider))
+                    : const LoadingIndicator())
+              : _buildProfile(data),
         ),
       ],
     );
   }
 
-  Widget _buildPosts() {
-    if (_myPosts.isEmpty) {
+  Widget _buildProfile(ProfileData data) {
+    final profile = data.profile;
+    final userId = profile.user.id;
+    final saved = data.allListings
+        .where((listing) => _savedListingIds.contains(listing.id))
+        .toList();
+
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: ProfileHeader(
+            profile: profile,
+            onSettings: () {},
+            onStudentId: () {},
+            onEdit: () {},
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          sliver: SliverList.list(
+            children: [
+              ProfileStatsRow(
+                posts: data.posts.length,
+                listings: data.listings.length,
+                followers: profile.followerCount,
+                following: profile.followingCount,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              RecognitionBanner(
+                title: profile.recognitionTitle,
+                subtitle: profile.recognitionSubtitle,
+                onTap: () {},
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              ProfileTabBar(
+                labels: [
+                  AppStrings.tabMyPosts,
+                  AppStrings.tabListings(data.listings.length),
+                  AppStrings.tabSaved,
+                ],
+                selectedIndex: _tab.index,
+                onSelected: (index) =>
+                    setState(() => _tab = _ProfileTab.values[index]),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          sliver: switch (_tab) {
+            _ProfileTab.posts => _buildPosts(data.posts, userId),
+            _ProfileTab.listings => _buildListingGrid(
+              data.listings,
+              userId,
+              emptyTitle: AppStrings.noListingsTitle,
+              emptyMessage: AppStrings.noListingsMessage,
+            ),
+            _ProfileTab.saved => _buildListingGrid(
+              saved,
+              userId,
+              emptyTitle: AppStrings.noSavedTitle,
+              emptyMessage: AppStrings.noSavedMessage,
+            ),
+          },
+        ),
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.xl,
+            AppSpacing.lg,
+            MediaQuery.paddingOf(context).bottom + AppSpacing.lg,
+          ),
+          sliver: SliverToBoxAdapter(child: _buildAccountSection()),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPosts(List<PostModel> posts, String userId) {
+    if (posts.isEmpty) {
       return const SliverToBoxAdapter(
         child: EmptyState(
           icon: Icons.edit_note,
@@ -162,22 +202,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
     return SliverList.separated(
-      itemCount: _myPosts.length,
+      itemCount: posts.length,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (context, index) {
-        final post = _myPosts[index];
+        final post = posts[index];
         return ProfilePostCard(
           post: post,
           isLiked: _likedPostIds.contains(post.id),
           likeCount: _likeCount(post),
-          onLike: () => _toggle(_likedPostIds, post.id),
+          onLike: () => _toggleLike(userId, post.id),
         );
       },
     );
   }
 
   Widget _buildListingGrid(
-    List<ListingModel> listings, {
+    List<ListingModel> listings,
+    String userId, {
     required String emptyTitle,
     required String emptyMessage,
   }) {
@@ -203,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return ListingCard(
           listing: listing,
           isFavorite: _savedListingIds.contains(listing.id),
-          onFavorite: () => _toggle(_savedListingIds, listing.id),
+          onFavorite: () => _toggleSaved(userId, listing.id),
         );
       },
     );
@@ -228,9 +269,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           child: Material(
             color: AppColors.surface,
-            borderRadius: const BorderRadius.all(
-              Radius.circular(AppRadius.md),
-            ),
+            borderRadius: const BorderRadius.all(Radius.circular(AppRadius.md)),
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [

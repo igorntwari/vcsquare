@@ -124,6 +124,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               final conversation = conversations[index];
                               return ConversationTile(
                                 conversation: conversation,
+                                currentUserId: dummyCurrentUser.id,
                                 unreadCount: _unreadCount(conversation),
                                 onTap: () => _openChat(conversation),
                               );

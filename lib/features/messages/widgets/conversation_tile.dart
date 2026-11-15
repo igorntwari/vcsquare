@@ -21,11 +21,15 @@ class ConversationTile extends StatelessWidget {
   const ConversationTile({
     super.key,
     required this.conversation,
+    required this.currentUserId,
     required this.unreadCount,
     this.onTap,
   });
 
   final ConversationModel conversation;
+
+  // Used to tell whether the last message was sent by the signed-in user.
+  final String currentUserId;
 
   // Passed in so the inbox can clear it once the chat has been opened.
   final int unreadCount;
@@ -105,7 +109,7 @@ class ConversationTile extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              last.isMine
+                              last.isFrom(currentUserId)
                                   ? '${AppStrings.you} ${last.text}'
                                   : last.text,
                               maxLines: 1,
@@ -247,7 +251,7 @@ class ConversationTile extends StatelessWidget {
         ),
       );
     }
-    if (!last.isMine) return null;
+    if (!last.isFrom(currentUserId)) return null;
     final isRead = last.status == MessageStatus.read;
     return Icon(
       isRead ? Icons.done_all : Icons.check,

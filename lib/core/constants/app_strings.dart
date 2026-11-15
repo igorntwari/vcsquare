@@ -42,6 +42,17 @@ abstract final class AppStrings {
   static const String notifications = 'Notifications';
   static const String profile = 'Profile';
 
+  // Loading and errors
+  static const String loading = 'Loading';
+  static const String errorTitle = 'Something went wrong';
+  static const String errorMessage =
+      'We couldn\'t load this. Check your connection and try again.';
+  static const String retry = 'Try again';
+  static const String saveFailed = 'Couldn\'t save that. Please try again.';
+  static const String signInFailed =
+      'Couldn\'t sign you in. Please try again.';
+  static const String sendFailed = 'Message not sent. Please try again.';
+
   // Notifications inbox
   static const String markAllRead = 'Mark all read';
   static const String notificationsSubtitle = 'Campus alerts and activity';

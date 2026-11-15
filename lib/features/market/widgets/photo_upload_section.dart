@@ -8,6 +8,7 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../shared/widgets/media/app_image.dart';
 
 // Large cover photo with two small photos beside it, then three "add" slots.
 class PhotoUploadSection extends StatelessWidget {
@@ -87,7 +88,7 @@ class PhotoUploadSection extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(photos[index], fit: BoxFit.cover),
+          AppImage(photos[index], fit: BoxFit.cover),
           if (isCover) ...[
             const DecoratedBox(
               decoration: BoxDecoration(gradient: AppColors.photoScrim),

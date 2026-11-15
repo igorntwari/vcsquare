@@ -1,0 +1,12 @@
+{
+  "name": "vsquare-seed",
+  "private": true,
+  "description": "Seeds fixed Firestore data (categories, pickup hubs, official accounts, communities).",
+  "type": "module",
+  "scripts": {
+    "seed": "node seed.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}
