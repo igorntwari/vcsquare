@@ -5,10 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/optimistic_toggle.dart';
+import '../../../data/models/community_model.dart';
 import '../../../data/models/listing_model.dart';
+import '../../../data/models/official_handle_model.dart';
 import '../../../data/models/post_model.dart';
 import '../../../data/repositories/repository_providers.dart';
 import '../../../shared/widgets/cards/app_card.dart';
@@ -29,7 +32,15 @@ import '../widgets/person_suggestion_tile.dart';
 import '../widgets/trending_topics.dart';
 
 class ExploreScreen extends ConsumerStatefulWidget {
-  const ExploreScreen({super.key});
+  const ExploreScreen({
+    super.key,
+    this.onOpenCommunity,
+    this.onOpenOfficialHandle,
+  });
+
+  final void Function(CommunityModel, bool, VoidCallback)? onOpenCommunity;
+  final void Function(OfficialHandleModel, bool, VoidCallback)?
+  onOpenOfficialHandle;
 
   @override
   ConsumerState<ExploreScreen> createState() => _ExploreScreenState();
@@ -201,7 +212,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                           kickerColor: AppColors.success,
                           title: AppStrings.officialHandles,
                           actionLabel: AppStrings.seeDirectory,
-                          onAction: () {},
+                          onAction: () =>
+                              setState(() => _selectedExploreFilter = 3),
                         ),
                       ],
                     ),
@@ -232,6 +244,11 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                           community: community,
                           isJoined: _joinedCommunityIds.contains(community.id),
                           onJoin: () => _toggleJoin(community.id),
+                          onTap: () => widget.onOpenCommunity?.call(
+                            community,
+                            _joinedCommunityIds.contains(community.id),
+                            () => _toggleJoin(community.id),
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.sm),
                       ],
@@ -319,7 +336,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               onConnect: () => _toggle(_requestedPeerIds, suggestion.user.id),
             ),
           for (final handle in handles)
-            _buildHandleResult(handle.name, handle.handle, handle.description),
+            _buildHandleResult(
+              handle,
+              onTap: () => widget.onOpenOfficialHandle?.call(
+                handle,
+                _followedHandleIds.contains(handle.id),
+                () => _toggleFollow(handle.id),
+              ),
+            ),
         ]);
       case 4:
         _appendSection(children, AppStrings.filterCommunities, [
@@ -328,6 +352,11 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               community: community,
               isJoined: _joinedCommunityIds.contains(community.id),
               onJoin: () => _toggleJoin(community.id),
+              onTap: () => widget.onOpenCommunity?.call(
+                community,
+                _joinedCommunityIds.contains(community.id),
+                () => _toggleJoin(community.id),
+              ),
             ),
         ]);
       default:
@@ -346,7 +375,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               onConnect: () => _toggle(_requestedPeerIds, suggestion.user.id),
             ),
           for (final handle in handles)
-            _buildHandleResult(handle.name, handle.handle, handle.description),
+            _buildHandleResult(
+              handle,
+              onTap: () => widget.onOpenOfficialHandle?.call(
+                handle,
+                _followedHandleIds.contains(handle.id),
+                () => _toggleFollow(handle.id),
+              ),
+            ),
         ]);
         _appendSection(children, AppStrings.filterCommunities, [
           for (final community in communities)
@@ -354,6 +390,11 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               community: community,
               isJoined: _joinedCommunityIds.contains(community.id),
               onJoin: () => _toggleJoin(community.id),
+              onTap: () => widget.onOpenCommunity?.call(
+                community,
+                _joinedCommunityIds.contains(community.id),
+                () => _toggleJoin(community.id),
+              ),
             ),
         ]);
     }
@@ -390,51 +431,58 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     }
   }
 
-  Widget _buildHandleResult(String name, String handle, String description) {
-    return AppCard(
-      child: Row(
-        children: [
-          Container(
-            width: AppSizes.avatarMd,
-            height: AppSizes.avatarMd,
-            decoration: const BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.school_outlined,
-              color: AppColors.textOnDark,
-            ),
+  Widget _buildHandleResult(OfficialHandleModel handle, {VoidCallback? onTap}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: const BorderRadius.all(Radius.circular(AppRadius.md)),
+        child: AppCard(
+          child: Row(
+            children: [
+              Container(
+                width: AppSizes.avatarMd,
+                height: AppSizes.avatarMd,
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.school_outlined,
+                  color: AppColors.textOnDark,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      handle.name,
+                      style: AppTypography.titleLarge.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      handle.handle,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                    Text(
+                      handle.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: AppTypography.titleLarge.copyWith(
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                Text(
-                  handle,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.textMuted,
-                  ),
-                ),
-                Text(
-                  description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -523,6 +571,11 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             handle: handle,
             isFollowing: _followedHandleIds.contains(handle.id),
             onFollow: () => _toggleFollow(handle.id),
+            onTap: () => widget.onOpenOfficialHandle?.call(
+              handle,
+              _followedHandleIds.contains(handle.id),
+              () => _toggleFollow(handle.id),
+            ),
           );
         },
       ),

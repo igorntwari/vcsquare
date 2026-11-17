@@ -134,6 +134,8 @@ abstract final class AppStrings {
   static const String livePulse = 'Live Pulse';
   static const String verifiedInstitutional = 'VERIFIED INSTITUTIONAL';
   static const String officialHandles = 'Official School Handles';
+  static const String officialAccountDetailsTitle = 'Official account';
+  static const String communityDetailsTitle = 'Community';
   static const String seeDirectory = 'See directory';
   static const String campusHubs = 'CAMPUS HUBS';
   static const String discoverCommunities = 'Discover Communities';

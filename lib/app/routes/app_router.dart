@@ -6,6 +6,8 @@ import '../../core/constants/app_strings.dart';
 import '../../data/dummy/dummy_conversations.dart';
 import '../../data/repositories/repository_providers.dart';
 import '../../features/explore/screens/explore_screen.dart';
+import '../../features/explore/screens/official_handle_detail_screen.dart';
+import '../../features/explore/screens/community_detail_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/market/screens/market_screen.dart';
 import '../../features/market/screens/sell_item_screen.dart';
@@ -61,7 +63,28 @@ abstract final class AppRouter {
           onSellItem: () =>
               Navigator.of(context).pushNamed(RouteNames.sellItem),
         ),
-        const ExploreScreen(),
+        ExploreScreen(
+          onOpenCommunity: (community, isJoined, onJoin) =>
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => CommunityDetailScreen(
+                    community: community,
+                    isJoined: isJoined,
+                    onJoin: onJoin,
+                  ),
+                ),
+              ),
+          onOpenOfficialHandle: (handle, isFollowing, onFollow) =>
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => OfficialHandleDetailScreen(
+                    handle: handle,
+                    isFollowing: isFollowing,
+                    onFollow: onFollow,
+                  ),
+                ),
+              ),
+        ),
         const MessagesScreen(),
         const ProfileScreen(),
       ],

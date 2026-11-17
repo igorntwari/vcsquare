@@ -17,11 +17,13 @@ class OfficialHandleCard extends StatelessWidget {
     required this.handle,
     required this.isFollowing,
     this.onFollow,
+    this.onTap,
   });
 
   final OfficialHandleModel handle;
   final bool isFollowing;
   final VoidCallback? onFollow;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -86,12 +88,15 @@ class OfficialHandleCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
-            Text(
-              handle.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.titleLarge.copyWith(
-                color: AppColors.textPrimary,
+            InkWell(
+              onTap: onTap,
+              child: Text(
+                handle.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.titleLarge.copyWith(
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
             Text(
