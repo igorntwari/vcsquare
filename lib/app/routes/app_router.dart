@@ -14,6 +14,7 @@ import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/onboarding/screens/login_screen.dart';
 import '../../features/onboarding/screens/splash_screen.dart';
 import '../../features/onboarding/screens/why_institutional_login_screen.dart';
+import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../shared/widgets/navigation/main_shell.dart';
 import 'route_names.dart';
@@ -63,7 +64,10 @@ abstract final class AppRouter {
         ),
         const ExploreScreen(),
         const MessagesScreen(),
-        const ProfileScreen(),
+        ProfileScreen(
+          onEditProfile: () =>
+              Navigator.of(context).pushNamed(RouteNames.editProfile),
+        ),
       ],
     ),
     // Preview Listing (step 2) is wired up once that screen is built.
@@ -71,6 +75,8 @@ abstract final class AppRouter {
         SellItemScreen(onClose: () => Navigator.of(context).pop()),
     RouteNames.notifications: (context) =>
         NotificationsScreen(onBack: () => Navigator.of(context).pop()),
+    RouteNames.editProfile: (context) =>
+        EditProfileScreen(onDone: () => Navigator.of(context).pop()),
   };
 
   static Future<void> _signIn(BuildContext context, WidgetRef ref) async {

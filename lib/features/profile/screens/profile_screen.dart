@@ -29,7 +29,9 @@ import '../widgets/settings_list_tile.dart';
 enum _ProfileTab { posts, listings, saved }
 
 class ProfileScreen extends ConsumerStatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.onEditProfile});
+
+  final VoidCallback? onEditProfile;
 
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
@@ -126,7 +128,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             profile: profile,
             onSettings: () {},
             onStudentId: () {},
-            onEdit: () {},
+            onEdit: widget.onEditProfile,
           ),
         ),
         SliverPadding(
