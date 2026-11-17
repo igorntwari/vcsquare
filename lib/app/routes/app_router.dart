@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../data/dummy/dummy_conversations.dart';
+import '../../data/models/listing_model.dart';
 import '../../data/repositories/repository_providers.dart';
 import '../../features/explore/screens/explore_screen.dart';
 import '../../features/home/screens/home_screen.dart';
+import '../../features/market/providers/market_providers.dart';
 import '../../features/market/screens/listing_detail_screen.dart';
 import '../../features/market/screens/listing_preview_screen.dart';
 import '../../features/market/screens/market_screen.dart';
@@ -78,9 +80,38 @@ abstract final class AppRouter {
       onClose: () => Navigator.of(context).pop(),
       onPreview: (draft) => Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) => ListingPreviewScreen(
-            draft: draft,
-            onBack: () => Navigator.of(context).pop(),
+          builder: (previewContext) => Consumer(
+            builder: (context, ref, _) => ListingPreviewScreen(
+              draft: draft,
+              onBack: () => Navigator.of(context).pop(),
+              onPublish: () async {
+                final seller = ref.read(currentUserProvider).value;
+                if (seller == null) throw StateError('No signed-in seller');
+                final navigator = Navigator.of(previewContext);
+                await ref
+                    .read(listingsRepositoryProvider)
+                    .createListing(
+                      ListingModel(
+                        id: '',
+                        title: draft.title,
+                        details: draft.description,
+                        priceRwf: draft.priceRwf,
+                        condition: draft.condition,
+                        categoryId: draft.categoryId,
+                        seller: seller,
+                        createdAt: DateTime.now(),
+                        distanceKm: 0,
+                        imagePath: draft.photoPaths.isEmpty
+                            ? null
+                            : draft.photoPaths.first,
+                        tag: draft.pickupHubName,
+                      ),
+                    );
+                ref.invalidate(marketProvider);
+                navigator.pop();
+                navigator.pop();
+              },
+            ),
           ),
         ),
       ),

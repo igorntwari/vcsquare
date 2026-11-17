@@ -14,7 +14,7 @@ import '../../../shared/widgets/chips/status_tag.dart';
 import '../../../shared/widgets/media/app_image.dart';
 import '../models/listing_draft.dart';
 
-class ListingPreviewScreen extends StatelessWidget {
+class ListingPreviewScreen extends StatefulWidget {
   const ListingPreviewScreen({
     super.key,
     required this.draft,
@@ -24,10 +24,34 @@ class ListingPreviewScreen extends StatelessWidget {
 
   final ListingDraft draft;
   final VoidCallback? onBack;
-  final VoidCallback? onPublish;
+  final Future<void> Function()? onPublish;
+
+  @override
+  State<ListingPreviewScreen> createState() => _ListingPreviewScreenState();
+}
+
+class _ListingPreviewScreenState extends State<ListingPreviewScreen> {
+  bool _isPublishing = false;
+
+  Future<void> _publish() async {
+    final onPublish = widget.onPublish;
+    if (onPublish == null || _isPublishing) return;
+    setState(() => _isPublishing = true);
+    try {
+      await onPublish();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text(AppStrings.saveFailed)));
+    } finally {
+      if (mounted) setState(() => _isPublishing = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final draft = widget.draft;
     final photo = draft.photoPaths.isEmpty ? null : draft.photoPaths.first;
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -42,7 +66,7 @@ class ListingPreviewScreen extends StatelessWidget {
         ),
         leading: IconButton(
           tooltip: AppStrings.back,
-          onPressed: onBack ?? () => Navigator.of(context).maybePop(),
+          onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
           icon: const Icon(Icons.arrow_back),
         ),
       ),
@@ -168,7 +192,7 @@ class ListingPreviewScreen extends StatelessWidget {
           child: PrimaryButton(
             label: AppStrings.publishListing,
             icon: Icons.check,
-            onPressed: onPublish,
+            onPressed: _isPublishing ? null : _publish,
           ),
         ),
       ),
