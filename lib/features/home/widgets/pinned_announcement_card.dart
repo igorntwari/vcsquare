@@ -24,12 +24,14 @@ class PinnedAnnouncementCard extends StatelessWidget {
     required this.isLiked,
     required this.likeCount,
     this.onLike,
+    this.onShare,
   });
 
   final PostModel post;
   final bool isLiked;
   final int likeCount;
   final VoidCallback? onLike;
+  final VoidCallback? onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +92,7 @@ class PinnedAnnouncementCard extends StatelessWidget {
                   commentCount: post.commentCount,
                   isLiked: isLiked,
                   onLike: onLike,
+                  onShare: onShare,
                   trailing: post.isMandatoryRead
                       ? const StatusTag(
                           label: AppStrings.mandatoryRead,

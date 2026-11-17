@@ -77,6 +77,7 @@ abstract final class AppStrings {
   static const String publishPost = 'Post';
   static const String postBodyRequired = 'Write something before posting.';
   static const String postPublished = 'Your post was shared.';
+  static const String postCopied = 'Post text copied to clipboard.';
 
   // Home feed filters
   static const String filterAllCampus = 'All Campus';

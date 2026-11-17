@@ -30,6 +30,7 @@ class PostCard extends StatelessWidget {
     this.isJoined = false,
     this.onLike,
     this.onJoin,
+    this.onShare,
   });
 
   final PostModel post;
@@ -38,6 +39,7 @@ class PostCard extends StatelessWidget {
   final bool isJoined;
   final VoidCallback? onLike;
   final VoidCallback? onJoin;
+  final VoidCallback? onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +77,7 @@ class PostCard extends StatelessWidget {
             commentCount: post.commentCount,
             isLiked: isLiked,
             onLike: onLike,
+            onShare: onShare,
             trailing: _buildTrailingAction(),
           ),
           if (post.commentPreview != null) ...[

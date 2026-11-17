@@ -1,5 +1,6 @@
 // Home feed screen.
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_strings.dart';
@@ -123,6 +124,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           .setJoined(userId: userId, groupId: post.author.id, joined: joined),
       onError: _showSaveFailed,
     );
+  }
+
+  Future<void> _sharePost(PostModel post) async {
+    final text = [post.title, post.body].whereType<String>().join('\n');
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text(AppStrings.postCopied)));
   }
 
   // The stored count already includes the user's own like if it was there
@@ -262,6 +272,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         isLiked: isLiked,
         likeCount: likeCount,
         onLike: () => _toggleLike(post),
+        onShare: () => _sharePost(post),
       );
     }
     return PostCard(
@@ -271,6 +282,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       isJoined: _joinedClubIds.contains(post.author.id),
       onLike: () => _toggleLike(post),
       onJoin: () => _toggleJoin(post),
+      onShare: () => _sharePost(post),
     );
   }
 }
