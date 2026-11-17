@@ -17,6 +17,7 @@ import '../../../shared/widgets/feedback/loading_indicator.dart';
 import '../../../shared/widgets/inputs/app_search_bar.dart';
 import '../../../shared/widgets/layout/app_top_bar.dart';
 import '../providers/home_providers.dart';
+import 'post_comments_sheet.dart';
 import '../widgets/pinned_announcement_card.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_composer_bar.dart';
@@ -133,6 +134,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(const SnackBar(content: Text(AppStrings.postCopied)));
+  }
+
+  Future<void> _openComments(PostModel post) async {
+    final addedComment = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => PostCommentsSheet(post: post),
+    );
+    if (addedComment == true) ref.invalidate(homeFeedProvider);
   }
 
   // The stored count already includes the user's own like if it was there
@@ -272,6 +283,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         isLiked: isLiked,
         likeCount: likeCount,
         onLike: () => _toggleLike(post),
+        onComment: () => _openComments(post),
         onShare: () => _sharePost(post),
       );
     }
@@ -282,6 +294,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       isJoined: _joinedClubIds.contains(post.author.id),
       onLike: () => _toggleLike(post),
       onJoin: () => _toggleJoin(post),
+      onComment: () => _openComments(post),
       onShare: () => _sharePost(post),
     );
   }

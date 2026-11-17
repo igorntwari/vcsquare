@@ -78,6 +78,9 @@ abstract final class AppStrings {
   static const String postBodyRequired = 'Write something before posting.';
   static const String postPublished = 'Your post was shared.';
   static const String postCopied = 'Post text copied to clipboard.';
+  static const String commentsTitle = 'Comments';
+  static const String commentHint = 'Write a comment...';
+  static const String noCommentsMessage = 'Be the first to comment.';
 
   // Home feed filters
   static const String filterAllCampus = 'All Campus';

@@ -30,6 +30,7 @@ class PostCard extends StatelessWidget {
     this.isJoined = false,
     this.onLike,
     this.onJoin,
+    this.onComment,
     this.onShare,
   });
 
@@ -39,6 +40,7 @@ class PostCard extends StatelessWidget {
   final bool isJoined;
   final VoidCallback? onLike;
   final VoidCallback? onJoin;
+  final VoidCallback? onComment;
   final VoidCallback? onShare;
 
   @override
@@ -77,6 +79,7 @@ class PostCard extends StatelessWidget {
             commentCount: post.commentCount,
             isLiked: isLiked,
             onLike: onLike,
+            onComment: onComment,
             onShare: onShare,
             trailing: _buildTrailingAction(),
           ),
