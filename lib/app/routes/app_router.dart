@@ -8,6 +8,7 @@ import '../../data/repositories/repository_providers.dart';
 import '../../features/explore/screens/explore_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/market/screens/listing_detail_screen.dart';
+import '../../features/market/screens/listing_preview_screen.dart';
 import '../../features/market/screens/market_screen.dart';
 import '../../features/market/screens/sell_item_screen.dart';
 import '../../features/messages/screens/messages_screen.dart';
@@ -72,9 +73,18 @@ abstract final class AppRouter {
         const ProfileScreen(),
       ],
     ),
-    // Preview Listing (step 2) is wired up once that screen is built.
-    RouteNames.sellItem: (context) =>
-        SellItemScreen(onClose: () => Navigator.of(context).pop()),
+    // Step 2 receives the current sell form as a preview draft.
+    RouteNames.sellItem: (context) => SellItemScreen(
+      onClose: () => Navigator.of(context).pop(),
+      onPreview: (draft) => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ListingPreviewScreen(
+            draft: draft,
+            onBack: () => Navigator.of(context).pop(),
+          ),
+        ),
+      ),
+    ),
     RouteNames.notifications: (context) =>
         NotificationsScreen(onBack: () => Navigator.of(context).pop()),
   };

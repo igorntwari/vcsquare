@@ -96,6 +96,9 @@ abstract final class AppStrings {
   static const String marketSearchHint = 'Search textbooks, tech, furniture...';
   static const String listingDetailsTitle = 'Listing details';
   static const String listingDetailsSection = 'Item details';
+  static const String publishListing = 'Publish listing';
+  static const String noListingDescription = 'No description provided.';
+  static String previewPhotoCount(int count) => '$count photos added';
   static const String messageSeller = 'Message seller';
   static const String marketLocation = 'Kigali Innovation City';
   static const String verifiedStudentSellers = 'Verified Student Sellers';

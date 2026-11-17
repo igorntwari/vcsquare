@@ -18,6 +18,7 @@ import '../../../shared/widgets/chips/status_tag.dart';
 import '../../../shared/widgets/inputs/app_text_area.dart';
 import '../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../shared/widgets/inputs/app_toggle_row.dart';
+import '../models/listing_draft.dart';
 import '../providers/market_providers.dart';
 import '../widgets/condition_selector.dart';
 import '../widgets/photo_upload_section.dart';
@@ -30,7 +31,7 @@ class SellItemScreen extends ConsumerStatefulWidget {
   const SellItemScreen({super.key, this.onClose, this.onPreview});
 
   final VoidCallback? onClose;
-  final VoidCallback? onPreview;
+  final ValueChanged<ListingDraft>? onPreview;
 
   @override
   ConsumerState<SellItemScreen> createState() => _SellItemScreenState();
@@ -116,7 +117,32 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
       _showMessage(AppStrings.completeToPreview);
       return;
     }
-    widget.onPreview?.call();
+    final options = ref.read(sellFormOptionsProvider).value;
+    final categoryId = _categoryId!;
+    final categoryMatches =
+        options?.categories
+            .where((category) => category.id == categoryId)
+            .toList() ??
+        const [];
+    final hubMatches =
+        options?.pickupHubs.where((hub) => hub.id == _hubId).toList() ??
+        const [];
+    widget.onPreview?.call(
+      ListingDraft(
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        priceRwf: int.parse(_priceController.text),
+        categoryId: categoryId,
+        categoryName: categoryMatches.isEmpty
+            ? AppStrings.category
+            : categoryMatches.first.name,
+        condition: _condition!,
+        pickupHubId: _hubId,
+        pickupHubName: hubMatches.isEmpty ? null : hubMatches.first.name,
+        negotiable: _negotiable,
+        photoPaths: List.unmodifiable(_photos),
+      ),
+    );
   }
 
   @override
