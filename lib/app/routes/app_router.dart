@@ -6,6 +6,7 @@ import '../../core/constants/app_strings.dart';
 import '../../data/dummy/dummy_conversations.dart';
 import '../../data/repositories/repository_providers.dart';
 import '../../features/explore/screens/explore_screen.dart';
+import '../../features/home/screens/create_post_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/market/screens/market_screen.dart';
 import '../../features/market/screens/sell_item_screen.dart';
@@ -56,7 +57,10 @@ abstract final class AppRouter {
       // Messages/chats are owned separately; still on dummy data.
       messagesBadgeCount: dummyUnreadConversationCount,
       tabs: [
-        const HomeScreen(),
+        HomeScreen(
+          onCreatePost: () =>
+              Navigator.of(context).pushNamed<bool>(RouteNames.createPost),
+        ),
         MarketScreen(
           onSellItem: () =>
               Navigator.of(context).pushNamed(RouteNames.sellItem),
@@ -69,6 +73,7 @@ abstract final class AppRouter {
     // Preview Listing (step 2) is wired up once that screen is built.
     RouteNames.sellItem: (context) =>
         SellItemScreen(onClose: () => Navigator.of(context).pop()),
+    RouteNames.createPost: (context) => const CreatePostScreen(),
     RouteNames.notifications: (context) =>
         NotificationsScreen(onBack: () => Navigator.of(context).pop()),
   };

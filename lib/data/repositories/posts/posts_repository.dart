@@ -7,6 +7,8 @@ abstract interface class PostsRepository {
 
   Future<List<PostModel>> fetchPostsByAuthor(String authorId);
 
+  Future<String> createPost(PostModel post);
+
   Future<Set<String>> fetchLikedPostIds(String userId);
 
   // Also moves the post's likeCount up or down by one.

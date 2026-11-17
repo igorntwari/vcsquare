@@ -19,6 +19,13 @@ class FirebasePostsRepository implements PostsRepository {
       _db.collection(FirestoreCollections.posts);
 
   @override
+  Future<String> createPost(PostModel post) async {
+    final reference = _posts.doc();
+    await reference.set(post.toFirestore());
+    return reference.id;
+  }
+
+  @override
   Future<List<PostModel>> fetchFeed() async {
     final snapshot = await _posts
         .orderBy('createdAt', descending: true)

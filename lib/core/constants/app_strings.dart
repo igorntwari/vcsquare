@@ -49,8 +49,7 @@ abstract final class AppStrings {
       'We couldn\'t load this. Check your connection and try again.';
   static const String retry = 'Try again';
   static const String saveFailed = 'Couldn\'t save that. Please try again.';
-  static const String signInFailed =
-      'Couldn\'t sign you in. Please try again.';
+  static const String signInFailed = 'Couldn\'t sign you in. Please try again.';
   static const String sendFailed = 'Message not sent. Please try again.';
 
   // Notifications inbox
@@ -71,6 +70,13 @@ abstract final class AppStrings {
   static const String composerHint = 'Share an update, idea or question...';
   static const String attachMedia = 'Attach media';
   static const String createPoll = 'Create poll';
+  static const String createPostTitle = 'Create post';
+  static const String postAudience = 'Who can see this?';
+  static const String audienceCampus = 'All Campus';
+  static const String postBodyHint = 'What would you like to share?';
+  static const String publishPost = 'Post';
+  static const String postBodyRequired = 'Write something before posting.';
+  static const String postPublished = 'Your post was shared.';
 
   // Home feed filters
   static const String filterAllCampus = 'All Campus';
@@ -97,8 +103,7 @@ abstract final class AppStrings {
   static const String timezone = 'CAT';
 
   // Market
-  static const String marketSearchHint =
-      'Search textbooks, tech, furniture...';
+  static const String marketSearchHint = 'Search textbooks, tech, furniture...';
   static const String marketLocation = 'Kigali Innovation City';
   static const String verifiedStudentSellers = 'Verified Student Sellers';
   static const String underBudget = 'Under RWF 50,000';
@@ -221,8 +226,7 @@ abstract final class AppStrings {
   static const String receiptBox = 'Receipt/Box';
   static const String extraPhoto = 'Extra Photo';
   static const String proTipLead = 'Pro tip:';
-  static const String proTipBody =
-      ' Items with 3+ clear campus photos sell ';
+  static const String proTipBody = ' Items with 3+ clear campus photos sell ';
   static const String proTipHighlight = '2x faster';
   static const String proTipEnd = ' during term start.';
   static const String itemSpecifics = 'Item Specifics';

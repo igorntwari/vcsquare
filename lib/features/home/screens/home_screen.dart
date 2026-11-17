@@ -24,7 +24,9 @@ import '../widgets/post_composer_bar.dart';
 // Likes and club joins are kept here so every post from the same club
 // updates together, and saved through the repositories.
 class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.onCreatePost});
+
+  final Future<bool?> Function()? onCreatePost;
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
@@ -43,23 +45,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<PostModel> get _visiblePosts {
     final query = _searchQuery.trim().toLowerCase();
     return _posts.where((post) {
-      final matchesQuery = query.isEmpty || [
-        post.title,
-        post.body,
-        post.topic,
-        post.author.name,
-        post.author.handle,
-      ].whereType<String>().any((value) => value.toLowerCase().contains(query));
+      final matchesQuery =
+          query.isEmpty ||
+          [
+            post.title,
+            post.body,
+            post.topic,
+            post.author.name,
+            post.author.handle,
+          ].whereType<String>().any(
+            (value) => value.toLowerCase().contains(query),
+          );
       if (!matchesQuery) return false;
 
       return switch (_selectedFeedFilter) {
-        1 => _joinedClubIds.contains(post.author.id) ||
-            _followedIds.contains(post.author.id),
+        1 =>
+          _joinedClubIds.contains(post.author.id) ||
+              _followedIds.contains(post.author.id),
         2 => post.author.isOfficial,
         3 => post.event != null || post.author.isClub,
-        4 => '${post.topic ?? ''} ${post.title ?? ''} ${post.body}'
-            .toLowerCase()
-            .contains(RegExp(r'tech|innovation|hackathon|coding')),
+        4 =>
+          '${post.topic ?? ''} ${post.title ?? ''} ${post.body}'
+              .toLowerCase()
+              .contains(RegExp(r'tech|innovation|hackathon|coding')),
         _ => true,
       };
     }).toList();
@@ -160,9 +168,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         icon: Icons.lightbulb_outline,
                       ),
                     ],
-                    onSelected: (index) => setState(
-                      () => _selectedFeedFilter = index,
-                    ),
+                    onSelected: (index) =>
+                        setState(() => _selectedFeedFilter = index),
                   ),
                 ),
               ),
@@ -223,7 +230,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onChanged: (value) => setState(() => _searchQuery = value),
             ),
             const SizedBox(height: AppSpacing.sm),
-            PostComposerBar(avatarImagePath: avatarPath, isOnline: isOnline),
+            PostComposerBar(
+              avatarImagePath: avatarPath,
+              isOnline: isOnline,
+              onComposeTap: () async {
+                final created = await widget.onCreatePost?.call();
+                if (created == true) {
+                  ref.invalidate(homeFeedProvider);
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      const SnackBar(content: Text(AppStrings.postPublished)),
+                    );
+                }
+              },
+            ),
           ],
         ),
       ),
