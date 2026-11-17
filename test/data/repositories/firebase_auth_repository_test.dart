@@ -5,8 +5,10 @@ import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mock_exceptions/mock_exceptions.dart';
 import 'package:vsquare/data/models/auth_account_model.dart';
+import 'package:vsquare/data/models/profile_edit_model.dart';
 import 'package:vsquare/data/repositories/auth/auth_failure.dart';
 import 'package:vsquare/data/repositories/auth/firebase_auth_repository.dart';
+import 'package:vsquare/data/repositories/profile/firebase_profile_repository.dart';
 
 const _email = 'n.uwase@alustudent.com';
 const _password = 'campus2026';
@@ -237,5 +239,32 @@ void main() {
       );
       expect((await db.collection('users').doc('u1').get()).exists, isTrue);
     });
+  });
+
+  test('profile edits are saved to users/{uid}', () async {
+    await db.collection('users').doc('u1').set({
+      'name': 'Nadia',
+      'handle': '@nadia',
+      'bio': 'Old bio about the Debate Society',
+      'bioHighlight': 'Debate Society',
+    });
+    const edit = ProfileEdit(
+      name: ' Nadia Uwase ',
+      handle: '@Nadia.U',
+      cohort: ' ',
+      roleTag: 'Year 2',
+      campus: 'ALU Kigali Campus',
+      program: 'BSc Software Engineering',
+      bio: 'Building things.',
+      bioHighlight: 'Debate Society',
+    );
+    await FirebaseProfileRepository(db).updateProfile('u1', edit.normalized());
+
+    final doc = await db.collection('users').doc('u1').get();
+    expect(doc['name'], 'Nadia Uwase');
+    expect(doc['handle'], '@nadia.u');
+    expect(doc['cohort'], isNull);
+    expect(doc['bio'], 'Building things.');
+    expect(doc['bioHighlight'], isNull);
   });
 }
