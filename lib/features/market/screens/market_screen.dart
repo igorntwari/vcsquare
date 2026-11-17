@@ -27,9 +27,10 @@ import '../widgets/trust_banner.dart';
 enum _SortOrder { latest, priceLowHigh, distance }
 
 class MarketScreen extends ConsumerStatefulWidget {
-  const MarketScreen({super.key, this.onSellItem});
+  const MarketScreen({super.key, this.onSellItem, this.onOpenListing});
 
   final VoidCallback? onSellItem;
+  final ValueChanged<ListingModel>? onOpenListing;
 
   @override
   ConsumerState<MarketScreen> createState() => _MarketScreenState();
@@ -203,6 +204,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                             listings: listings,
                             favoriteIds: _favoriteIds,
                             onFavorite: _toggleFavorite,
+                            onOpenListing: widget.onOpenListing,
                           ),
                   ),
                   SliverPadding(

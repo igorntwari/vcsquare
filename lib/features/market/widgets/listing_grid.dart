@@ -13,11 +13,13 @@ class ListingGrid extends StatelessWidget {
     required this.listings,
     required this.favoriteIds,
     this.onFavorite,
+    this.onOpenListing,
   });
 
   final List<ListingModel> listings;
   final Set<String> favoriteIds;
   final ValueChanged<ListingModel>? onFavorite;
+  final ValueChanged<ListingModel>? onOpenListing;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +37,7 @@ class ListingGrid extends StatelessWidget {
           listing: listing,
           isFavorite: favoriteIds.contains(listing.id),
           onFavorite: () => onFavorite?.call(listing),
+          onTap: () => onOpenListing?.call(listing),
         );
       },
     );

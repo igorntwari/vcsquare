@@ -7,6 +7,7 @@ import '../../data/dummy/dummy_conversations.dart';
 import '../../data/repositories/repository_providers.dart';
 import '../../features/explore/screens/explore_screen.dart';
 import '../../features/home/screens/home_screen.dart';
+import '../../features/market/screens/listing_detail_screen.dart';
 import '../../features/market/screens/market_screen.dart';
 import '../../features/market/screens/sell_item_screen.dart';
 import '../../features/messages/screens/messages_screen.dart';
@@ -60,6 +61,11 @@ abstract final class AppRouter {
         MarketScreen(
           onSellItem: () =>
               Navigator.of(context).pushNamed(RouteNames.sellItem),
+          onOpenListing: (listing) => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => ListingDetailScreen(listing: listing),
+            ),
+          ),
         ),
         const ExploreScreen(),
         const MessagesScreen(),
