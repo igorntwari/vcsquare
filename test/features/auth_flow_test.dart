@@ -7,6 +7,7 @@ import 'package:vsquare/app/routes/route_names.dart';
 import 'package:vsquare/core/constants/app_strings.dart';
 import 'package:vsquare/data/repositories/auth/sample_auth_repository.dart';
 import 'package:vsquare/data/repositories/repository_providers.dart';
+import 'package:vsquare/features/auth/screens/verify_email_screen.dart';
 import 'package:vsquare/features/auth/widgets/terms_agreement.dart';
 import 'package:vsquare/shared/widgets/navigation/main_shell.dart';
 
@@ -119,7 +120,7 @@ void main() {
     expect(find.text(AppStrings.signInTitle), findsNothing);
   });
 
-  testWidgets('sign up lands on the main tabs', (tester) async {
+  testWidgets('sign up, verify, then the main tabs', (tester) async {
     await _pumpApp(tester);
     await _openLogin(tester);
     await _tap(tester, find.text(AppStrings.createAccountLink));
@@ -135,6 +136,10 @@ void main() {
     await _fill(tester, AppStrings.confirmPasswordLabel, 'campus2026');
     await _tap(tester, find.byType(TermsAgreement));
     await _tap(tester, find.text(AppStrings.createAccount));
+    expect(find.byType(VerifyEmailScreen), findsOneWidget);
+    expect(find.textContaining('n.uwase@alustudent.com'), findsOneWidget);
+
+    await _tap(tester, find.text(AppStrings.iVerified));
     expect(find.byType(MainShell), findsOneWidget);
   });
 
