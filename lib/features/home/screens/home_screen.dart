@@ -10,6 +10,7 @@ import '../../../data/models/post_model.dart';
 import '../../../data/repositories/repository_providers.dart';
 import '../../../shared/widgets/chips/app_chip.dart';
 import '../../../shared/widgets/chips/filter_chip_bar.dart';
+import '../../../shared/widgets/feedback/empty_state.dart';
 import '../../../shared/widgets/feedback/error_state.dart';
 import '../../../shared/widgets/feedback/loading_indicator.dart';
 import '../../../shared/widgets/inputs/app_search_bar.dart';
@@ -35,6 +36,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<PostModel> _posts = const [];
   Set<String> _likedPostIds = {};
   Set<String> _joinedClubIds = {};
+  Set<String> _followedIds = {};
+  String _searchQuery = '';
+  int _selectedFeedFilter = 0;
+
+  List<PostModel> get _visiblePosts {
+    final query = _searchQuery.trim().toLowerCase();
+    return _posts.where((post) {
+      final matchesQuery = query.isEmpty || [
+        post.title,
+        post.body,
+        post.topic,
+        post.author.name,
+        post.author.handle,
+      ].whereType<String>().any((value) => value.toLowerCase().contains(query));
+      if (!matchesQuery) return false;
+
+      return switch (_selectedFeedFilter) {
+        1 => _joinedClubIds.contains(post.author.id) ||
+            _followedIds.contains(post.author.id),
+        2 => post.author.isOfficial,
+        3 => post.event != null || post.author.isClub,
+        4 => '${post.topic ?? ''} ${post.title ?? ''} ${post.body}'
+            .toLowerCase()
+            .contains(RegExp(r'tech|innovation|hackathon|coding')),
+        _ => true,
+      };
+    }).toList();
+  }
 
   void _adopt(HomeFeed feed) {
     if (feed == _feed) return;
@@ -46,6 +75,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ];
     _likedPostIds = {...feed.likedPostIds};
     _joinedClubIds = {...feed.joinedIds};
+    _followedIds = {...feed.followedIds};
   }
 
   void _update(VoidCallback change) {
@@ -130,6 +160,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         icon: Icons.lightbulb_outline,
                       ),
                     ],
+                    onSelected: (index) => setState(
+                      () => _selectedFeedFilter = index,
+                    ),
                   ),
                 ),
               ),
@@ -149,12 +182,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               )
                             : const LoadingIndicator(),
                       )
+                    : _visiblePosts.isEmpty
+                    ? const SliverToBoxAdapter(
+                        child: EmptyState(
+                          icon: Icons.search_off,
+                          title: AppStrings.noMatchingPostsTitle,
+                          message: AppStrings.noMatchingPostsMessage,
+                        ),
+                      )
                     : SliverList.separated(
-                        itemCount: _posts.length,
+                        itemCount: _visiblePosts.length,
                         separatorBuilder: (_, _) =>
                             const SizedBox(height: AppSpacing.lg),
                         itemBuilder: (context, index) =>
-                            _buildPost(_posts[index]),
+                            _buildPost(_visiblePosts[index]),
                       ),
               ),
             ],
@@ -177,7 +218,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         child: Column(
           children: [
-            const AppSearchBar(hintText: AppStrings.searchHint),
+            AppSearchBar(
+              hintText: AppStrings.searchHint,
+              onChanged: (value) => setState(() => _searchQuery = value),
+            ),
             const SizedBox(height: AppSpacing.sm),
             PostComposerBar(avatarImagePath: avatarPath, isOnline: isOnline),
           ],

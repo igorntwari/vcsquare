@@ -64,6 +64,9 @@ abstract final class AppStrings {
 
   // Home header
   static const String searchHint = 'Search campus pulses, clubs, classmates...';
+  static const String noMatchingPostsTitle = 'No posts match';
+  static const String noMatchingPostsMessage =
+      'Try another search or choose a different feed filter.';
   static const String searchFilter = 'Filter';
   static const String composerHint = 'Share an update, idea or question...';
   static const String attachMedia = 'Attach media';
