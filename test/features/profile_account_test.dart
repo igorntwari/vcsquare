@@ -1,10 +1,14 @@
-// Edit profile and layout checks.
+// Edit profile, account actions and layout checks.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vsquare/core/constants/app_strings.dart';
+import 'package:vsquare/data/repositories/auth/auth_failure.dart';
+import 'package:vsquare/data/repositories/auth/sample_auth_repository.dart';
 import 'package:vsquare/data/repositories/profile/sample_profile_repository.dart';
 import 'package:vsquare/data/repositories/repository_providers.dart';
+import 'package:vsquare/features/profile/providers/profile_controller.dart';
+import 'package:vsquare/features/profile/screens/account_settings_screen.dart';
 import 'package:vsquare/features/profile/screens/edit_profile_screen.dart';
 
 import '../helpers/test_app.dart';
@@ -79,7 +83,48 @@ void main() {
     });
   });
 
-  group('layout', () {
+  group('account actions', () {
+    late SampleAuthRepository auth;
+    late ProviderContainer container;
+
+    setUp(() {
+      auth = SampleAuthRepository();
+      container = ProviderContainer(
+        overrides: [authRepositoryProvider.overrideWithValue(auth)],
+      );
+      addTearDown(container.dispose);
+      // Keeps the auto-dispose controller alive.
+      container.listen(profileControllerProvider, (_, _) {});
+    });
+
+    test('sign out clears the signed-in user', () async {
+      expect(await auth.watchAccount().first, isNotNull);
+      final ok = await container
+          .read(profileControllerProvider.notifier)
+          .signOut();
+      expect(ok, isTrue);
+      expect(await auth.watchAccount().first, isNull);
+    });
+
+    test('delete needs the right password', () async {
+      final controller = container.read(profileControllerProvider.notifier);
+
+      expect(await controller.deleteAccount(password: 'wrong'), isFalse);
+      final error = container.read(profileControllerProvider).error;
+      expect(error, isA<AuthFailure>());
+      expect(await auth.watchAccount().first, isNotNull);
+
+      expect(
+        await controller.deleteAccount(
+          password: SampleAuthRepository.samplePassword,
+        ),
+        isTrue,
+      );
+      expect(await auth.watchAccount().first, isNull);
+    });
+  });
+
+  group('layout and settings', () {
     // Any overflow fails the test, so pumping is the check.
     for (final (name, size) in [
       ('landscape', const Size(2340, 1080)),
@@ -97,5 +142,67 @@ void main() {
         }
       });
     }
+
+    testWidgets('account settings: delete asks for the password', (
+      tester,
+    ) async {
+      final auth = SampleAuthRepository();
+      await pumpScreen(
+        tester,
+        const AccountSettingsScreen(),
+        overrides: [authRepositoryProvider.overrideWithValue(auth)],
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(SampleAuthRepository.sampleEmail), findsOneWidget);
+
+      await tester.tap(find.text(AppStrings.deleteAccount));
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.deleteAccountConfirmTitle), findsOneWidget);
+
+      await tester.tap(find.text(AppStrings.deleteForever));
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.passwordRequired), findsOneWidget);
+
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextFormField),
+        ),
+        'wrong-password',
+      );
+      await tester.tap(find.text(AppStrings.deleteForever));
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.authInvalidCredential), findsOneWidget);
+      expect(await auth.watchAccount().first, isNotNull);
+    });
+
+    testWidgets('account settings: sign out is confirmed first', (
+      tester,
+    ) async {
+      final auth = SampleAuthRepository();
+      await pumpScreen(
+        tester,
+        const AccountSettingsScreen(),
+        overrides: [authRepositoryProvider.overrideWithValue(auth)],
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(AppStrings.signOut));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(AppStrings.cancel));
+      await tester.pumpAndSettle();
+      expect(await auth.watchAccount().first, isNotNull);
+
+      await tester.tap(find.text(AppStrings.signOut));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(AppStrings.signOut),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(await auth.watchAccount().first, isNull);
+    });
   });
 }

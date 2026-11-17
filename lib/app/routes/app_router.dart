@@ -14,6 +14,7 @@ import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/onboarding/screens/login_screen.dart';
 import '../../features/onboarding/screens/splash_screen.dart';
 import '../../features/onboarding/screens/why_institutional_login_screen.dart';
+import '../../features/profile/screens/account_settings_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../shared/widgets/navigation/main_shell.dart';
@@ -67,6 +68,8 @@ abstract final class AppRouter {
         ProfileScreen(
           onEditProfile: () =>
               Navigator.of(context).pushNamed(RouteNames.editProfile),
+          onOpenSettings: () =>
+              Navigator.of(context).pushNamed(RouteNames.accountSettings),
         ),
       ],
     ),
@@ -77,6 +80,11 @@ abstract final class AppRouter {
         NotificationsScreen(onBack: () => Navigator.of(context).pop()),
     RouteNames.editProfile: (context) =>
         EditProfileScreen(onDone: () => Navigator.of(context).pop()),
+    RouteNames.accountSettings: (context) => AccountSettingsScreen(
+      onBack: () => Navigator.of(context).pop(),
+      onEditProfile: () =>
+          Navigator.of(context).pushNamed(RouteNames.editProfile),
+    ),
   };
 
   static Future<void> _signIn(BuildContext context, WidgetRef ref) async {

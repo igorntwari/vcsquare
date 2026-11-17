@@ -7,4 +7,5 @@ abstract final class RouteNames {
   static const String sellItem = '/sell';
   static const String notifications = '/notifications';
   static const String editProfile = '/profile/edit';
+  static const String accountSettings = '/profile/settings';
 }
