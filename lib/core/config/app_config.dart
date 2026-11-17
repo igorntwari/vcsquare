@@ -16,4 +16,10 @@ abstract final class AppConfig {
     'EMULATOR_HOST',
     defaultValue: '',
   );
+
+  // Keep in sync with firestore.rules.
+  static const List<String> allowedEmailDomains = [
+    'alustudent.com',
+    'alueducation.com',
+  ];
 }
