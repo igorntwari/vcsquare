@@ -104,9 +104,17 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | `event` | map? | `{ title, startsAt: timestamp, venue, label?, note?, priceRwf?: int, showAsBanner: bool }` |
 | `commentPreview` | map? | `{ authorId, text }` (latest comment) |
 
-**Rules:** signed-in users read. The author creates (with counts at 0), edits content and deletes. Anyone signed in may change only `likeCount`, by exactly ±1.
+**Rules:** signed-in users read. The author creates (with counts at 0), edits content and deletes. Anyone signed in may change only `likeCount`, by exactly ±1, or add one comment while incrementing `commentCount` and updating `commentPreview` in the same transaction.
 
 **Index:** `authorId ASC, createdAt DESC` (Profile → My Posts).
+
+### posts/{postId}/comments/{commentId}
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `authorId` | string | → `users/{authorId}` |
+| `text` | string | 1–1000 characters |
+| `createdAt` | timestamp | Set by the server |
 
 ## listings/{listingId}
 
@@ -183,5 +191,4 @@ Photos and avatars are uploaded to **Cloudinary**, not Firebase Storage. Firesto
 ## Not built yet
 
 - Cloud Functions for the counters (`followerCount`, `followingCount`, `memberCount`), `peerSuggestions` and `trendingTopics`.
-- Comments as a `posts/{id}/comments` subcollection. Today only `commentPreview` and `commentCount` exist.
 - Notifications are stored on the device only (see `NotificationService`), not in Firestore.

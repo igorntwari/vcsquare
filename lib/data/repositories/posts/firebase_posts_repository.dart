@@ -3,8 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../models/firestore_helpers.dart';
 import '../../models/post_model.dart';
+import '../../models/user_model.dart';
 import '../firebase/firestore_collections.dart';
 import '../firebase/user_lookup.dart';
+import 'post_comment.dart';
 import 'posts_repository.dart';
 
 class FirebasePostsRepository implements PostsRepository {
@@ -23,6 +25,49 @@ class FirebasePostsRepository implements PostsRepository {
     final reference = _posts.doc();
     await reference.set(post.toFirestore());
     return reference.id;
+  }
+
+  @override
+  Future<List<PostComment>> fetchComments(String postId) async {
+    final snapshot = await _posts
+        .doc(postId)
+        .collection('comments')
+        .orderBy('createdAt')
+        .get();
+    final authors = await _users.byIds([
+      for (final doc in snapshot.docs) readString(doc.data()['authorId']),
+    ]);
+    return [
+      for (final doc in snapshot.docs)
+        PostComment.fromFirestore(
+          doc.id,
+          doc.data(),
+          author:
+              authors[readString(doc.data()['authorId'])] ??
+              UserLookup.placeholder(readString(doc.data()['authorId'])),
+        ),
+    ];
+  }
+
+  @override
+  Future<void> addComment({
+    required String postId,
+    required UserModel author,
+    required String text,
+  }) async {
+    final post = _posts.doc(postId);
+    final comment = post.collection('comments').doc();
+    await _db.runTransaction((transaction) async {
+      transaction.set(comment, {
+        'authorId': author.id,
+        'text': text,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      transaction.update(post, {
+        'commentCount': FieldValue.increment(1),
+        'commentPreview': {'authorId': author.id, 'text': text},
+      });
+    });
   }
 
   @override
