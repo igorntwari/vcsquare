@@ -21,10 +21,18 @@ abstract interface class PostsRepository {
 
   Future<Set<String>> fetchLikedPostIds(String userId);
 
+  Future<Set<String>> fetchRsvpedPostIds(String userId);
+
   // Also moves the post's likeCount up or down by one.
   Future<void> setLiked({
     required String userId,
     required String postId,
     required bool liked,
+  });
+
+  Future<void> setRsvp({
+    required String userId,
+    required String postId,
+    required bool rsvped,
   });
 }

@@ -98,6 +98,7 @@ abstract final class AppStrings {
   static const String mandatoryRead = 'Mandatory Read';
   static const String freeEntry = 'Free Entry';
   static const String rsvpNow = 'RSVP Now';
+  static const String rsvped = 'Going';
   static const String addToCalendar = 'Add to Calendar';
   static const String like = 'Like';
   static const String comment = 'Comment';

@@ -39,6 +39,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   HomeFeed? _feed;
   List<PostModel> _posts = const [];
   Set<String> _likedPostIds = {};
+  Set<String> _rsvpedPostIds = {};
   Set<String> _joinedClubIds = {};
   Set<String> _followedIds = {};
   String _searchQuery = '';
@@ -84,6 +85,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ...feed.posts.where((post) => !post.isPinned),
     ];
     _likedPostIds = {...feed.likedPostIds};
+    _rsvpedPostIds = {...feed.rsvpedPostIds};
     _joinedClubIds = {...feed.joinedIds};
     _followedIds = {...feed.followedIds};
   }
@@ -123,6 +125,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       save: (joined) => ref
           .read(exploreRepositoryProvider)
           .setJoined(userId: userId, groupId: post.author.id, joined: joined),
+      onError: _showSaveFailed,
+    );
+  }
+
+  void _toggleRsvp(PostModel post) {
+    final userId = ref.read(currentUserProvider).value?.id;
+    if (userId == null) return;
+    optimisticToggle(
+      ids: _rsvpedPostIds,
+      id: post.id,
+      update: _update,
+      save: (rsvped) => ref
+          .read(postsRepositoryProvider)
+          .setRsvp(userId: userId, postId: post.id, rsvped: rsvped),
       onError: _showSaveFailed,
     );
   }
@@ -282,7 +298,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         post: post,
         isLiked: isLiked,
         likeCount: likeCount,
+        isRsvped: _rsvpedPostIds.contains(post.id),
         onLike: () => _toggleLike(post),
+        onRsvp: () => _toggleRsvp(post),
         onComment: () => _openComments(post),
         onShare: () => _sharePost(post),
       );

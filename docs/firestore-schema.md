@@ -20,7 +20,7 @@ This doc is the source of truth. If you change a collection or field, update the
 - **Enums:** stored as their Dart name (`"likeNew"`, `"official"`).
 - **Icons:** stored as a name string (`"laptop"`), looked up in [`AppIcons`](../lib/core/constants/app_icons.dart). Add the name there before using it in data.
 - **Images:** `imagePath` / `avatarPath` hold either a bundled `assets/...` path (sample data) or an `https://` Cloudinary URL. Uploads go to Cloudinary (owned by another teammate); Firestore only stores the URL. [`AppImage`](../lib/shared/widgets/media/app_image.dart) handles both.
-- **Per-user state:** likes, saves, follows and memberships live under `users/{uid}/…` as one empty-ish document per item. That keeps them private to the user and easy to add or remove.
+- **Per-user state:** likes, saves, follows, memberships and event RSVPs live under `users/{uid}/…` as one empty-ish document per item. That keeps them private to the user and easy to add or remove.
 - **Display order:** fixed lists have an `order` int, lowest first.
 
 ## Overview
@@ -28,6 +28,7 @@ This doc is the source of truth. If you change a collection or field, update the
 ```
 users/{uid}
   ├─ likedPosts/{postId}
+  ├─ eventRsvps/{postId}
   ├─ savedListings/{listingId}
   ├─ memberships/{communityOrClubId}
   ├─ following/{officialHandleOrUserId}
@@ -78,6 +79,7 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | Subcollection | Document id | Replaces the old model flag |
 | --- | --- | --- |
 | `likedPosts` | post id | `PostModel.isLiked` |
+| `eventRsvps` | event post id | event attendance |
 | `savedListings` | listing id | `ListingModel.isFavorited` |
 | `memberships` | community id or club user id | `CommunityModel.isJoined`, `UserModel.isJoined` |
 | `following` | official handle id or user id | `OfficialHandleModel.isFollowing` |

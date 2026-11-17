@@ -23,7 +23,9 @@ class PinnedAnnouncementCard extends StatelessWidget {
     required this.post,
     required this.isLiked,
     required this.likeCount,
+    this.isRsvped = false,
     this.onLike,
+    this.onRsvp,
     this.onComment,
     this.onShare,
   });
@@ -31,7 +33,9 @@ class PinnedAnnouncementCard extends StatelessWidget {
   final PostModel post;
   final bool isLiked;
   final int likeCount;
+  final bool isRsvped;
   final VoidCallback? onLike;
+  final VoidCallback? onRsvp;
   final VoidCallback? onComment;
   final VoidCallback? onShare;
 
@@ -172,14 +176,14 @@ class PinnedAnnouncementCard extends StatelessWidget {
             shape: const StadiumBorder(),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
-              onTap: () {},
+              onTap: onRsvp,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.md,
                   vertical: AppSpacing.sm,
                 ),
                 child: Text(
-                  AppStrings.rsvpNow,
+                  isRsvped ? AppStrings.rsvped : AppStrings.rsvpNow,
                   style: AppTypography.buttonSmall.copyWith(
                     color: AppColors.textOnDark,
                   ),

@@ -93,6 +93,10 @@ class FirebasePostsRepository implements PostsRepository {
       readIdSet(_db, userId, FirestoreCollections.likedPosts);
 
   @override
+  Future<Set<String>> fetchRsvpedPostIds(String userId) =>
+      readIdSet(_db, userId, FirestoreCollections.eventRsvps);
+
+  @override
   Future<void> setLiked({
     required String userId,
     required String postId,
@@ -117,6 +121,19 @@ class FirebasePostsRepository implements PostsRepository {
       });
     });
   }
+
+  @override
+  Future<void> setRsvp({
+    required String userId,
+    required String postId,
+    required bool rsvped,
+  }) => writeIdFlag(
+    _db,
+    userId: userId,
+    subcollection: FirestoreCollections.eventRsvps,
+    id: postId,
+    value: rsvped,
+  );
 
   Future<List<PostModel>> _toPosts(
     List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,

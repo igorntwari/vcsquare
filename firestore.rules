@@ -35,6 +35,9 @@ service cloud.firestore {
       match /likedPosts/{postId} {
         allow read, write: if isSelf(uid);
       }
+      match /eventRsvps/{postId} {
+        allow read, write: if isSelf(uid);
+      }
       match /savedListings/{listingId} {
         allow read, write: if isSelf(uid);
       }
