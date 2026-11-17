@@ -110,7 +110,7 @@ abstract final class AppStrings {
       'Updated 4 mins ago across Kigali campus';
   static const String sortLatest = 'Latest';
   static const String sortPriceLowHigh = 'Price: Low-High';
-  static const String sortDistance = 'Distance';
+  static const String sortPickupHub = 'Pickup hub';
   static const String favorite = 'Save item';
   static const String exchangeTipTitle = 'Meeting for Exchanges?';
   static const String exchangeTipBody =
