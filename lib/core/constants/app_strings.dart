@@ -49,8 +49,7 @@ abstract final class AppStrings {
       'We couldn\'t load this. Check your connection and try again.';
   static const String retry = 'Try again';
   static const String saveFailed = 'Couldn\'t save that. Please try again.';
-  static const String signInFailed =
-      'Couldn\'t sign you in. Please try again.';
+  static const String signInFailed = 'Couldn\'t sign you in. Please try again.';
   static const String sendFailed = 'Message not sent. Please try again.';
 
   // Notifications inbox
@@ -94,8 +93,7 @@ abstract final class AppStrings {
   static const String timezone = 'CAT';
 
   // Market
-  static const String marketSearchHint =
-      'Search textbooks, tech, furniture...';
+  static const String marketSearchHint = 'Search textbooks, tech, furniture...';
   static const String marketLocation = 'Kigali Innovation City';
   static const String verifiedStudentSellers = 'Verified Student Sellers';
   static const String underBudget = 'Under RWF 50,000';
@@ -123,6 +121,10 @@ abstract final class AppStrings {
   // Explore
   static const String exploreSearchHint =
       'Search posts, listings, students, clubs...';
+  static const String noExploreResultsTitle = 'No matching results';
+  static const String noExploreResultsMessage =
+      'Try another search or choose a different filter.';
+  static const String exploreSearchResults = 'Search results';
   static const String filterAll = 'All';
   static const String filterPosts = 'Posts';
   static const String filterListings = 'Listings';
@@ -218,8 +220,7 @@ abstract final class AppStrings {
   static const String receiptBox = 'Receipt/Box';
   static const String extraPhoto = 'Extra Photo';
   static const String proTipLead = 'Pro tip:';
-  static const String proTipBody =
-      ' Items with 3+ clear campus photos sell ';
+  static const String proTipBody = ' Items with 3+ clear campus photos sell ';
   static const String proTipHighlight = '2x faster';
   static const String proTipEnd = ' during term start.';
   static const String itemSpecifics = 'Item Specifics';
