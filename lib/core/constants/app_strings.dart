@@ -49,8 +49,6 @@ abstract final class AppStrings {
       'We couldn\'t load this. Check your connection and try again.';
   static const String retry = 'Try again';
   static const String saveFailed = 'Couldn\'t save that. Please try again.';
-  static const String signInFailed =
-      'Couldn\'t sign you in. Please try again.';
   static const String sendFailed = 'Message not sent. Please try again.';
 
   // Notifications inbox

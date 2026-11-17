@@ -7,6 +7,8 @@ import 'package:vsquare/data/repositories/auth/auth_failure.dart';
 import 'package:vsquare/data/repositories/auth/sample_auth_repository.dart';
 import 'package:vsquare/data/repositories/profile/sample_profile_repository.dart';
 import 'package:vsquare/data/repositories/repository_providers.dart';
+import 'package:vsquare/features/auth/screens/login_screen.dart';
+import 'package:vsquare/features/auth/screens/sign_up_screen.dart';
 import 'package:vsquare/features/profile/providers/profile_controller.dart';
 import 'package:vsquare/features/profile/screens/account_settings_screen.dart';
 import 'package:vsquare/features/profile/screens/edit_profile_screen.dart';
@@ -130,11 +132,15 @@ void main() {
       ('landscape', const Size(2340, 1080)),
       ('a small phone', const Size(960, 1600)),
     ]) {
-      testWidgets('edit profile fits in $name', (tester) async {
+      testWidgets('auth and profile screens fit in $name', (tester) async {
         tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 3;
         addTearDown(tester.view.reset);
-        for (final screen in <Widget>[const EditProfileScreen()]) {
+        for (final screen in <Widget>[
+          const LoginScreen(),
+          const SignUpScreen(),
+          const EditProfileScreen(),
+        ]) {
           await tester.pumpWidget(
             ProviderScope(child: MaterialApp(home: screen)),
           );
