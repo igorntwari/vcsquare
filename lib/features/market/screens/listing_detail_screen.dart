@@ -164,7 +164,9 @@ class ListingDetailScreen extends StatelessWidget {
   }
 
   Widget _buildPhoto() {
-    final path = listing.imagePath;
+    final photos = listing.photoUrls.isNotEmpty
+        ? listing.photoUrls
+        : [if (listing.imagePath != null) listing.imagePath!];
     final placeholder = Container(
       decoration: const BoxDecoration(
         color: AppColors.surfaceMuted,
@@ -178,12 +180,15 @@ class ListingDetailScreen extends StatelessWidget {
       aspectRatio: 1,
       child: ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(AppRadius.md)),
-        child: path == null
+        child: photos.isEmpty
             ? placeholder
-            : AppImage(
-                path,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => placeholder,
+            : PageView.builder(
+                itemCount: photos.length,
+                itemBuilder: (context, index) => AppImage(
+                  photos[index],
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => placeholder,
+                ),
               ),
       ),
     );

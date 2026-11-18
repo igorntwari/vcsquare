@@ -97,6 +97,7 @@ service cloud.firestore {
         && request.resource.data.likeCount == 0
         && request.resource.data.commentCount == 0
         && (!('poll' in request.resource.data)
+          || request.resource.data.poll == null
           || (request.resource.data.poll is map
             && request.resource.data.poll.question is string
             && request.resource.data.poll.question.size() > 0
@@ -146,12 +147,15 @@ service cloud.firestore {
 
         allow read: if isMember() && resource.data.userId == request.auth.uid;
         allow create, update: if isMember()
+          && voteId == request.auth.uid
           && request.resource.data.keys().hasOnly(['userId', 'option', 'createdAt'])
           && request.resource.data.userId == request.auth.uid
           && request.resource.data.option is string
           && hasPollOption(request.resource.data.option)
           && request.resource.data.createdAt == request.time;
-        allow delete: if isMember() && resource.data.userId == request.auth.uid;
+        allow delete: if isMember()
+          && voteId == request.auth.uid
+          && resource.data.userId == request.auth.uid;
       }
     }
 
@@ -179,11 +183,28 @@ service cloud.firestore {
 
     // Listings
     match /listings/{listingId} {
+      function validListing(data) {
+        return data.title is string && data.title.size() > 0
+          && data.details is string && data.details.size() > 0
+          && data.priceRwf is int && data.priceRwf > 0
+          && data.photoUrls is list
+          && data.photoUrls.size() >= 1 && data.photoUrls.size() <= 6
+          && data.imagePath == data.photoUrls[0]
+          && data.imagePath is string
+          && data.imagePath.matches('https://res[.]cloudinary[.]com/.+')
+          && data.pickupHubId is string
+          && data.negotiable is bool
+          && data.status in ['active', 'sold'];
+      }
+
       allow read: if isMember();
-      allow create: if isMember() && request.resource.data.sellerId == request.auth.uid;
+      allow create: if isMember()
+        && request.resource.data.sellerId == request.auth.uid
+        && validListing(request.resource.data);
       allow update: if isMember()
         && resource.data.sellerId == request.auth.uid
-        && request.resource.data.sellerId == request.auth.uid;
+        && request.resource.data.sellerId == request.auth.uid
+        && validListing(request.resource.data);
       allow delete: if isMember() && resource.data.sellerId == request.auth.uid;
     }
 

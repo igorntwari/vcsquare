@@ -152,14 +152,18 @@ Each verified member has one vote document, keyed by their uid, with `userId`, `
 | Field | Type | Notes |
 | --- | --- | --- |
 | `title` | string | max 80 chars in the form |
-| `details` | string | spec line, e.g. `"8GB RAM • 256GB SSD"` |
+| `details` | string | Seller's description |
 | `priceRwf` | int | |
 | `condition` | string | `brandNew` \| `likeNew` \| `good` \| `used` \| `forParts` |
 | `categoryId` | string | → `categories/{id}` |
 | `sellerId` | string | → `users/{sellerId}` |
 | `createdAt` | timestamp | |
 | `distanceKm` | number | placeholder until we compute distance from the buyer's pickup hub |
-| `imagePath` | string? | Cloudinary URL |
+| `imagePath` | string | Cover photo URL; equals `photoUrls[0]` |
+| `photoUrls` | string[] | 1–6 Cloudinary HTTPS URLs |
+| `pickupHubId` | string | → `pickupHubs/{id}` |
+| `negotiable` | bool | Seller's preference |
+| `status` | string | `active` \| `sold`; new listings start `active` |
 | `tag` | string? | label over the photo |
 | `tagStyle` | string | `dark` \| `accent` \| `light` |
 
@@ -217,9 +221,10 @@ Written by [`tool/seed`](../tool/seed/seed.mjs) with the Admin SDK. The app can'
 
 ## Images
 
-Photos and avatars are uploaded to **Cloudinary**, not Firebase Storage. Firestore stores only the resulting `https://res.cloudinary.com/...` URL in `imagePath` / `avatarPath`. The Cloudinary upload setup (preset, folders, who can upload) is owned by another teammate and documented with that work.
+Home and Market photos are selected from the device and uploaded to **Cloudinary**, not Firebase Storage. Firestore stores the resulting HTTPS URLs in `posts.imagePath` and `listings.photoUrls` (`imagePath` is the listing cover). The existing `avatarPath` contract is unchanged. Configure `CLOUDINARY_CLOUD_NAME` and `CLOUDINARY_UPLOAD_PRESET` with `--dart-define`; the app does not contain an API secret. Set upload limits and allowed formats in the unsigned preset.
 
 ## Not built yet
 
+- `AccountDataEraser` must remove a deleted user's `pollVotes` and sent/received `connectionRequests`. Deleting a post must also handle its `comments` and `pollVotes` subcollections because Firestore does not cascade deletes.
 - Cloud Functions for the counters (`followerCount`, `followingCount`, `memberCount`), `peerSuggestions` and `trendingTopics`.
 - Notifications are stored on the device only (see `NotificationService`), not in Firestore.

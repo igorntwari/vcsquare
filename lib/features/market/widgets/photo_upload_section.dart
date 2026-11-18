@@ -19,7 +19,7 @@ class PhotoUploadSection extends StatelessWidget {
     this.onRemove,
   });
 
-  // Asset paths; the first one is the cover.
+  // Local image paths or Cloudinary URLs; the first one is the cover.
   final List<String> photos;
   final VoidCallback? onAdd;
   final ValueChanged<int>? onRemove;

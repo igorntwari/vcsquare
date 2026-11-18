@@ -52,9 +52,8 @@ abstract final class AppRouter {
     messagesBadgeCount: dummyUnreadConversationCount,
     tabs: [
       HomeScreen(
-        onCreatePost: () => Navigator.of(context).pushNamed<bool>(
-          RouteNames.createPost,
-        ),
+        onCreatePost: () =>
+            Navigator.of(context).pushNamed<bool>(RouteNames.createPost),
       ),
       MarketScreen(
         onSellItem: () => Navigator.of(context).pushNamed(RouteNames.sellItem),
@@ -141,9 +140,12 @@ abstract final class AppRouter {
                         seller: seller,
                         createdAt: DateTime.now(),
                         distanceKm: 0,
-                        imagePath: draft.photoPaths.isEmpty
+                        imagePath: draft.photoUrls.isEmpty
                             ? null
-                            : draft.photoPaths.first,
+                            : draft.photoUrls.first,
+                        photoUrls: draft.photoUrls,
+                        pickupHubId: draft.pickupHubId,
+                        negotiable: draft.negotiable,
                         tag: draft.pickupHubName,
                       ),
                     );
@@ -154,8 +156,8 @@ abstract final class AppRouter {
             ),
           ),
         ),
-        ),
       ),
+    ),
     RouteNames.notifications: (context) =>
         NotificationsScreen(onBack: () => Navigator.of(context).pop()),
     RouteNames.editProfile: (context) =>

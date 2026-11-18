@@ -52,7 +52,7 @@ class _ListingPreviewScreenState extends State<ListingPreviewScreen> {
   @override
   Widget build(BuildContext context) {
     final draft = widget.draft;
-    final photo = draft.photoPaths.isEmpty ? null : draft.photoPaths.first;
+    final photos = draft.photoUrls;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -79,7 +79,7 @@ class _ListingPreviewScreenState extends State<ListingPreviewScreen> {
               borderRadius: const BorderRadius.all(
                 Radius.circular(AppRadius.md),
               ),
-              child: photo == null
+              child: photos.isEmpty
                   ? const ColoredBox(
                       color: AppColors.surfaceMuted,
                       child: Icon(
@@ -87,23 +87,26 @@ class _ListingPreviewScreenState extends State<ListingPreviewScreen> {
                         color: AppColors.iconMuted,
                       ),
                     )
-                  : AppImage(
-                      photo,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const ColoredBox(
-                        color: AppColors.surfaceMuted,
-                        child: Icon(
-                          Icons.image_outlined,
-                          color: AppColors.iconMuted,
+                  : PageView.builder(
+                      itemCount: photos.length,
+                      itemBuilder: (context, index) => AppImage(
+                        photos[index],
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const ColoredBox(
+                          color: AppColors.surfaceMuted,
+                          child: Icon(
+                            Icons.image_outlined,
+                            color: AppColors.iconMuted,
+                          ),
                         ),
                       ),
                     ),
             ),
           ),
-          if (draft.photoPaths.length > 1) ...[
+          if (draft.photoUrls.length > 1) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(
-              AppStrings.previewPhotoCount(draft.photoPaths.length),
+              AppStrings.previewPhotoCount(draft.photoUrls.length),
               textAlign: TextAlign.end,
               style: AppTypography.bodySmall.copyWith(
                 color: AppColors.textMuted,

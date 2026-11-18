@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
-import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
@@ -18,6 +18,7 @@ import '../../../shared/widgets/chips/status_tag.dart';
 import '../../../shared/widgets/inputs/app_text_area.dart';
 import '../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../shared/widgets/inputs/app_toggle_row.dart';
+import '../../../shared/services/cloudinary_upload_service.dart';
 import '../models/listing_draft.dart';
 import '../providers/market_providers.dart';
 import '../widgets/condition_selector.dart';
@@ -43,6 +44,10 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
   final TextEditingController _descriptionController = TextEditingController();
 
   final List<String> _photos = [];
+  final Map<String, String> _uploadedPhotoUrls = {};
+  final ImagePicker _imagePicker = ImagePicker();
+  final CloudinaryUploadService _uploader = CloudinaryUploadService();
+  bool _isUploadingPhotos = false;
   String? _categoryId;
   ListingCondition? _condition;
   String? _hubId;
@@ -60,16 +65,21 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
     _titleController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
+    _uploader.close();
     super.dispose();
   }
 
   bool get _hasPrice => (int.tryParse(_priceController.text) ?? 0) > 0;
 
   bool get _readyToPreview =>
+      _photos.isNotEmpty &&
       _titleController.text.trim().isNotEmpty &&
       _categoryId != null &&
       _condition != null &&
-      _hasPrice;
+      _hasPrice &&
+      _descriptionController.text.trim().isNotEmpty &&
+      _hubId != null &&
+      !_isUploadingPhotos;
 
   int get _percentComplete {
     final steps = [
@@ -84,14 +94,20 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
     return (steps.where((done) => done).length * 100 / steps.length).round();
   }
 
-  void _addSamplePhoto() {
-    if (_photos.length >= AppSizes.maxListingPhotos) return;
-    setState(() {
-      _photos.add(
-        AppAssets.sellPhotoPlaceholders[_photos.length %
-            AppAssets.sellPhotoPlaceholders.length],
+  Future<void> _pickPhoto() async {
+    if (_isUploadingPhotos || _photos.length >= AppSizes.maxListingPhotos) {
+      return;
+    }
+    try {
+      final photo = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 2000,
       );
-    });
+      if (photo != null && mounted) setState(() => _photos.add(photo.path));
+    } catch (_) {
+      _showMessage(AppStrings.saveFailed);
+    }
   }
 
   void _appendToDescription(String text) {
@@ -112,7 +128,7 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
     _showMessage(AppStrings.draftSaved);
   }
 
-  void _preview() {
+  Future<void> _preview() async {
     if (!_readyToPreview) {
       _showMessage(AppStrings.completeToPreview);
       return;
@@ -127,22 +143,36 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
     final hubMatches =
         options?.pickupHubs.where((hub) => hub.id == _hubId).toList() ??
         const [];
-    widget.onPreview?.call(
-      ListingDraft(
-        title: _titleController.text.trim(),
-        description: _descriptionController.text.trim(),
-        priceRwf: int.parse(_priceController.text),
-        categoryId: categoryId,
-        categoryName: categoryMatches.isEmpty
-            ? AppStrings.category
-            : categoryMatches.first.name,
-        condition: _condition!,
-        pickupHubId: _hubId,
-        pickupHubName: hubMatches.isEmpty ? null : hubMatches.first.name,
-        negotiable: _negotiable,
-        photoPaths: List.unmodifiable(_photos),
-      ),
-    );
+    setState(() => _isUploadingPhotos = true);
+    try {
+      final photoUrls = <String>[];
+      for (final path in _photos) {
+        photoUrls.add(
+          _uploadedPhotoUrls[path] ??= await _uploader.upload(XFile(path)),
+        );
+      }
+      if (!mounted) return;
+      widget.onPreview?.call(
+        ListingDraft(
+          title: _titleController.text.trim(),
+          description: _descriptionController.text.trim(),
+          priceRwf: int.parse(_priceController.text),
+          categoryId: categoryId,
+          categoryName: categoryMatches.isEmpty
+              ? AppStrings.category
+              : categoryMatches.first.name,
+          condition: _condition!,
+          pickupHubId: _hubId,
+          pickupHubName: hubMatches.isEmpty ? null : hubMatches.first.name,
+          negotiable: _negotiable,
+          photoUrls: List.unmodifiable(photoUrls),
+        ),
+      );
+    } catch (_) {
+      _showMessage(AppStrings.saveFailed);
+    } finally {
+      if (mounted) setState(() => _isUploadingPhotos = false);
+    }
   }
 
   @override
@@ -396,8 +426,10 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
         const SizedBox(height: AppSpacing.sm),
         PhotoUploadSection(
           photos: _photos,
-          onAdd: _addSamplePhoto,
-          onRemove: (index) => setState(() => _photos.removeAt(index)),
+          onAdd: _pickPhoto,
+          onRemove: (index) => setState(() {
+            _uploadedPhotoUrls.remove(_photos.removeAt(index));
+          }),
         ),
         const SizedBox(height: AppSpacing.sm),
         Container(
@@ -729,22 +761,32 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
                     shape: const StadiumBorder(),
                     clipBehavior: Clip.antiAlias,
                     child: InkWell(
-                      onTap: _preview,
+                      onTap: _isUploadingPhotos ? null : _preview,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            AppStrings.previewListing,
-                            style: AppTypography.button.copyWith(
+                          if (_isUploadingPhotos)
+                            const SizedBox.square(
+                              dimension: AppSizes.iconSm,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.textOnDark,
+                              ),
+                            )
+                          else ...[
+                            Text(
+                              AppStrings.previewListing,
+                              style: AppTypography.button.copyWith(
+                                color: AppColors.textOnDark,
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.xs),
+                            const Icon(
+                              Icons.arrow_forward,
+                              size: AppSizes.iconSm,
                               color: AppColors.textOnDark,
                             ),
-                          ),
-                          const SizedBox(width: AppSpacing.xs),
-                          const Icon(
-                            Icons.arrow_forward,
-                            size: AppSizes.iconSm,
-                            color: AppColors.textOnDark,
-                          ),
+                          ],
                         ],
                       ),
                     ),

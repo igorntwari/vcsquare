@@ -19,9 +19,13 @@ class ListingModel {
     required this.createdAt,
     required this.distanceKm,
     this.imagePath,
+    List<String>? photoUrls,
+    this.pickupHubId,
+    this.negotiable = true,
+    this.status = 'active',
     this.tag,
     this.tagStyle = ListingTagStyle.dark,
-  });
+  }) : photoUrls = photoUrls ?? [if (imagePath != null) imagePath];
 
   final String id;
   final String title;
@@ -39,6 +43,10 @@ class ListingModel {
   // Distance from the buyer's usual campus spot, used for sorting.
   final double distanceKm;
   final String? imagePath;
+  final List<String> photoUrls;
+  final String? pickupHubId;
+  final bool negotiable;
+  final String status;
 
   // Pickup or source label over the photo, e.g. "Kigali Pickup".
   final String? tag;
@@ -64,6 +72,14 @@ class ListingModel {
     createdAt: readDate(data['createdAt']),
     distanceKm: (data['distanceKm'] as num?)?.toDouble() ?? 0,
     imagePath: data['imagePath'] as String?,
+    photoUrls:
+        (data['photoUrls'] as List<dynamic>?)?.whereType<String>().toList(
+          growable: false,
+        ) ??
+        [if (data['imagePath'] is String) data['imagePath'] as String],
+    pickupHubId: data['pickupHubId'] as String?,
+    negotiable: data['negotiable'] as bool? ?? true,
+    status: data['status'] as String? ?? 'active',
     tag: data['tag'] as String?,
     tagStyle: readEnum(
       ListingTagStyle.values,
@@ -82,6 +98,10 @@ class ListingModel {
     'createdAt': writeDate(createdAt),
     'distanceKm': distanceKm,
     'imagePath': imagePath,
+    'photoUrls': photoUrls,
+    'pickupHubId': pickupHubId,
+    'negotiable': negotiable,
+    'status': status,
     'tag': tag,
     'tagStyle': tagStyle.name,
   };
