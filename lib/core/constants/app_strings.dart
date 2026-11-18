@@ -109,6 +109,12 @@ abstract final class AppStrings {
 
   // Market
   static const String marketSearchHint = 'Search textbooks, tech, furniture...';
+  static const String listingDetailsTitle = 'Listing details';
+  static const String listingDetailsSection = 'Item details';
+  static const String publishListing = 'Publish listing';
+  static const String noListingDescription = 'No description provided.';
+  static String previewPhotoCount(int count) => '$count photos added';
+  static const String messageSeller = 'Message seller';
   static const String marketLocation = 'Kigali Innovation City';
   static const String verifiedStudentSellers = 'Verified Student Sellers';
   static const String underBudget = 'Under RWF 50,000';
@@ -122,7 +128,7 @@ abstract final class AppStrings {
       'Updated 4 mins ago across Kigali campus';
   static const String sortLatest = 'Latest';
   static const String sortPriceLowHigh = 'Price: Low-High';
-  static const String sortDistance = 'Distance';
+  static const String sortPickupHub = 'Pickup hub';
   static const String favorite = 'Save item';
   static const String exchangeTipTitle = 'Meeting for Exchanges?';
   static const String exchangeTipBody =

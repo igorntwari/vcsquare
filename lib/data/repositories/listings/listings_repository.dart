@@ -9,6 +9,8 @@ abstract interface class ListingsRepository {
 
   Future<List<ListingModel>> fetchListingsBySeller(String sellerId);
 
+  Future<String> createListing(ListingModel listing);
+
   // In display order.
   Future<List<CategoryModel>> fetchCategories();
 
