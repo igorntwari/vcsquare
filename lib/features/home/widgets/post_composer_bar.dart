@@ -15,14 +15,14 @@ class PostComposerBar extends StatelessWidget {
     super.key,
     this.avatarImagePath,
     this.isOnline = true,
-    this.onComposeTap,
+    required this.onComposeTap,
     this.onAttachMediaTap,
     this.onCreatePollTap,
   });
 
   final String? avatarImagePath;
   final bool isOnline;
-  final VoidCallback? onComposeTap;
+  final VoidCallback onComposeTap;
   final VoidCallback? onAttachMediaTap;
   final VoidCallback? onCreatePollTap;
 

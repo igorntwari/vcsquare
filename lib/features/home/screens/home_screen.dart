@@ -1,4 +1,5 @@
 // Home feed screen.
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,9 +27,9 @@ import '../widgets/post_composer_bar.dart';
 // Likes and club joins are kept here so every post from the same club
 // updates together, and saved through the repositories.
 class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key, this.onCreatePost});
+  const HomeScreen({super.key, required this.onCreatePost});
 
-  final Future<bool?> Function()? onCreatePost;
+  final Future<bool?> Function() onCreatePost;
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
@@ -295,7 +296,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               avatarImagePath: avatarPath,
               isOnline: isOnline,
               onComposeTap: () async {
-                final created = await widget.onCreatePost?.call();
+                if (kDebugMode) {
+                  debugPrint(
+                    '[Home] Composer tapped; opening create-post route.',
+                  );
+                }
+                final created = await widget.onCreatePost();
+                if (kDebugMode) {
+                  debugPrint('[Home] Create-post route returned: $created');
+                }
                 if (created == true) {
                   ref.invalidate(homeFeedProvider);
                   if (!context.mounted) return;

@@ -1,4 +1,5 @@
 // Central router mapping route names to screens.
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -52,9 +53,13 @@ abstract final class AppRouter {
     messagesBadgeCount: dummyUnreadConversationCount,
     tabs: [
       HomeScreen(
-        onCreatePost: () =>
-            (navigatorKey.currentState ?? Navigator.of(context))
-                .pushNamed<bool>(RouteNames.createPost),
+        onCreatePost: () {
+          if (kDebugMode) {
+            debugPrint('[AppRouter] Pushing ${RouteNames.createPost}.');
+          }
+          return (navigatorKey.currentState ?? Navigator.of(context))
+              .pushNamed<bool>(RouteNames.createPost);
+        },
       ),
       MarketScreen(
         onSellItem: () => Navigator.of(context).pushNamed(RouteNames.sellItem),
