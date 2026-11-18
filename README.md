@@ -137,11 +137,13 @@ Set the cloud name and unsigned upload preset at run time:
 
 ```sh
 flutter run --dart-define=USE_FIREBASE=true \\
-  --dart-define=CLOUDINARY_CLOUD_NAME=your-cloud-name \\
-  --dart-define=CLOUDINARY_UPLOAD_PRESET=your-unsigned-preset
+  --dart-define=CLOUDINARY_CLOUD_NAME=px7mja9s \\
+  --dart-define=CLOUDINARY_UPLOAD_PRESET=vcsquare_mobile_unsigned
 ```
 
-Do not add a Cloudinary API secret to the app or repository. Restrict the unsigned preset to the image formats and size limits the app needs.
+In Android Studio, open **Run → Edit Configurations**, select the Flutter run configuration, and put these same flags in **Additional run args**. Click **Apply** and **OK**, then run the app on the connected device.
+
+Do not add a Cloudinary API secret to the app or repository. Restrict the unsigned preset to the image formats the app needs. The app compresses images, limits their width to 2000 pixels and rejects files larger than 8 MB; Cloudinary presets do not enforce a per-preset file-size limit.
 
 ## Testing the security rules
 

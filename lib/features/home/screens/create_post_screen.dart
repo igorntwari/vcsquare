@@ -80,11 +80,19 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
           );
       if (!mounted) return;
       Navigator.of(context).pop(true);
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text(AppStrings.saveFailed)));
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              error is StateError
+                  ? error.message.toString()
+                  : AppStrings.saveFailed,
+            ),
+          ),
+        );
     } finally {
       if (mounted) setState(() => _isPublishing = false);
     }

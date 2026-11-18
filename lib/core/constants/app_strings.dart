@@ -86,6 +86,7 @@ abstract final class AppStrings {
   static const String removePollOption = 'Remove option';
   static const String addPostPhoto = 'Add photo';
   static const String removePostPhoto = 'Remove photo';
+  static const String imageTooLarge = 'Choose an image smaller than 8 MB.';
   static const String postCopied = 'Post text copied to clipboard.';
   static const String commentsTitle = 'Comments';
   static const String commentHint = 'Write a comment...';

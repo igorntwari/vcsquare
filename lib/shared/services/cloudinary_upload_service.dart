@@ -5,14 +5,21 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/constants/app_strings.dart';
 
 class CloudinaryUploadService {
+  static const int maxImageBytes = 8 * 1024 * 1024;
+
   CloudinaryUploadService({http.Client? client})
     : _client = client ?? http.Client();
 
   final http.Client _client;
 
   Future<String> upload(XFile file) async {
+    if (await file.length() > maxImageBytes) {
+      throw StateError(AppStrings.imageTooLarge);
+    }
+
     final cloudName = AppConfig.cloudinaryCloudName;
     final preset = AppConfig.cloudinaryUploadPreset;
     if (cloudName.isEmpty || preset.isEmpty) {

@@ -105,8 +105,12 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
         maxWidth: 2000,
       );
       if (photo != null && mounted) setState(() => _photos.add(photo.path));
-    } catch (_) {
-      _showMessage(AppStrings.saveFailed);
+    } catch (error) {
+      _showMessage(
+        error is StateError
+            ? error.message.toString()
+            : AppStrings.saveFailed,
+      );
     }
   }
 

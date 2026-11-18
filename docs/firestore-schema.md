@@ -221,7 +221,7 @@ Written by [`tool/seed`](../tool/seed/seed.mjs) with the Admin SDK. The app can'
 
 ## Images
 
-Home and Market photos are selected from the device and uploaded to **Cloudinary**, not Firebase Storage. Firestore stores the resulting HTTPS URLs in `posts.imagePath` and `listings.photoUrls` (`imagePath` is the listing cover). The existing `avatarPath` contract is unchanged. Configure `CLOUDINARY_CLOUD_NAME` and `CLOUDINARY_UPLOAD_PRESET` with `--dart-define`; the app does not contain an API secret. Set upload limits and allowed formats in the unsigned preset.
+Home and Market photos are selected from the device and uploaded to **Cloudinary**, not Firebase Storage. Firestore stores the resulting HTTPS URLs in `posts.imagePath` and `listings.photoUrls` (`imagePath` is the listing cover). The existing `avatarPath` contract is unchanged. Configure `CLOUDINARY_CLOUD_NAME` and `CLOUDINARY_UPLOAD_PRESET` with `--dart-define`; the app does not contain an API secret. Restrict formats in the unsigned preset; the app limits width to 2000 pixels and file size to 8 MB.
 
 ## Not built yet
 
