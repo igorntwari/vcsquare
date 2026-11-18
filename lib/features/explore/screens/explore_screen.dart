@@ -55,7 +55,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   String? _trendingTag;
   int _selectedExploreFilter = 0;
 
-  // Connection requests aren't stored anywhere yet.
   final Set<String> _requestedPeerIds = {};
 
   bool get _showSearchResults =>
@@ -68,6 +67,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     _data = data;
     _followedHandleIds = {...data.followingIds};
     _joinedCommunityIds = {...data.joinedIds};
+    _requestedPeerIds
+      ..clear()
+      ..addAll(data.requestedPeerIds);
   }
 
   void _update(VoidCallback change) {
@@ -81,11 +83,22 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       ..showSnackBar(const SnackBar(content: Text(AppStrings.saveFailed)));
   }
 
-  // Adds the id if missing, removes it if present.
-  void _toggle(Set<String> ids, String id) {
-    setState(() {
-      if (!ids.remove(id)) ids.add(id);
-    });
+  void _toggleConnectionRequest(String peerId) {
+    final userId = ref.read(currentUserProvider).value?.id;
+    if (userId == null) return;
+    optimisticToggle(
+      ids: _requestedPeerIds,
+      id: peerId,
+      update: _update,
+      save: (requested) => ref
+          .read(exploreRepositoryProvider)
+          .setConnectionRequest(
+            userId: userId,
+            peerId: peerId,
+            requested: requested,
+          ),
+      onError: _showSaveFailed,
+    );
   }
 
   void _toggleFollow(String handleId) {
@@ -267,7 +280,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                             suggestion.user.id,
                           ),
                           onConnect: () =>
-                              _toggle(_requestedPeerIds, suggestion.user.id),
+                              _toggleConnectionRequest(suggestion.user.id),
                         ),
                         const SizedBox(height: AppSpacing.sm),
                       ],
@@ -333,7 +346,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             PersonSuggestionTile(
               suggestion: suggestion,
               isRequested: _requestedPeerIds.contains(suggestion.user.id),
-              onConnect: () => _toggle(_requestedPeerIds, suggestion.user.id),
+              onConnect: () => _toggleConnectionRequest(suggestion.user.id),
             ),
           for (final handle in handles)
             _buildHandleResult(
@@ -372,7 +385,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             PersonSuggestionTile(
               suggestion: suggestion,
               isRequested: _requestedPeerIds.contains(suggestion.user.id),
-              onConnect: () => _toggle(_requestedPeerIds, suggestion.user.id),
+              onConnect: () => _toggleConnectionRequest(suggestion.user.id),
             ),
           for (final handle in handles)
             _buildHandleResult(

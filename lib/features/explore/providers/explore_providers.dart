@@ -20,6 +20,7 @@ typedef ExploreData = ({
   Set<String> followingIds,
   // Communities the signed-in user has joined.
   Set<String> joinedIds,
+  Set<String> requestedPeerIds,
 });
 
 final exploreProvider = FutureProvider<ExploreData>((ref) async {
@@ -35,6 +36,7 @@ final exploreProvider = FutureProvider<ExploreData>((ref) async {
     suggestions,
     following,
     joined,
+    requests,
     posts,
     listings,
   ) = await (
@@ -46,6 +48,9 @@ final exploreProvider = FutureProvider<ExploreData>((ref) async {
         : repo.fetchPeerSuggestions(userId),
     userId == null ? Future.value(<String>{}) : repo.fetchFollowingIds(userId),
     userId == null ? Future.value(<String>{}) : repo.fetchJoinedIds(userId),
+    userId == null
+        ? Future.value(<String>{})
+        : repo.fetchRequestedPeerIds(userId),
     postsRepository.fetchFeed(),
     listingsRepository.fetchListings(),
   ).wait;
@@ -58,5 +63,6 @@ final exploreProvider = FutureProvider<ExploreData>((ref) async {
     listings: listings,
     followingIds: following,
     joinedIds: joined,
+    requestedPeerIds: requests,
   );
 });

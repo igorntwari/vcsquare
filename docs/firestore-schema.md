@@ -42,6 +42,7 @@ users/{uid}
   ├─ following/{officialHandleOrUserId}
   └─ peerSuggestions/{otherUid}
 posts/{postId}
+connectionRequests/{senderId}_{recipientId}
 listings/{listingId}
 conversations/{conversationId}
   └─ messages/{messageId}
@@ -103,6 +104,12 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | `peerSuggestions` | suggested user's uid | backend-written; the owner can only delete them (account deletion). Fields: `program`, `focus`, `mutualCount` (int), `sharedInterest` |
 
 `MessageModel.isMine` was replaced by `senderId`; compare it with the signed-in uid.
+
+## connectionRequests/{senderId}_{recipientId}
+
+Explore stores a pending Connect request as `{ senderId, recipientId, status: "pending", createdAt }`. The deterministic id prevents duplicate requests from the same sender to the same peer. The sender can cancel a pending request; both peers can read it. Only verified ALU members can write. There is no accept/decline UI in this workstream yet.
+
+The Firebase query for a user's sent pending requests filters by `senderId` and `status`.
 
 ## posts/{postId}
 

@@ -21,4 +21,5 @@ abstract final class FirestoreCollections {
   static const String memberships = 'memberships';
   static const String following = 'following';
   static const String peerSuggestions = 'peerSuggestions';
+  static const String connectionRequests = 'connectionRequests';
 }

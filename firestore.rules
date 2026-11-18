@@ -131,6 +131,28 @@ service cloud.firestore {
       }
     }
 
+    // Explore connect requests. Only pending requests are stored here; a
+    // recipient can read a request, while the sender can cancel it.
+    match /connectionRequests/{requestId} {
+      allow read: if isMember()
+        && (resource.data.senderId == request.auth.uid
+          || resource.data.recipientId == request.auth.uid);
+      allow create: if isMember()
+        && requestId == request.auth.uid + '_' + request.resource.data.recipientId
+        && request.resource.data.keys().hasOnly([
+          'senderId', 'recipientId', 'status', 'createdAt'
+        ])
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.recipientId is string
+        && request.resource.data.recipientId != request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if isMember()
+        && resource.data.senderId == request.auth.uid
+        && resource.data.status == 'pending';
+    }
+
     // Listings
     match /listings/{listingId} {
       allow read: if isMember();
