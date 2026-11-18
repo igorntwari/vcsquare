@@ -194,4 +194,19 @@ abstract final class AppSizes {
   static const int descriptionMaxLength = 1000;
   static const int maxListingPhotos = 6;
   static const int priceMaxDigits = 9;
+
+  // Form limits. Keep in sync with firestore.rules.
+  static const int passwordMinLength = 8;
+  static const int nameMaxLength = 50;
+  static const int handleMaxLength = 30;
+  static const int bioMaxLength = 300;
+  static const int profileLineMaxLength = 80;
+
+  static const int resendCooldownSeconds = 60;
+
+  static const int verifyPollSeconds = 5;
+
+  static const double authFormMaxWidth = 480;
+
+  static const double avatarEdit = 96;
 }

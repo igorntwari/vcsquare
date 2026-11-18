@@ -202,7 +202,7 @@ abstract final class AppStrings {
       'Verified for Academic Year 2026–2027';
   static const String securitySettingsTitle = 'Account & Security Settings';
   static const String securitySettingsSubtitle =
-      '2FA, email alerts, payment payout methods';
+      'Edit profile, sign out, delete account';
   static const String campusAccessTitle = 'Kigali Innovation City Access';
   static const String campusAccessSubtitle =
       'Smart lock badge • ALU Hub access enabled';
@@ -282,4 +282,151 @@ abstract final class AppStrings {
   static const String navExplore = 'Explore';
   static const String navMessages = 'Messages';
   static const String navProfile = 'Profile';
+
+  // Sign in and sign up
+  static const String signInTitle = 'Sign in to your campus';
+  static const String signInSubtitle =
+      'Use your ALU email or your ALU Google account.';
+  static const String signUpTitle = 'Create your account';
+  static const String signUpSubtitle =
+      'Only @alustudent.com and @alueducation.com emails can join.';
+  static const String emailLabel = 'ALU email';
+  static const String emailHint = 'you@alustudent.com';
+  static const String passwordLabel = 'Password';
+  static const String passwordHint = 'Your password';
+  static const String newPasswordHint = 'At least 8 characters, with a number';
+  static const String confirmPasswordLabel = 'Confirm password';
+  static const String confirmPasswordHint = 'Type it again';
+  static const String fullNameLabel = 'Full name';
+  static const String fullNameHint = 'e.g. Amara Kamau';
+  static const String showPassword = 'Show password';
+  static const String hidePassword = 'Hide password';
+  static const String signIn = 'SIGN IN';
+  static const String createAccount = 'CREATE ACCOUNT';
+  static const String orDivider = 'or';
+  static const String forgotPassword = 'Forgot password?';
+  static const String noAccountPrompt = 'New to the campus network? ';
+  static const String createAccountLink = 'Create an account';
+  static const String haveAccountPrompt = 'Already have an account? ';
+  static const String signInLink = 'Sign in';
+  static const String acceptTermsFirst =
+      'Please accept the campus terms to continue.';
+
+  // Forgot password
+  static const String resetPasswordTitle = 'Reset your password';
+  static const String resetPasswordSubtitle =
+      'Enter your ALU email and we\'ll send you a link to choose a new '
+      'password.';
+  static const String sendResetLink = 'SEND RESET LINK';
+  static const String resetLinkSentTitle = 'Check your inbox';
+  static String resetLinkSent(String email) =>
+      'If an account exists for $email, a reset link is on its way. '
+      'It can take a minute, and may land in spam.';
+  static const String backToSignIn = 'BACK TO SIGN IN';
+
+  // Verify email
+  static const String verifyEmailTitle = 'Verify your email';
+  static String verifyEmailBody(String email) =>
+      'We sent a verification link to $email. Open it on any device, then '
+      'come back here. This page updates on its own.';
+  static const String iVerified = 'I\'VE VERIFIED MY EMAIL';
+  static const String resendEmail = 'Resend email';
+  static String resendIn(int seconds) => 'Resend in ${seconds}s';
+  static const String verificationSent = 'Verification email sent.';
+  static const String notVerifiedYet =
+      'Not verified yet. Open the link in the email first.';
+  static const String useDifferentAccount = 'Use a different account';
+
+  // Validation
+  static const String fieldRequired = 'This field is required.';
+  static const String emailRequired = 'Enter your ALU email.';
+  static const String emailInvalid = 'That doesn\'t look like an email.';
+  static const String emailNotAlu =
+      'Use your @alustudent.com or @alueducation.com email.';
+  static const String passwordRequired = 'Enter your password.';
+  static const String passwordTooShort = 'Use at least 8 characters.';
+  static const String passwordTooWeak = 'Mix letters and at least one number.';
+  static const String passwordsDontMatch = 'Passwords don\'t match.';
+  static const String nameRequired = 'Enter your name.';
+  static const String nameTooShort = 'Name is too short.';
+  static const String nameTooLong = 'Name is too long.';
+  static const String handleRequired = 'Choose a handle.';
+  static const String handleLength = 'Use 3 to 30 characters.';
+  static const String handleInvalid =
+      'Use lowercase letters, numbers, dots and underscores.';
+  static String tooLong(int max) => 'Keep it under $max characters.';
+
+  // Auth errors
+  static const String authInvalidCredential = 'Email or password is incorrect.';
+  static const String authEmailInUse =
+      'An account already exists for this email. Sign in instead.';
+  static const String authWeakPassword =
+      'That password is too weak. Use at least 8 characters with a number.';
+  static const String authInvalidEmail = 'That email address isn\'t valid.';
+  static const String authUserDisabled =
+      'This account has been disabled. Contact Student Life.';
+  static const String authTooManyRequests =
+      'Too many attempts. Wait a few minutes and try again.';
+  static const String authNetwork =
+      'No connection. Check your internet and try again.';
+  static const String authDomainNotAllowed =
+      'Only ALU accounts can join. Use your @alustudent.com or '
+      '@alueducation.com account.';
+  static const String authDifferentMethod =
+      'This email is registered with another sign-in method. Try Google or '
+      'your password instead.';
+  static const String authRequiresRecentLogin =
+      'For your security, sign in again and retry.';
+  static const String authGoogleNotConfigured =
+      'Google sign-in isn\'t set up on this build. Use email instead.';
+  static const String authUnknown = 'Something went wrong. Please try again.';
+
+  // Account settings
+  static const String editProfile = 'Edit profile';
+  static const String editProfileSubtitle = 'Name, handle, bio and programme';
+  static const String signOut = 'Sign out';
+  static const String signOutSubtitle = 'You can sign back in any time';
+  static const String signOutConfirmTitle = 'Sign out?';
+  static const String signOutConfirmBody =
+      'You\'ll need to sign in again to use the campus network.';
+  static const String deleteAccount = 'Delete account';
+  static const String deleteAccountSubtitle =
+      'Permanently remove your profile, posts and listings';
+  static const String deleteAccountConfirmTitle = 'Delete your account?';
+  static const String deleteAccountConfirmBody =
+      'This permanently deletes your profile, posts, listings, likes and '
+      'saved items. Messages you sent stay with the people you sent them to. '
+      'This can\'t be undone.';
+  static const String deleteAccountPasswordPrompt =
+      'Enter your password to confirm.';
+  static const String deleteAccountGooglePrompt =
+      'You\'ll be asked to choose your Google account again to confirm.';
+  static const String deleteForever = 'Delete forever';
+  static const String cancel = 'Cancel';
+  static const String accountDeleted = 'Your account has been deleted.';
+  static const String accountSection = 'ACCOUNT';
+  static const String dangerSection = 'DANGER ZONE';
+
+  // Edit profile
+  static const String saveChanges = 'SAVE CHANGES';
+  static const String profileUpdated = 'Profile updated.';
+  static const String handleLabel = 'Handle';
+  static const String handleHint = '@amara.builds';
+  static const String cohortLabel = 'Cohort';
+  static const String cohortHint = 'e.g. ALU \'27';
+  static const String roleTagLabel = 'Role';
+  static const String roleTagHint = 'e.g. Student Leader • Year 3';
+  static const String campusLabel = 'Campus';
+  static const String campusHint = 'e.g. ALU Kigali Campus';
+  static const String programLabel = 'Programme';
+  static const String programHint = 'e.g. BSc Software Engineering • 2027';
+  static const String bioLabel = 'Bio';
+  static const String bioHint = 'Tell classmates what you\'re working on.';
+  static const String photoFromGoogle =
+      'Your photo comes from your Google account.';
+  static const String discardChangesTitle = 'Discard changes?';
+  static const String discardChangesBody =
+      'Your edits to your profile haven\'t been saved.';
+  static const String discard = 'Discard';
+  static const String keepEditing = 'Keep editing';
 }

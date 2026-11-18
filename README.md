@@ -17,7 +17,7 @@ By default the app uses **sample data** (`lib/data/dummy`), so you need no Fireb
 
 | Flag | Effect |
 | --- | --- |
-| `--dart-define=USE_FIREBASE=true` | Screens read and write Firestore instead of sample data. You must sign in with Google. |
+| `--dart-define=USE_FIREBASE=true` | Screens read and write Firestore instead of sample data. You must sign in with an ALU account (see [Sign-in](#sign-in)). |
 | `--dart-define=USE_EMULATORS=true` | With `USE_FIREBASE`, use the local Emulator Suite instead of the live project. **Use this for day-to-day testing.** |
 | `--dart-define=EMULATOR_HOST=192.168.x.x` | Emulator host for a physical phone. The Android emulator uses `10.0.2.2` automatically. |
 
@@ -73,6 +73,27 @@ Google sign-in on iOS also needs an iOS OAuth client:
 2. Download a fresh `GoogleService-Info.plist`; it will then include `CLIENT_ID` and `REVERSED_CLIENT_ID`.
 3. Add `REVERSED_CLIENT_ID` as a URL scheme in `ios/Runner/Info.plist`.
 
+## Sign-in
+
+Only `@alustudent.com` and `@alueducation.com` accounts can join. Two methods are supported:
+
+| Method | Flow |
+| --- | --- |
+| Email and password | Sign up → verification email → verify → Home. Includes "Forgot password?" (reset link by email). |
+| Google | One tap with an ALU Google account. Google accounts arrive verified. |
+
+The **auth gate** (`lib/app/auth_gate.dart`) is the app's root screen. It shows Splash when signed out, Verify email for unverified email accounts, and the main tabs when signed in. Firebase keeps the session, so the app reopens signed in. Sign out, delete account and edit profile are under **Profile → ⚙ Account settings**.
+
+**One-time Firebase Console setup** (project owner):
+
+1. Authentication → Sign-in method: enable **Email/Password** and **Google**.
+2. Project settings → Your apps → Android: add the **SHA-1** of every machine that builds the app (`cd android && ./gradlew signingReport`), then download `google-services.json` again. Without your SHA-1, Google sign-in fails on your build.
+3. Deploy the rules: `firebase deploy --only firestore:rules`.
+
+**Sample-data mode** (no `USE_FIREBASE`): the app starts signed in as the sample student. To try the email flow after signing out, use `a.kamau@alustudent.com` / `campus2026`. Sign-ups are kept in memory, and "I've verified my email" verifies at once.
+
+**Emulator:** the Auth emulator doesn't send real emails. It prints verification and reset links in the terminal running `firebase emulators:start`. Open the link in a browser, then tap "I've verified my email".
+
 ## Firebase Emulator Suite
 
 The emulators let you test against Auth and Firestore on your own machine, without touching the live project. Ports are set in `firebase.json`:
@@ -110,6 +131,14 @@ Get the key from Firebase Console → Project settings → Service accounts. Nev
 
 The JSON files must match the sample data in `lib/data/dummy`. `test/seed_data_test.dart` fails if they drift apart.
 
+## Testing the security rules
+
+`tool/rules_test` runs `firestore.rules` against the Firestore emulator. It covers who can read, profile create/update/delete, ALU-only access and verified-only access. It needs Node and Java 21+.
+
+```sh
+cd tool/rules_test && npm install && npm test
+```
+
 ## Deploying rules and indexes
 
 `firestore.rules` and `firestore.indexes.json` are deployed by hand by the project owner:
@@ -129,7 +158,10 @@ flutter test
 | --- | --- |
 | `test/data/models/` | Every model survives `toFirestore` → `fromFirestore` |
 | `test/data/repositories/` | Sample repositories, plus Firebase repositories against an in-memory Firestore (`fake_cloud_firestore`) |
-| `test/features/` | Each main screen renders its sample data, and shows an error state when loading fails |
+| `test/core/` | Form validators (ALU email, password strength, handle, lengths) |
+| `test/data/repositories/auth_*`, `firebase_auth_repository_test.dart` | Error mapping, sign-up/sign-in/reset/sign-out/delete account and profile edits against `firebase_auth_mocks` and `fake_cloud_firestore` |
+| `test/features/` | Each main screen renders its sample data and shows an error state when loading fails. Also the auth flow through the real routes and gate, edit profile, account actions, and layouts in landscape and on a small phone |
+| `test/helpers/` | Shared widget-test setup (phone-sized screen, real fonts) |
 | `test/seed_data_test.dart` | Seed JSON matches the sample data |
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs `flutter analyze` and `flutter test` on every pull request into `dev`.
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs `flutter analyze`, `flutter test` and the rules tests on every pull request into `dev`.

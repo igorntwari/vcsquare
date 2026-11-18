@@ -23,6 +23,14 @@ This doc is the source of truth. If you change a collection or field, update the
 - **Per-user state:** likes, saves, follows, memberships and event RSVPs live under `users/{uid}/…` as one empty-ish document per item. That keeps them private to the user and easy to add or remove.
 - **Display order:** fixed lists have an `order` int, lowest first.
 
+## Who can access anything
+
+Every rule builds on `isMember()`: signed in with an `@alustudent.com` or `@alueducation.com` email (`request.auth.token.email`) **and** `email_verified == true`. Google accounts arrive verified. Email/password accounts must click the link sent at sign-up first.
+
+So an account made outside the app with someone else's address, or never verified, can't read or write anything shared. The app checks the same domains in `AppConfig.allowedEmailDomains`, but only the rules are a real guarantee.
+
+`tool/rules_test` tests these rules against the Firestore emulator (`cd tool/rules_test && npm install && npm test`). CI runs it on every PR.
+
 ## Overview
 
 ```
@@ -70,7 +78,16 @@ One document per account: students, campus offices (`type: "official"`) and club
 | `recognitionTitle` | string | profile banner, set by the backend |
 | `recognitionSubtitle` | string | profile banner, set by the backend |
 
-**Rules:** any signed-in user can read. Users create their own document and can only update the editable profile fields. Counters and verification are backend-only.
+Created by `FirebaseAuthRepository.newUserDoc` at sign-up (email) or first sign-in (Google), with exactly: `name`, `handle`, `type` (`student`), `avatarPath`, `cohort`, `isVerified` (`false`), `isOnline`, `email`, `emailDomain`, `createdAt`, `roleTag`, `campus`, `program`, `bio`. The counters and recognition fields are absent until the backend sets them; the app reads them as `0` / `""`.
+
+Edited from **Edit profile** (`ProfileEdit`): `name`, `handle`, `cohort`, `roleTag`, `campus`, `program`, `bio`, `bioHighlight`. Deleted from **Account settings → Delete account**, along with the user's subcollections, posts and listings (`AccountDataEraser`).
+
+**Rules:**
+- **Read:** verified ALU members. An unverified account can read only its own document.
+- **Create:** the owner, with an ALU email, only the keys above, `email` equal to the token's email, `type == "student"` and `isVerified == false`. Verification isn't needed yet, because sign-up writes this before the email is verified.
+- **Update:** the owner, once verified, and only the editable fields. `name` must be 1–50 characters, `handle` must match `@[a-z0-9._]{3,30}`, and `bio` can be at most 300 characters.
+- **Delete:** the owner.
+- Counters and verification are backend-only.
 
 ### Per-user subcollections (owner-only)
 
@@ -83,7 +100,7 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | `savedListings` | listing id | `ListingModel.isFavorited` |
 | `memberships` | community id or club user id | `CommunityModel.isJoined`, `UserModel.isJoined` |
 | `following` | official handle id or user id | `OfficialHandleModel.isFollowing` |
-| `peerSuggestions` | suggested user's uid | backend-written. Fields: `program`, `focus`, `mutualCount` (int), `sharedInterest` |
+| `peerSuggestions` | suggested user's uid | backend-written; the owner can only delete them (account deletion). Fields: `program`, `focus`, `mutualCount` (int), `sharedInterest` |
 
 `MessageModel.isMine` was replaced by `senderId`; compare it with the signed-in uid.
 
@@ -106,7 +123,7 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | `event` | map? | `{ title, startsAt: timestamp, venue, label?, note?, priceRwf?: int, showAsBanner: bool }` |
 | `commentPreview` | map? | `{ authorId, text }` (latest comment) |
 
-**Rules:** signed-in users read. The author creates (with counts at 0), edits content and deletes. Anyone signed in may change only `likeCount`, by exactly ±1, or add one comment while incrementing `commentCount` and updating `commentPreview` in the same transaction.
+**Rules:** verified ALU members read. The author creates (with counts at 0), edits content and deletes. Any member may change `likeCount` by exactly ±1 or add a comment while incrementing `commentCount` and updating `commentPreview` in the same transaction.
 
 **Index:** `authorId ASC, createdAt DESC` (Profile → My Posts).
 
@@ -134,7 +151,7 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | `tag` | string? | label over the photo |
 | `tagStyle` | string | `dark` \| `accent` \| `light` |
 
-**Rules:** signed-in users read. Only the seller creates, updates (and can't change `sellerId`) or deletes.
+**Rules:** members read. Only the seller creates, updates (and can't change `sellerId`) or deletes.
 
 **Index:** `sellerId ASC, createdAt DESC` (Profile → Listings).
 

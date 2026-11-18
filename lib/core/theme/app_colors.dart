@@ -300,7 +300,6 @@ abstract final class AppColors {
   // Underline under links on dark backgrounds.
   static const Color linkUnderlineOnDark = glassBorder;
 
-
   // Hairline separators between rows and sections.
   static const Color divider = grey200;
 
@@ -315,6 +314,9 @@ abstract final class AppColors {
 
   // Validation errors and destructive actions.
   static const Color error = redPrimary;
+
+  // Errors on navy; brand red fails 4.5:1 contrast there.
+  static const Color errorOnDark = Color(0xFFFFB4AB);
 
   // Warnings and attention states.
   static const Color warning = orangeAccent;

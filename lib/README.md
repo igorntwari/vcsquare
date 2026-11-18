@@ -8,3 +8,4 @@
 6. One widget per file, and the file is named after the widget.
 7. State management is Riverpod (`flutter_riverpod`). Screen data lives in a `FutureProvider` in the feature's `providers/` folder; widgets that need it are `ConsumerWidget` / `ConsumerStatefulWidget`.
 8. Models carry `fromFirestore` / `toFirestore`. They never hold per-user state (liked, saved, joined, following, mine): that comes from the repositories as id sets. Schema: `docs/firestore-schema.md`.
+9. Moving between signed out, unverified and signed in is the auth gate's job (`app/auth_gate.dart`): it watches `authAccountProvider` and swaps the root screen. Auth screens never navigate after signing in or out. Repository methods that touch the account throw `AuthFailure`, and screens show its `message`.
