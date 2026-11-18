@@ -97,6 +97,29 @@ class FirebasePostsRepository implements PostsRepository {
       readIdSet(_db, userId, FirestoreCollections.eventRsvps);
 
   @override
+  Future<Map<String, String>> fetchPollVotes(String userId) async {
+    final snapshot = await _db
+        .collectionGroup(FirestoreCollections.pollVotes)
+        .where('userId', isEqualTo: userId)
+        .get();
+    return {
+      for (final doc in snapshot.docs)
+        doc.reference.parent.parent!.id: readString(doc.data()['option']),
+    };
+  }
+
+  @override
+  Future<void> setPollVote({
+    required String userId,
+    required String postId,
+    required String option,
+  }) => _posts.doc(postId).collection(FirestoreCollections.pollVotes).doc(userId).set({
+    'userId': userId,
+    'option': option,
+    'createdAt': FieldValue.serverTimestamp(),
+  });
+
+  @override
   Future<void> setLiked({
     required String userId,
     required String postId,

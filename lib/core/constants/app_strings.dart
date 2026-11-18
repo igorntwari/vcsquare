@@ -77,6 +77,12 @@ abstract final class AppStrings {
   static const String publishPost = 'Post';
   static const String postBodyRequired = 'Write something before posting.';
   static const String postPublished = 'Your post was shared.';
+  static const String createPoll = 'Add a poll';
+  static const String pollQuestion = 'Poll question';
+  static const String addPollOption = 'Add option';
+  static const String pollVoteRecorded = 'Your vote is recorded. Tap another option to change it.';
+  static String pollOption(int number) => 'Option $number';
+  static const String removePollOption = 'Remove option';
   static const String postCopied = 'Post text copied to clipboard.';
   static const String commentsTitle = 'Comments';
   static const String commentHint = 'Write a comment...';

@@ -129,6 +129,7 @@ The Firebase query for a user's sent pending requests filters by `senderId` and 
 | `isMandatoryRead` | bool | |
 | `event` | map? | `{ title, startsAt: timestamp, venue, label?, note?, priceRwf?: int, showAsBanner: bool }` |
 | `commentPreview` | map? | `{ authorId, text }` (latest comment) |
+| `poll` | map? | `{ question: string, options: string[] }`; 2–6 options |
 
 **Rules:** verified ALU members read. The author creates (with counts at 0), edits content and deletes. Any member may change `likeCount` by exactly ±1 or add a comment while incrementing `commentCount` and updating `commentPreview` in the same transaction.
 
@@ -141,6 +142,10 @@ The Firebase query for a user's sent pending requests filters by `senderId` and 
 | `authorId` | string | → `users/{authorId}` |
 | `text` | string | 1–1000 characters |
 | `createdAt` | timestamp | Set by the server |
+
+### posts/{postId}/pollVotes/{voteId}
+
+Each verified member has one vote document, keyed by their uid, with `userId`, `option` (the selected option text) and `createdAt`. A member can change or delete their own vote. Polls are optional on posts; the composer requires a question and at least two options. This version does not include close times or public result totals.
 
 ## listings/{listingId}
 

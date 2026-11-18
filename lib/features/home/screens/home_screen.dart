@@ -40,6 +40,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<PostModel> _posts = const [];
   Set<String> _likedPostIds = {};
   Set<String> _rsvpedPostIds = {};
+  Map<String, String> _pollVoteOptions = {};
   Set<String> _joinedClubIds = {};
   Set<String> _followedIds = {};
   String _searchQuery = '';
@@ -86,6 +87,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ];
     _likedPostIds = {...feed.likedPostIds};
     _rsvpedPostIds = {...feed.rsvpedPostIds};
+    _pollVoteOptions = {...feed.pollVoteOptions};
     _joinedClubIds = {...feed.joinedIds};
     _followedIds = {...feed.followedIds};
   }
@@ -141,6 +143,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           .setRsvp(userId: userId, postId: post.id, rsvped: rsvped),
       onError: _showSaveFailed,
     );
+  }
+
+  Future<void> _votePoll(PostModel post, String option) async {
+    final userId = ref.read(currentUserProvider).value?.id;
+    if (userId == null || _pollVoteOptions[post.id] == option) return;
+    final previous = _pollVoteOptions[post.id];
+    setState(() => _pollVoteOptions[post.id] = option);
+    try {
+      await ref.read(postsRepositoryProvider).setPollVote(
+        userId: userId,
+        postId: post.id,
+        option: option,
+      );
+    } catch (_) {
+      if (previous == null) {
+        _pollVoteOptions.remove(post.id);
+      } else {
+        _pollVoteOptions[post.id] = previous;
+      }
+      _showSaveFailed();
+      if (mounted) setState(() {});
+    }
   }
 
   Future<void> _sharePost(PostModel post) async {
@@ -314,6 +338,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onJoin: () => _toggleJoin(post),
       onComment: () => _openComments(post),
       onShare: () => _sharePost(post),
+      selectedPollOption: _pollVoteOptions[post.id],
+      onVote: (option) => _votePoll(post, option),
     );
   }
 }

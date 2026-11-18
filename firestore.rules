@@ -95,7 +95,15 @@ service cloud.firestore {
       allow create: if isMember()
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.likeCount == 0
-        && request.resource.data.commentCount == 0;
+        && request.resource.data.commentCount == 0
+        && (!('poll' in request.resource.data)
+          || (request.resource.data.poll is map
+            && request.resource.data.poll.question is string
+            && request.resource.data.poll.question.size() > 0
+            && request.resource.data.poll.question.size() <= 120
+            && request.resource.data.poll.options is list
+            && request.resource.data.poll.options.size() >= 2
+            && request.resource.data.poll.options.size() <= 6));
       // The author edits content; members can move likeCount by one
       // (FirebasePostsRepository.setLiked does this in a transaction with
       // users/{uid}/likedPosts).
@@ -128,6 +136,22 @@ service cloud.firestore {
           && request.resource.data.text.size() <= 1000
           && request.resource.data.createdAt == request.time;
         allow update, delete: if false;
+      }
+
+      match /pollVotes/{voteId} {
+        function hasPollOption(option) {
+          return get(/databases/$(database)/documents/posts/$(postId))
+              .data.poll.options.hasAny([option]);
+        }
+
+        allow read: if isMember() && resource.data.userId == request.auth.uid;
+        allow create, update: if isMember()
+          && request.resource.data.keys().hasOnly(['userId', 'option', 'createdAt'])
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.option is string
+          && hasPollOption(request.resource.data.option)
+          && request.resource.data.createdAt == request.time;
+        allow delete: if isMember() && resource.data.userId == request.auth.uid;
       }
     }
 

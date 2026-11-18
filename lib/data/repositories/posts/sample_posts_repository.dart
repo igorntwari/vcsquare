@@ -11,6 +11,7 @@ class SamplePostsRepository implements PostsRepository {
   final Set<String> _rsvpedPostIds = {};
   final List<PostModel> _createdPosts = [];
   final Map<String, List<PostComment>> _comments = {};
+  final Map<String, Map<String, String>> _pollVotes = {};
 
   @override
   Future<List<PostModel>> fetchFeed() async =>
@@ -42,6 +43,7 @@ class SamplePostsRepository implements PostsRepository {
         isMandatoryRead: post.isMandatoryRead,
         event: post.event,
         commentPreview: post.commentPreview,
+        poll: post.poll,
       ),
     );
     return id;
@@ -88,6 +90,7 @@ class SamplePostsRepository implements PostsRepository {
       isMandatoryRead: post.isMandatoryRead,
       event: post.event,
       commentPreview: CommentPreview(author: latest.author, text: latest.text),
+      poll: post.poll,
     );
   }
 
@@ -100,6 +103,19 @@ class SamplePostsRepository implements PostsRepository {
   Future<Set<String>> fetchRsvpedPostIds(String userId) async => {
     ..._rsvpedPostIds,
   };
+
+  @override
+  Future<Map<String, String>> fetchPollVotes(String userId) async =>
+      {...?_pollVotes[userId]};
+
+  @override
+  Future<void> setPollVote({
+    required String userId,
+    required String postId,
+    required String option,
+  }) async {
+    _pollVotes.putIfAbsent(userId, () => {})[postId] = option;
+  }
 
   @override
   Future<void> setLiked({

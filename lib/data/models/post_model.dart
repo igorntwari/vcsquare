@@ -1,6 +1,7 @@
 // Model representing a community feed post.
 import 'event_model.dart';
 import 'firestore_helpers.dart';
+import 'post_poll.dart';
 import 'user_model.dart';
 
 class PostModel {
@@ -20,6 +21,7 @@ class PostModel {
     this.isMandatoryRead = false,
     this.event,
     this.commentPreview,
+    this.poll,
   });
 
   final String id;
@@ -48,6 +50,7 @@ class PostModel {
   final bool isMandatoryRead;
   final EventModel? event;
   final CommentPreview? commentPreview;
+  final PostPoll? poll;
 
   // posts/{id}. [author] and the comment author are looked up from
   // authorId and commentPreview.authorId.
@@ -80,6 +83,9 @@ class PostModel {
               author: commentAuthor,
               text: readString(comment['text']),
             ),
+      poll: readMap(data['poll']) == null
+          ? null
+          : PostPoll.fromFirestore(readMap(data['poll'])!),
     );
   }
 
@@ -98,6 +104,7 @@ class PostModel {
     'isMandatoryRead': isMandatoryRead,
     'event': event?.toFirestore(),
     'commentPreview': commentPreview?.toFirestore(),
+    'poll': poll?.toFirestore(),
   };
 }
 
