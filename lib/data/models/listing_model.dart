@@ -25,7 +25,7 @@ class ListingModel {
     this.status = 'active',
     this.tag,
     this.tagStyle = ListingTagStyle.dark,
-  }) : photoUrls = photoUrls ?? const [if (imagePath != null) imagePath];
+  }) : _photoUrls = photoUrls;
 
   final String id;
   final String title;
@@ -43,7 +43,9 @@ class ListingModel {
   // Distance from the buyer's usual campus spot, used for sorting.
   final double distanceKm;
   final String? imagePath;
-  final List<String> photoUrls;
+  final List<String>? _photoUrls;
+  List<String> get photoUrls =>
+      _photoUrls ?? (imagePath == null ? const [] : [imagePath!]);
   final String? pickupHubId;
   final bool negotiable;
   final String status;
