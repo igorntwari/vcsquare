@@ -8,7 +8,17 @@ abstract final class AppConfig {
   // Point Firebase at the local Emulator Suite instead of the live project.
   // Only has an effect together with USE_FIREBASE=true.
   //   flutter run --dart-define=USE_FIREBASE=true --dart-define=USE_EMULATORS=true
+  //   Add CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET for photo uploads.
   static const bool useEmulators = bool.fromEnvironment('USE_EMULATORS');
+
+  // Cloudinary unsigned uploads. Pass these through --dart-define at run time;
+  // never place an API secret in the Flutter app.
+  static const String cloudinaryCloudName = String.fromEnvironment(
+    'CLOUDINARY_CLOUD_NAME',
+  );
+  static const String cloudinaryUploadPreset = String.fromEnvironment(
+    'CLOUDINARY_UPLOAD_PRESET',
+  );
 
   // Host the emulators listen on. The Android emulator reaches the computer
   // at 10.0.2.2; use your computer's LAN IP for a physical phone.
