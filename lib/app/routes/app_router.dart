@@ -58,7 +58,8 @@ abstract final class AppRouter {
             debugPrint('[AppRouter] Pushing ${RouteNames.createPost}.');
           }
           return (navigatorKey.currentState ?? Navigator.of(context))
-              .pushNamed<bool>(RouteNames.createPost);
+              .pushNamed(RouteNames.createPost)
+              .then((result) => result as bool?);
         },
       ),
       MarketScreen(
