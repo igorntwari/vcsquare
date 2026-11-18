@@ -109,7 +109,7 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 
 Explore stores a pending Connect request as `{ senderId, recipientId, status: "pending", createdAt }`. The deterministic id prevents duplicate requests from the same sender to the same peer. The sender can cancel a pending request; both peers can read it. Only verified ALU members can write. There is no accept/decline UI in this workstream yet.
 
-The Firebase query for a user's sent pending requests filters by `senderId` and `status`.
+The Firebase query for a user's sent pending requests filters by `senderId` and `status`; the matching composite index is in `firestore.indexes.json`.
 
 ## posts/{postId}
 
