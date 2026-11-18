@@ -53,7 +53,8 @@ abstract final class AppRouter {
     tabs: [
       HomeScreen(
         onCreatePost: () =>
-            Navigator.of(context).pushNamed<bool>(RouteNames.createPost),
+            (navigatorKey.currentState ?? Navigator.of(context))
+                .pushNamed<bool>(RouteNames.createPost),
       ),
       MarketScreen(
         onSellItem: () => Navigator.of(context).pushNamed(RouteNames.sellItem),
