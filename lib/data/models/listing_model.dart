@@ -25,7 +25,7 @@ class ListingModel {
     this.status = 'active',
     this.tag,
     this.tagStyle = ListingTagStyle.dark,
-  }) : _photoUrls = photoUrls;
+  }) : _photoUrls = photoUrls; // ignore: prefer_initializing_formals
 
   final String id;
   final String title;

@@ -434,8 +434,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
   void _appendSection(List<Widget> children, String title, List<Widget> items) {
     if (items.isEmpty) return;
-    if (children.isNotEmpty)
+    if (children.isNotEmpty) {
       children.add(const SizedBox(height: AppSpacing.lg));
+    }
     children.add(SectionHeader(title: title));
     children.add(const SizedBox(height: AppSpacing.sm));
     for (final item in items) {

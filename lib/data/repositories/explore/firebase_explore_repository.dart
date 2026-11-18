@@ -102,7 +102,7 @@ class FirebaseExploreRepository implements ExploreRepository {
   }) async {
     final request = _db
         .collection(FirestoreCollections.connectionRequests)
-        .doc('${userId}_${peerId}');
+        .doc('${userId}_$peerId');
     if (!requested) {
       await request.delete();
       return;

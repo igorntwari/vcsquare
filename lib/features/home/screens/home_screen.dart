@@ -307,7 +307,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 }
                 if (created == true) {
                   ref.invalidate(homeFeedProvider);
-                  if (!context.mounted) return;
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
                     ..showSnackBar(
