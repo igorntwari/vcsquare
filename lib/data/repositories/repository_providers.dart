@@ -12,6 +12,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
+import '../models/auth_account_model.dart';
 import '../models/user_model.dart';
 import 'auth/auth_repository.dart';
 import 'auth/firebase_auth_repository.dart';
@@ -75,6 +76,11 @@ final profileRepositoryProvider = Provider<ProfileRepository>(
   (ref) => AppConfig.useFirebase
       ? FirebaseProfileRepository(ref.watch(firestoreProvider))
       : SampleProfileRepository(),
+);
+
+// The Auth account, or null when signed out. Drives AuthGate.
+final authAccountProvider = StreamProvider<AuthAccount?>(
+  (ref) => ref.watch(authRepositoryProvider).watchAccount(),
 );
 
 // The signed-in user, or null when signed out.

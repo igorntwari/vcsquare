@@ -29,7 +29,11 @@ import '../widgets/settings_list_tile.dart';
 enum _ProfileTab { posts, listings, saved }
 
 class ProfileScreen extends ConsumerStatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.onEditProfile, this.onOpenSettings});
+
+  final VoidCallback? onEditProfile;
+
+  final VoidCallback? onOpenSettings;
 
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
@@ -124,9 +128,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         SliverToBoxAdapter(
           child: ProfileHeader(
             profile: profile,
-            onSettings: () {},
+            onSettings: widget.onOpenSettings,
             onStudentId: () {},
-            onEdit: () {},
+            onEdit: widget.onEditProfile,
           ),
         ),
         SliverPadding(
@@ -286,7 +290,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   icon: Icons.manage_accounts_outlined,
                   title: AppStrings.securitySettingsTitle,
                   subtitle: AppStrings.securitySettingsSubtitle,
-                  onTap: () {},
+                  onTap: widget.onOpenSettings,
                 ),
                 SettingsListTile(
                   icon: Icons.apartment_outlined,

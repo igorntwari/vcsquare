@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_sizes.dart';
+import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -14,11 +15,14 @@ class PrimaryButton extends StatelessWidget {
     required this.label,
     this.icon,
     this.onPressed,
+    this.isLoading = false,
   });
 
   final String label;
   final IconData? icon;
   final VoidCallback? onPressed;
+
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +31,6 @@ class PrimaryButton extends StatelessWidget {
       textAlign: TextAlign.center,
       style: AppTypography.button.copyWith(color: AppColors.textOnDarkSoft),
     );
-
 
     return SizedBox(
       width: double.infinity,
@@ -46,10 +49,21 @@ class PrimaryButton extends StatelessWidget {
             gradient: AppColors.primaryButtonSheen,
           ),
           child: InkWell(
-            onTap: onPressed,
+            onTap: isLoading ? null : onPressed,
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
-              child: icon == null
+              child: isLoading
+                  ? const Center(
+                      child: SizedBox.square(
+                        dimension: AppSizes.iconMd,
+                        child: CircularProgressIndicator(
+                          strokeWidth: AppSizes.borderThick,
+                          color: AppColors.textOnDarkSoft,
+                          semanticsLabel: AppStrings.loading,
+                        ),
+                      ),
+                    )
+                  : icon == null
                   ? labelText
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,

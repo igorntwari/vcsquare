@@ -14,7 +14,7 @@ class App extends StatelessWidget {
       navigatorKey: AppRouter.navigatorKey,
       theme: AppTheme.light,
       debugShowCheckedModeBanner: false,
-      initialRoute: RouteNames.splash,
+      initialRoute: RouteNames.root,
       routes: AppRouter.routes,
     );
   }
