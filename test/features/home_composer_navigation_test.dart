@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vsquare/app/routes/app_router.dart';
+import 'package:vsquare/app/routes/route_names.dart';
 import 'package:vsquare/core/constants/app_strings.dart';
 import 'package:vsquare/core/theme/app_theme.dart';
 
@@ -21,7 +22,7 @@ void main() {
           navigatorKey: AppRouter.navigatorKey,
           theme: AppTheme.light,
           routes: AppRouter.routes,
-          home: Builder(builder: AppRouter.buildMainShell),
+          initialRoute: RouteNames.root,
         ),
       ),
     );
