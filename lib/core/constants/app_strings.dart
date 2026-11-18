@@ -142,6 +142,10 @@ abstract final class AppStrings {
   // Explore
   static const String exploreSearchHint =
       'Search posts, listings, students, clubs...';
+  static const String noExploreResultsTitle = 'No matching results';
+  static const String noExploreResultsMessage =
+      'Try another search or choose a different filter.';
+  static const String exploreSearchResults = 'Search results';
   static const String filterAll = 'All';
   static const String filterPosts = 'Posts';
   static const String filterListings = 'Listings';
@@ -151,6 +155,8 @@ abstract final class AppStrings {
   static const String livePulse = 'Live Pulse';
   static const String verifiedInstitutional = 'VERIFIED INSTITUTIONAL';
   static const String officialHandles = 'Official School Handles';
+  static const String officialAccountDetailsTitle = 'Official account';
+  static const String communityDetailsTitle = 'Community';
   static const String seeDirectory = 'See directory';
   static const String campusHubs = 'CAMPUS HUBS';
   static const String discoverCommunities = 'Discover Communities';

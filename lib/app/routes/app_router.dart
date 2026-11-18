@@ -10,6 +10,8 @@ import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/sign_up_screen.dart';
 import '../../features/explore/screens/explore_screen.dart';
 import '../../features/home/screens/create_post_screen.dart';
+import '../../features/explore/screens/official_handle_detail_screen.dart';
+import '../../features/explore/screens/community_detail_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/market/providers/market_providers.dart';
 import '../../features/market/screens/listing_detail_screen.dart';
@@ -62,7 +64,28 @@ abstract final class AppRouter {
           ),
         ),
       ),
-      const ExploreScreen(),
+      ExploreScreen(
+        onOpenCommunity: (community, isJoined, onJoin) =>
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => CommunityDetailScreen(
+                  community: community,
+                  isJoined: isJoined,
+                  onJoin: onJoin,
+                ),
+              ),
+            ),
+        onOpenOfficialHandle: (handle, isFollowing, onFollow) =>
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => OfficialHandleDetailScreen(
+                  handle: handle,
+                  isFollowing: isFollowing,
+                  onFollow: onFollow,
+                ),
+              ),
+            ),
+      ),
       const MessagesScreen(),
       ProfileScreen(
         onEditProfile: () =>
@@ -131,8 +154,8 @@ abstract final class AppRouter {
             ),
           ),
         ),
+        ),
       ),
-    ),
     RouteNames.notifications: (context) =>
         NotificationsScreen(onBack: () => Navigator.of(context).pop()),
     RouteNames.editProfile: (context) =>
