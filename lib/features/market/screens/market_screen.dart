@@ -139,7 +139,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
             children: [
               CustomScrollView(
                 slivers: [
-                  const SliverToBoxAdapter(
+                  SliverToBoxAdapter(
                     child: ColoredBox(
                       color: AppColors.topBarBackground,
                       child: Padding(

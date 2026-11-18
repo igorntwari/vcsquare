@@ -25,7 +25,7 @@ class ListingModel {
     this.status = 'active',
     this.tag,
     this.tagStyle = ListingTagStyle.dark,
-  }) : photoUrls = photoUrls ?? [if (imagePath != null) imagePath];
+  }) : photoUrls = photoUrls ?? const [if (imagePath != null) imagePath];
 
   final String id;
   final String title;

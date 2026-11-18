@@ -209,7 +209,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               SliverToBoxAdapter(
                 child: _buildHeader(user?.avatarPath, user?.isOnline ?? false),
               ),
-              const SliverToBoxAdapter(
+              SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
                   child: FilterChipBar(

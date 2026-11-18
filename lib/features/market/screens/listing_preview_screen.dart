@@ -202,7 +202,7 @@ class _ListingPreviewScreenState extends State<ListingPreviewScreen> {
     );
   }
 
-  String get _conditionLabel => switch (draft.condition) {
+  String get _conditionLabel => switch (widget.draft.condition) {
     ListingCondition.brandNew => AppStrings.conditionNew,
     ListingCondition.likeNew => AppStrings.conditionLikeNew,
     ListingCondition.good => AppStrings.conditionGood,

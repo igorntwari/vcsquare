@@ -77,7 +77,6 @@ abstract final class AppStrings {
   static const String publishPost = 'Post';
   static const String postBodyRequired = 'Write something before posting.';
   static const String postPublished = 'Your post was shared.';
-  static const String createPoll = 'Add a poll';
   static const String pollQuestion = 'Poll question';
   static const String addPollOption = 'Add option';
   static const String pollVoteRecorded =
