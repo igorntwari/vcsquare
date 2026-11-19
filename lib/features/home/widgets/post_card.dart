@@ -18,6 +18,7 @@ import 'post_actions_row.dart';
 import 'post_author_header.dart';
 import 'post_body_text.dart';
 import 'post_photo.dart';
+import 'poll_card.dart';
 
 // Student, office or club post. Club posts get a Join button; event posts
 // get the navy flyer and an "Add to Calendar" action.
@@ -30,6 +31,10 @@ class PostCard extends StatelessWidget {
     this.isJoined = false,
     this.onLike,
     this.onJoin,
+    this.onComment,
+    this.onShare,
+    this.selectedPollOption,
+    this.onVote,
   });
 
   final PostModel post;
@@ -38,6 +43,10 @@ class PostCard extends StatelessWidget {
   final bool isJoined;
   final VoidCallback? onLike;
   final VoidCallback? onJoin;
+  final VoidCallback? onComment;
+  final VoidCallback? onShare;
+  final String? selectedPollOption;
+  final ValueChanged<String>? onVote;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +75,14 @@ class PostCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             PostPhoto(imagePath: post.imagePath!, caption: post.imageCaption),
           ],
+          if (post.poll != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            PollCard(
+              poll: post.poll!,
+              selectedOption: selectedPollOption,
+              onVote: onVote,
+            ),
+          ],
           if (event != null && event.showAsBanner) ...[
             const SizedBox(height: AppSpacing.md),
             EventBannerCard(event: event),
@@ -75,6 +92,8 @@ class PostCard extends StatelessWidget {
             commentCount: post.commentCount,
             isLiked: isLiked,
             onLike: onLike,
+            onComment: onComment,
+            onShare: onShare,
             trailing: _buildTrailingAction(),
           ),
           if (post.commentPreview != null) ...[

@@ -1,4 +1,6 @@
 // Image from a bundled asset path or a web URL (e.g. Cloudinary).
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 // Sample data uses "assets/..." paths; real data uses Cloudinary https URLs.
@@ -24,20 +26,30 @@ class AppImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return isNetwork(path)
-        ? Image.network(
-            path,
-            fit: fit,
-            width: width,
-            height: height,
-            errorBuilder: errorBuilder,
-          )
-        : Image.asset(
-            path,
-            fit: fit,
-            width: width,
-            height: height,
-            errorBuilder: errorBuilder,
-          );
+    if (isNetwork(path)) {
+      return Image.network(
+        path,
+        fit: fit,
+        width: width,
+        height: height,
+        errorBuilder: errorBuilder,
+      );
+    }
+    if (!path.startsWith('assets/')) {
+      return Image.file(
+        File(path),
+        fit: fit,
+        width: width,
+        height: height,
+        errorBuilder: errorBuilder,
+      );
+    }
+    return Image.asset(
+      path,
+      fit: fit,
+      width: width,
+      height: height,
+      errorBuilder: errorBuilder,
+    );
   }
 }

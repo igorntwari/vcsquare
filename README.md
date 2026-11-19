@@ -131,6 +131,19 @@ Get the key from Firebase Console → Project settings → Service accounts. Nev
 
 The JSON files must match the sample data in `lib/data/dummy`. `test/seed_data_test.dart` fails if they drift apart.
 
+## Cloudinary image uploads
+
+Set the cloud name and unsigned upload preset at run time:
+
+```sh
+flutter run --dart-define=CLOUDINARY_CLOUD_NAME=px7mja9s \\
+  --dart-define=CLOUDINARY_UPLOAD_PRESET=vcsquare_mobile_unsigned
+```
+
+In Android Studio, open **Run → Edit Configurations**, select the Flutter run configuration, and put these same flags in **Additional run args**. Click **Apply** and **OK**, then run the app on the connected device. This leaves the app in sample-data mode for a Cloudinary upload smoke test. Add `--dart-define=USE_FIREBASE=true` only when intentionally testing Firestore persistence with an ALU account and the required rules deployed.
+
+Do not add a Cloudinary API secret to the app or repository. Restrict the unsigned preset to the image formats the app needs. The app compresses images, limits their width to 2000 pixels and rejects files larger than 8 MB; Cloudinary presets do not enforce a per-preset file-size limit.
+
 ## Testing the security rules
 
 `tool/rules_test` runs `firestore.rules` against the Firestore emulator. It covers who can read, profile create/update/delete, ALU-only access and verified-only access. It needs Node and Java 21+.

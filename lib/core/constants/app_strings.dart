@@ -49,6 +49,7 @@ abstract final class AppStrings {
       'We couldn\'t load this. Check your connection and try again.';
   static const String retry = 'Try again';
   static const String saveFailed = 'Couldn\'t save that. Please try again.';
+  static const String signInFailed = 'Couldn\'t sign you in. Please try again.';
   static const String sendFailed = 'Message not sent. Please try again.';
 
   // Notifications inbox
@@ -62,10 +63,33 @@ abstract final class AppStrings {
 
   // Home header
   static const String searchHint = 'Search campus pulses, clubs, classmates...';
+  static const String noMatchingPostsTitle = 'No posts match';
+  static const String noMatchingPostsMessage =
+      'Try another search or choose a different feed filter.';
   static const String searchFilter = 'Filter';
   static const String composerHint = 'Share an update, idea or question...';
   static const String attachMedia = 'Attach media';
   static const String createPoll = 'Create poll';
+  static const String createPostTitle = 'Create post';
+  static const String postAudience = 'Who can see this?';
+  static const String audienceCampus = 'All Campus';
+  static const String postBodyHint = 'What would you like to share?';
+  static const String publishPost = 'Post';
+  static const String postBodyRequired = 'Write something before posting.';
+  static const String postPublished = 'Your post was shared.';
+  static const String pollQuestion = 'Poll question';
+  static const String addPollOption = 'Add option';
+  static const String pollVoteRecorded =
+      'Your vote is recorded. Tap another option to change it.';
+  static String pollOption(int number) => 'Option $number';
+  static const String removePollOption = 'Remove option';
+  static const String addPostPhoto = 'Add photo';
+  static const String removePostPhoto = 'Remove photo';
+  static const String imageTooLarge = 'Choose an image smaller than 8 MB.';
+  static const String postCopied = 'Post text copied to clipboard.';
+  static const String commentsTitle = 'Comments';
+  static const String commentHint = 'Write a comment...';
+  static const String noCommentsMessage = 'Be the first to comment.';
 
   // Home feed filters
   static const String filterAllCampus = 'All Campus';
@@ -83,6 +107,7 @@ abstract final class AppStrings {
   static const String mandatoryRead = 'Mandatory Read';
   static const String freeEntry = 'Free Entry';
   static const String rsvpNow = 'RSVP Now';
+  static const String rsvped = 'Going';
   static const String addToCalendar = 'Add to Calendar';
   static const String like = 'Like';
   static const String comment = 'Comment';
@@ -93,6 +118,12 @@ abstract final class AppStrings {
 
   // Market
   static const String marketSearchHint = 'Search textbooks, tech, furniture...';
+  static const String listingDetailsTitle = 'Listing details';
+  static const String listingDetailsSection = 'Item details';
+  static const String publishListing = 'Publish listing';
+  static const String noListingDescription = 'No description provided.';
+  static String previewPhotoCount(int count) => '$count photos added';
+  static const String messageSeller = 'Message seller';
   static const String marketLocation = 'Kigali Innovation City';
   static const String verifiedStudentSellers = 'Verified Student Sellers';
   static const String underBudget = 'Under RWF 50,000';
@@ -106,7 +137,7 @@ abstract final class AppStrings {
       'Updated 4 mins ago across Kigali campus';
   static const String sortLatest = 'Latest';
   static const String sortPriceLowHigh = 'Price: Low-High';
-  static const String sortDistance = 'Distance';
+  static const String sortPickupHub = 'Pickup hub';
   static const String favorite = 'Save item';
   static const String exchangeTipTitle = 'Meeting for Exchanges?';
   static const String exchangeTipBody =
@@ -120,6 +151,10 @@ abstract final class AppStrings {
   // Explore
   static const String exploreSearchHint =
       'Search posts, listings, students, clubs...';
+  static const String noExploreResultsTitle = 'No matching results';
+  static const String noExploreResultsMessage =
+      'Try another search or choose a different filter.';
+  static const String exploreSearchResults = 'Search results';
   static const String filterAll = 'All';
   static const String filterPosts = 'Posts';
   static const String filterListings = 'Listings';
@@ -129,6 +164,8 @@ abstract final class AppStrings {
   static const String livePulse = 'Live Pulse';
   static const String verifiedInstitutional = 'VERIFIED INSTITUTIONAL';
   static const String officialHandles = 'Official School Handles';
+  static const String officialAccountDetailsTitle = 'Official account';
+  static const String communityDetailsTitle = 'Community';
   static const String seeDirectory = 'See directory';
   static const String campusHubs = 'CAMPUS HUBS';
   static const String discoverCommunities = 'Discover Communities';

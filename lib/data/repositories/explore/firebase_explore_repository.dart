@@ -85,6 +85,37 @@ class FirebaseExploreRepository implements ExploreRepository {
       readIdSet(_db, userId, FirestoreCollections.following);
 
   @override
+  Future<Set<String>> fetchRequestedPeerIds(String userId) async {
+    final snapshot = await _db
+        .collection(FirestoreCollections.connectionRequests)
+        .where('senderId', isEqualTo: userId)
+        .where('status', isEqualTo: 'pending')
+        .get();
+    return {for (final doc in snapshot.docs) doc.data()['recipientId'] as String};
+  }
+
+  @override
+  Future<void> setConnectionRequest({
+    required String userId,
+    required String peerId,
+    required bool requested,
+  }) async {
+    final request = _db
+        .collection(FirestoreCollections.connectionRequests)
+        .doc('${userId}_$peerId');
+    if (!requested) {
+      await request.delete();
+      return;
+    }
+    await request.set({
+      'senderId': userId,
+      'recipientId': peerId,
+      'status': 'pending',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  @override
   Future<void> setFollowing({
     required String userId,
     required String targetId,

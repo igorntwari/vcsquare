@@ -19,6 +19,15 @@ abstract interface class ExploreRepository {
   // Ids of official accounts and people the user follows.
   Future<Set<String>> fetchFollowingIds(String userId);
 
+  // Peer ids with a pending request sent by this user.
+  Future<Set<String>> fetchRequestedPeerIds(String userId);
+
+  Future<void> setConnectionRequest({
+    required String userId,
+    required String peerId,
+    required bool requested,
+  });
+
   Future<void> setFollowing({
     required String userId,
     required String targetId,

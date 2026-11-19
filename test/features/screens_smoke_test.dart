@@ -22,14 +22,14 @@ void main() {
   setUpAll(loadAppFonts);
 
   testWidgets('Home shows the pinned announcement', (tester) async {
-    await pumpScreen(tester, const HomeScreen());
+    await pumpScreen(tester, HomeScreen(onCreatePost: () async => null));
     expect(find.textContaining('Term 1 course registration'), findsOneWidget);
   });
 
   testWidgets('Home shows an error state when the feed fails', (tester) async {
     await pumpScreen(
       tester,
-      const HomeScreen(),
+      HomeScreen(onCreatePost: () async => null),
       overrides: [postsRepositoryProvider.overrideWithValue(_FailingPosts())],
     );
     expect(find.byType(ErrorState), findsOneWidget);

@@ -24,12 +24,13 @@ import '../widgets/listing_grid.dart';
 import '../widgets/sort_chips.dart';
 import '../widgets/trust_banner.dart';
 
-enum _SortOrder { latest, priceLowHigh, distance }
+enum _SortOrder { latest, priceLowHigh, pickupHub }
 
 class MarketScreen extends ConsumerStatefulWidget {
-  const MarketScreen({super.key, this.onSellItem});
+  const MarketScreen({super.key, this.onSellItem, this.onOpenListing});
 
   final VoidCallback? onSellItem;
+  final ValueChanged<ListingModel>? onOpenListing;
 
   @override
   ConsumerState<MarketScreen> createState() => _MarketScreenState();
@@ -41,6 +42,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
   String? _selectedCategoryId;
   bool _verifiedOnly = false;
   bool _underBudget = false;
+  String _searchQuery = '';
   _SortOrder _sortOrder = _SortOrder.latest;
 
   // The data these local copies were made from. A refetch replaces them.
@@ -54,12 +56,30 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
   }
 
   List<ListingModel> _visibleListings(List<ListingModel> all) {
+    final query = _searchQuery.trim().toLowerCase();
     final listings = all.where((listing) {
+      final categoryNames =
+          _data?.categories
+              .where((category) => category.id == listing.categoryId)
+              .map((category) => category.name) ??
+          const <String>[];
+      final searchableText = [
+        listing.title,
+        listing.details,
+        listing.seller.name,
+        listing.seller.handle,
+        listing.tag,
+        ...categoryNames,
+      ].whereType<String>();
+      if (query.isNotEmpty &&
+          !searchableText.any((value) => value.toLowerCase().contains(query))) {
+        return false;
+      }
       if (_selectedCategoryId != null &&
           listing.categoryId != _selectedCategoryId) {
         return false;
       }
-      if (_verifiedOnly && !listing.seller.isStudent) return false;
+      if (_verifiedOnly && !listing.seller.isVerified) return false;
       if (_underBudget && listing.priceRwf >= _budgetLimitRwf) return false;
       return true;
     }).toList();
@@ -69,8 +89,8 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
         listings.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       case _SortOrder.priceLowHigh:
         listings.sort((a, b) => a.priceRwf.compareTo(b.priceRwf));
-      case _SortOrder.distance:
-        listings.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
+      case _SortOrder.pickupHub:
+        listings.sort((a, b) => (a.tag ?? '').compareTo(b.tag ?? ''));
     }
     return listings;
   }
@@ -119,7 +139,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
             children: [
               CustomScrollView(
                 slivers: [
-                  const SliverToBoxAdapter(
+                  SliverToBoxAdapter(
                     child: ColoredBox(
                       color: AppColors.topBarBackground,
                       child: Padding(
@@ -131,6 +151,8 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                         ),
                         child: AppSearchBar(
                           hintText: AppStrings.marketSearchHint,
+                          onChanged: (value) =>
+                              setState(() => _searchQuery = value),
                         ),
                       ),
                     ),
@@ -175,7 +197,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                           options: const [
                             AppStrings.sortLatest,
                             AppStrings.sortPriceLowHigh,
-                            AppStrings.sortDistance,
+                            AppStrings.sortPickupHub,
                           ],
                           selectedIndex: _sortOrder.index,
                           onSelected: (index) => setState(
@@ -203,6 +225,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                             listings: listings,
                             favoriteIds: _favoriteIds,
                             onFavorite: _toggleFavorite,
+                            onOpenListing: widget.onOpenListing,
                           ),
                   ),
                   SliverPadding(

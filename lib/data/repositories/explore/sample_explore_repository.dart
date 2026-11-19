@@ -13,6 +13,7 @@ import 'explore_repository.dart';
 class SampleExploreRepository implements ExploreRepository {
   final Set<String> _followingIds = {...dummyFollowingIds};
   final Set<String> _joinedIds = {...dummyJoinedIds};
+  final Set<String> _requestedPeerIds = {};
 
   @override
   Future<List<TrendingTopicModel>> fetchTrendingTopics() async =>
@@ -32,6 +33,19 @@ class SampleExploreRepository implements ExploreRepository {
   @override
   Future<Set<String>> fetchFollowingIds(String userId) async =>
       {..._followingIds};
+
+  @override
+  Future<Set<String>> fetchRequestedPeerIds(String userId) async =>
+      {..._requestedPeerIds};
+
+  @override
+  Future<void> setConnectionRequest({
+    required String userId,
+    required String peerId,
+    required bool requested,
+  }) async {
+    requested ? _requestedPeerIds.add(peerId) : _requestedPeerIds.remove(peerId);
+  }
 
   @override
   Future<void> setFollowing({

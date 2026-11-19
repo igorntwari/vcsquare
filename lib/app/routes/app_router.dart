@@ -1,12 +1,22 @@
 // Central router mapping route names to screens.
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/dummy/dummy_conversations.dart';
+import '../../data/models/listing_model.dart';
+import '../../data/repositories/repository_providers.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/sign_up_screen.dart';
 import '../../features/explore/screens/explore_screen.dart';
+import '../../features/home/screens/create_post_screen.dart';
+import '../../features/explore/screens/official_handle_detail_screen.dart';
+import '../../features/explore/screens/community_detail_screen.dart';
 import '../../features/home/screens/home_screen.dart';
+import '../../features/market/providers/market_providers.dart';
+import '../../features/market/screens/listing_detail_screen.dart';
+import '../../features/market/screens/listing_preview_screen.dart';
 import '../../features/market/screens/market_screen.dart';
 import '../../features/market/screens/sell_item_screen.dart';
 import '../../features/messages/screens/messages_screen.dart';
@@ -42,11 +52,46 @@ abstract final class AppRouter {
     // Messages/chats are owned separately; still on dummy data.
     messagesBadgeCount: dummyUnreadConversationCount,
     tabs: [
-      const HomeScreen(),
+      HomeScreen(
+        onCreatePost: () {
+          if (kDebugMode) {
+            debugPrint('[AppRouter] Pushing ${RouteNames.createPost}.');
+          }
+          return (navigatorKey.currentState ?? Navigator.of(context))
+              .pushNamed(RouteNames.createPost)
+              .then((result) => result as bool?);
+        },
+      ),
       MarketScreen(
         onSellItem: () => Navigator.of(context).pushNamed(RouteNames.sellItem),
+        onOpenListing: (listing) => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => ListingDetailScreen(listing: listing),
+          ),
+        ),
       ),
-      const ExploreScreen(),
+      ExploreScreen(
+        onOpenCommunity: (community, isJoined, onJoin) =>
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => CommunityDetailScreen(
+                  community: community,
+                  isJoined: isJoined,
+                  onJoin: onJoin,
+                ),
+              ),
+            ),
+        onOpenOfficialHandle: (handle, isFollowing, onFollow) =>
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => OfficialHandleDetailScreen(
+                  handle: handle,
+                  isFollowing: isFollowing,
+                  onFollow: onFollow,
+                ),
+              ),
+            ),
+      ),
       const MessagesScreen(),
       ProfileScreen(
         onEditProfile: () =>
@@ -75,9 +120,51 @@ abstract final class AppRouter {
     RouteNames.whyInstitutionalLogin: (context) => WhyInstitutionalLoginScreen(
       onGoBack: () => Navigator.of(context).pop(),
     ),
-    // Preview Listing (step 2) is wired up once that screen is built.
-    RouteNames.sellItem: (context) =>
-        SellItemScreen(onClose: () => Navigator.of(context).pop()),
+    RouteNames.createPost: (context) => const CreatePostScreen(),
+    // Step 2 receives the current sell form as a preview draft.
+    RouteNames.sellItem: (context) => SellItemScreen(
+      onClose: () => Navigator.of(context).pop(),
+      onPreview: (draft) => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (previewContext) => Consumer(
+            builder: (context, ref, _) => ListingPreviewScreen(
+              draft: draft,
+              onBack: () => Navigator.of(context).pop(),
+              onPublish: () async {
+                final seller = ref.read(currentUserProvider).value;
+                if (seller == null) throw StateError('No signed-in seller');
+                final navigator = Navigator.of(previewContext);
+                await ref
+                    .read(listingsRepositoryProvider)
+                    .createListing(
+                      ListingModel(
+                        id: '',
+                        title: draft.title,
+                        details: draft.description,
+                        priceRwf: draft.priceRwf,
+                        condition: draft.condition,
+                        categoryId: draft.categoryId,
+                        seller: seller,
+                        createdAt: DateTime.now(),
+                        distanceKm: 0,
+                        imagePath: draft.photoUrls.isEmpty
+                            ? null
+                            : draft.photoUrls.first,
+                        photoUrls: draft.photoUrls,
+                        pickupHubId: draft.pickupHubId,
+                        negotiable: draft.negotiable,
+                        tag: draft.pickupHubName,
+                      ),
+                    );
+                ref.invalidate(marketProvider);
+                navigator.pop();
+                navigator.pop();
+              },
+            ),
+          ),
+        ),
+      ),
+    ),
     RouteNames.notifications: (context) =>
         NotificationsScreen(onBack: () => Navigator.of(context).pop()),
     RouteNames.editProfile: (context) =>

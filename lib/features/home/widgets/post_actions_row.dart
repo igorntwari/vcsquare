@@ -16,6 +16,8 @@ class PostActionsRow extends StatelessWidget {
     required this.commentCount,
     required this.isLiked,
     this.onLike,
+    this.onComment,
+    this.onShare,
     this.trailing,
   });
 
@@ -23,6 +25,8 @@ class PostActionsRow extends StatelessWidget {
   final int commentCount;
   final bool isLiked;
   final VoidCallback? onLike;
+  final VoidCallback? onComment;
+  final VoidCallback? onShare;
 
   // Shown on the right (e.g. "Mandatory Read"). Defaults to a save button.
   final Widget? trailing;
@@ -54,13 +58,13 @@ class PostActionsRow extends StatelessWidget {
               icon: Icons.chat_bubble_outline,
               count: commentCount,
               color: AppColors.textSecondary,
-              onTap: () {},
+              onTap: onComment,
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
           IconButton(
             tooltip: AppStrings.share,
-            onPressed: () {},
+            onPressed: onShare,
             visualDensity: VisualDensity.compact,
             icon: const Icon(
               Icons.share_outlined,

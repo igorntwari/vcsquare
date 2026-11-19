@@ -22,6 +22,13 @@ class FirebaseListingsRepository implements ListingsRepository {
       _db.collection(FirestoreCollections.listings);
 
   @override
+  Future<String> createListing(ListingModel listing) async {
+    final reference = _listings.doc();
+    await reference.set(listing.toFirestore());
+    return reference.id;
+  }
+
+  @override
   Future<List<ListingModel>> fetchListings() async {
     final snapshot = await _listings
         .orderBy('createdAt', descending: true)

@@ -20,7 +20,7 @@ This doc is the source of truth. If you change a collection or field, update the
 - **Enums:** stored as their Dart name (`"likeNew"`, `"official"`).
 - **Icons:** stored as a name string (`"laptop"`), looked up in [`AppIcons`](../lib/core/constants/app_icons.dart). Add the name there before using it in data.
 - **Images:** `imagePath` / `avatarPath` hold either a bundled `assets/...` path (sample data) or an `https://` Cloudinary URL. Uploads go to Cloudinary (owned by another teammate); Firestore only stores the URL. [`AppImage`](../lib/shared/widgets/media/app_image.dart) handles both.
-- **Per-user state:** likes, saves, follows and memberships live under `users/{uid}/…` as one empty-ish document per item. That keeps them private to the user and easy to add or remove.
+- **Per-user state:** likes, saves, follows, memberships and event RSVPs live under `users/{uid}/…` as one empty-ish document per item. That keeps them private to the user and easy to add or remove.
 - **Display order:** fixed lists have an `order` int, lowest first.
 
 ## Who can access anything
@@ -36,11 +36,13 @@ So an account made outside the app with someone else's address, or never verifie
 ```
 users/{uid}
   ├─ likedPosts/{postId}
+  ├─ eventRsvps/{postId}
   ├─ savedListings/{listingId}
   ├─ memberships/{communityOrClubId}
   ├─ following/{officialHandleOrUserId}
   └─ peerSuggestions/{otherUid}
 posts/{postId}
+connectionRequests/{senderId}_{recipientId}
 listings/{listingId}
 conversations/{conversationId}
   └─ messages/{messageId}
@@ -95,12 +97,19 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | Subcollection | Document id | Replaces the old model flag |
 | --- | --- | --- |
 | `likedPosts` | post id | `PostModel.isLiked` |
+| `eventRsvps` | event post id | event attendance |
 | `savedListings` | listing id | `ListingModel.isFavorited` |
 | `memberships` | community id or club user id | `CommunityModel.isJoined`, `UserModel.isJoined` |
 | `following` | official handle id or user id | `OfficialHandleModel.isFollowing` |
 | `peerSuggestions` | suggested user's uid | backend-written; the owner can only delete them (account deletion). Fields: `program`, `focus`, `mutualCount` (int), `sharedInterest` |
 
 `MessageModel.isMine` was replaced by `senderId`; compare it with the signed-in uid.
+
+## connectionRequests/{senderId}_{recipientId}
+
+Explore stores a pending Connect request as `{ senderId, recipientId, status: "pending", createdAt }`. The deterministic id prevents duplicate requests from the same sender to the same peer. The sender can cancel a pending request; both peers can read it. Only verified ALU members can write. There is no accept/decline UI in this workstream yet.
+
+The Firebase query for a user's sent pending requests filters by `senderId` and `status`; the matching composite index is in `firestore.indexes.json`.
 
 ## posts/{postId}
 
@@ -120,24 +129,41 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | `isMandatoryRead` | bool | |
 | `event` | map? | `{ title, startsAt: timestamp, venue, label?, note?, priceRwf?: int, showAsBanner: bool }` |
 | `commentPreview` | map? | `{ authorId, text }` (latest comment) |
+| `poll` | map? | `{ question: string, options: string[] }`; 2–6 options |
 
-**Rules:** members read. The author creates (with counts at 0), edits content and deletes. Any member may change only `likeCount`, by exactly ±1.
+**Rules:** verified ALU members read. The author creates (with counts at 0), edits content and deletes. Any member may change `likeCount` by exactly ±1 or add a comment while incrementing `commentCount` and updating `commentPreview` in the same transaction.
 
 **Index:** `authorId ASC, createdAt DESC` (Profile → My Posts).
+
+### posts/{postId}/comments/{commentId}
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `authorId` | string | → `users/{authorId}` |
+| `text` | string | 1–1000 characters |
+| `createdAt` | timestamp | Set by the server |
+
+### posts/{postId}/pollVotes/{voteId}
+
+Each verified member has one vote document, keyed by their uid, with `userId`, `option` (the selected option text) and `createdAt`. A member can change or delete their own vote. Polls are optional on posts; the composer requires a question and at least two options. This version does not include close times or public result totals.
 
 ## listings/{listingId}
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `title` | string | max 80 chars in the form |
-| `details` | string | spec line, e.g. `"8GB RAM • 256GB SSD"` |
+| `details` | string | Seller's description |
 | `priceRwf` | int | |
 | `condition` | string | `brandNew` \| `likeNew` \| `good` \| `used` \| `forParts` |
 | `categoryId` | string | → `categories/{id}` |
 | `sellerId` | string | → `users/{sellerId}` |
 | `createdAt` | timestamp | |
 | `distanceKm` | number | placeholder until we compute distance from the buyer's pickup hub |
-| `imagePath` | string? | Cloudinary URL |
+| `imagePath` | string | Cover photo URL; equals `photoUrls[0]` |
+| `photoUrls` | string[] | 1–6 Cloudinary HTTPS URLs |
+| `pickupHubId` | string | → `pickupHubs/{id}` |
+| `negotiable` | bool | Seller's preference |
+| `status` | string | `active` \| `sold`; new listings start `active` |
 | `tag` | string? | label over the photo |
 | `tagStyle` | string | `dark` \| `accent` \| `light` |
 
@@ -195,10 +221,10 @@ Written by [`tool/seed`](../tool/seed/seed.mjs) with the Admin SDK. The app can'
 
 ## Images
 
-Photos and avatars are uploaded to **Cloudinary**, not Firebase Storage. Firestore stores only the resulting `https://res.cloudinary.com/...` URL in `imagePath` / `avatarPath`. The Cloudinary upload setup (preset, folders, who can upload) is owned by another teammate and documented with that work.
+Home and Market photos are selected from the device and uploaded to **Cloudinary**, not Firebase Storage. Firestore stores the resulting HTTPS URLs in `posts.imagePath` and `listings.photoUrls` (`imagePath` is the listing cover). The existing `avatarPath` contract is unchanged. Configure `CLOUDINARY_CLOUD_NAME` and `CLOUDINARY_UPLOAD_PRESET` with `--dart-define`; the app does not contain an API secret. Restrict formats in the unsigned preset; the app limits width to 2000 pixels and file size to 8 MB.
 
 ## Not built yet
 
+- `AccountDataEraser` must remove a deleted user's `pollVotes` and sent/received `connectionRequests`. Deleting a post must also handle its `comments` and `pollVotes` subcollections because Firestore does not cascade deletes.
 - Cloud Functions for the counters (`followerCount`, `followingCount`, `memberCount`), `peerSuggestions` and `trendingTopics`.
-- Comments as a `posts/{id}/comments` subcollection. Today only `commentPreview` and `commentCount` exist.
 - Notifications are stored on the device only (see `NotificationService`), not in Firestore.

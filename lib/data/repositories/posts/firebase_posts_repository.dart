@@ -3,8 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../models/firestore_helpers.dart';
 import '../../models/post_model.dart';
+import '../../models/user_model.dart';
 import '../firebase/firestore_collections.dart';
 import '../firebase/user_lookup.dart';
+import 'post_comment.dart';
 import 'posts_repository.dart';
 
 class FirebasePostsRepository implements PostsRepository {
@@ -17,6 +19,56 @@ class FirebasePostsRepository implements PostsRepository {
 
   CollectionReference<Map<String, dynamic>> get _posts =>
       _db.collection(FirestoreCollections.posts);
+
+  @override
+  Future<String> createPost(PostModel post) async {
+    final reference = _posts.doc();
+    await reference.set(post.toFirestore());
+    return reference.id;
+  }
+
+  @override
+  Future<List<PostComment>> fetchComments(String postId) async {
+    final snapshot = await _posts
+        .doc(postId)
+        .collection('comments')
+        .orderBy('createdAt')
+        .get();
+    final authors = await _users.byIds([
+      for (final doc in snapshot.docs) readString(doc.data()['authorId']),
+    ]);
+    return [
+      for (final doc in snapshot.docs)
+        PostComment.fromFirestore(
+          doc.id,
+          doc.data(),
+          author:
+              authors[readString(doc.data()['authorId'])] ??
+              UserLookup.placeholder(readString(doc.data()['authorId'])),
+        ),
+    ];
+  }
+
+  @override
+  Future<void> addComment({
+    required String postId,
+    required UserModel author,
+    required String text,
+  }) async {
+    final post = _posts.doc(postId);
+    final comment = post.collection('comments').doc();
+    await _db.runTransaction((transaction) async {
+      transaction.set(comment, {
+        'authorId': author.id,
+        'text': text,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      transaction.update(post, {
+        'commentCount': FieldValue.increment(1),
+        'commentPreview': {'authorId': author.id, 'text': text},
+      });
+    });
+  }
 
   @override
   Future<List<PostModel>> fetchFeed() async {
@@ -39,6 +91,33 @@ class FirebasePostsRepository implements PostsRepository {
   @override
   Future<Set<String>> fetchLikedPostIds(String userId) =>
       readIdSet(_db, userId, FirestoreCollections.likedPosts);
+
+  @override
+  Future<Set<String>> fetchRsvpedPostIds(String userId) =>
+      readIdSet(_db, userId, FirestoreCollections.eventRsvps);
+
+  @override
+  Future<Map<String, String>> fetchPollVotes(String userId) async {
+    final snapshot = await _db
+        .collectionGroup(FirestoreCollections.pollVotes)
+        .where('userId', isEqualTo: userId)
+        .get();
+    return {
+      for (final doc in snapshot.docs)
+        doc.reference.parent.parent!.id: readString(doc.data()['option']),
+    };
+  }
+
+  @override
+  Future<void> setPollVote({
+    required String userId,
+    required String postId,
+    required String option,
+  }) => _posts.doc(postId).collection(FirestoreCollections.pollVotes).doc(userId).set({
+    'userId': userId,
+    'option': option,
+    'createdAt': FieldValue.serverTimestamp(),
+  });
 
   @override
   Future<void> setLiked({
@@ -65,6 +144,19 @@ class FirebasePostsRepository implements PostsRepository {
       });
     });
   }
+
+  @override
+  Future<void> setRsvp({
+    required String userId,
+    required String postId,
+    required bool rsvped,
+  }) => writeIdFlag(
+    _db,
+    userId: userId,
+    subcollection: FirestoreCollections.eventRsvps,
+    id: postId,
+    value: rsvped,
+  );
 
   Future<List<PostModel>> _toPosts(
     List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,

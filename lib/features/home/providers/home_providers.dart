@@ -8,8 +8,12 @@ typedef HomeFeed = ({
   List<PostModel> posts,
   // Posts the signed-in user has liked.
   Set<String> likedPostIds,
+  Set<String> rsvpedPostIds,
+  Map<String, String> pollVoteOptions,
   // Clubs the signed-in user is a member of.
   Set<String> joinedIds,
+  // Official accounts and people the signed-in user follows.
+  Set<String> followedIds,
 });
 
 final homeFeedProvider = FutureProvider<HomeFeed>((ref) async {
@@ -17,12 +21,26 @@ final homeFeedProvider = FutureProvider<HomeFeed>((ref) async {
   final posts = ref.watch(postsRepositoryProvider);
   final explore = ref.watch(exploreRepositoryProvider);
 
-  final (feed, liked, joined) = await (
+  final (feed, liked, rsvped, pollVotes, joined, followed) = await (
     posts.fetchFeed(),
+    userId == null ? Future.value(<String>{}) : posts.fetchLikedPostIds(userId),
     userId == null
         ? Future.value(<String>{})
-        : posts.fetchLikedPostIds(userId),
+        : posts.fetchRsvpedPostIds(userId),
+    userId == null
+        ? Future.value(<String, String>{})
+        : posts.fetchPollVotes(userId),
     userId == null ? Future.value(<String>{}) : explore.fetchJoinedIds(userId),
+    userId == null
+        ? Future.value(<String>{})
+        : explore.fetchFollowingIds(userId),
   ).wait;
-  return (posts: feed, likedPostIds: liked, joinedIds: joined);
+  return (
+    posts: feed,
+    likedPostIds: liked,
+    rsvpedPostIds: rsvped,
+    pollVoteOptions: pollVotes,
+    joinedIds: joined,
+    followedIds: followed,
+  );
 });

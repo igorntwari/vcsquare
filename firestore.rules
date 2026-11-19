@@ -70,6 +70,9 @@ service cloud.firestore {
       match /likedPosts/{postId} {
         allow read, write: if isSelf(uid) && isMember();
       }
+      match /eventRsvps/{postId} {
+        allow read, write: if isSelf(uid) && isMember();
+      }
       match /savedListings/{listingId} {
         allow read, write: if isSelf(uid) && isMember();
       }
@@ -92,8 +95,17 @@ service cloud.firestore {
       allow create: if isMember()
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.likeCount == 0
-        && request.resource.data.commentCount == 0;
-      // The author edits content; anyone signed in can move likeCount by one
+        && request.resource.data.commentCount == 0
+        && (!('poll' in request.resource.data)
+          || request.resource.data.poll == null
+          || (request.resource.data.poll is map
+            && request.resource.data.poll.question is string
+            && request.resource.data.poll.question.size() > 0
+            && request.resource.data.poll.question.size() <= 120
+            && request.resource.data.poll.options is list
+            && request.resource.data.poll.options.size() >= 2
+            && request.resource.data.poll.options.size() <= 6));
+      // The author edits content; members can move likeCount by one
       // (FirebasePostsRepository.setLiked does this in a transaction with
       // users/{uid}/likedPosts).
       allow update: if (
@@ -102,17 +114,97 @@ service cloud.firestore {
         ) || (
           isMember() && onlyChanges(['likeCount'])
           && (request.resource.data.likeCount - resource.data.likeCount) in [1, -1]
+        ) || (
+          isMember()
+          && onlyChanges(['commentCount', 'commentPreview'])
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasAll(['commentCount', 'commentPreview'])
+          && request.resource.data.commentCount == resource.data.commentCount + 1
+          && request.resource.data.commentPreview is map
+          && request.resource.data.commentPreview.authorId == request.auth.uid
+          && request.resource.data.commentPreview.text is string
+          && request.resource.data.commentPreview.text.size() > 0
+          && request.resource.data.commentPreview.text.size() <= 1000
         );
       allow delete: if isMember() && resource.data.authorId == request.auth.uid;
+
+      match /comments/{commentId} {
+        allow read: if isMember();
+        allow create: if isMember()
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 1000
+          && request.resource.data.createdAt == request.time;
+        allow update, delete: if false;
+      }
+
+      match /pollVotes/{voteId} {
+        function hasPollOption(option) {
+          return get(/databases/$(database)/documents/posts/$(postId))
+              .data.poll.options.hasAny([option]);
+        }
+
+        allow read: if isMember() && resource.data.userId == request.auth.uid;
+        allow create, update: if isMember()
+          && voteId == request.auth.uid
+          && request.resource.data.keys().hasOnly(['userId', 'option', 'createdAt'])
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.option is string
+          && hasPollOption(request.resource.data.option)
+          && request.resource.data.createdAt == request.time;
+        allow delete: if isMember()
+          && voteId == request.auth.uid
+          && resource.data.userId == request.auth.uid;
+      }
+    }
+
+    // Explore connect requests. Only pending requests are stored here; a
+    // recipient can read a request, while the sender can cancel it.
+    match /connectionRequests/{requestId} {
+      allow read: if isMember()
+        && (resource.data.senderId == request.auth.uid
+          || resource.data.recipientId == request.auth.uid);
+      allow create: if isMember()
+        && requestId == request.auth.uid + '_' + request.resource.data.recipientId
+        && request.resource.data.keys().hasOnly([
+          'senderId', 'recipientId', 'status', 'createdAt'
+        ])
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.recipientId is string
+        && request.resource.data.recipientId != request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if isMember()
+        && resource.data.senderId == request.auth.uid
+        && resource.data.status == 'pending';
     }
 
     // Listings
     match /listings/{listingId} {
+      function validListing(data) {
+        return data.title is string && data.title.size() > 0
+          && data.details is string && data.details.size() > 0
+          && data.priceRwf is int && data.priceRwf > 0
+          && data.photoUrls is list
+          && data.photoUrls.size() >= 1 && data.photoUrls.size() <= 6
+          && data.imagePath == data.photoUrls[0]
+          && data.imagePath is string
+          && data.imagePath.matches('https://res[.]cloudinary[.]com/.+')
+          && data.pickupHubId is string
+          && data.negotiable is bool
+          && data.status in ['active', 'sold'];
+      }
+
       allow read: if isMember();
-      allow create: if isMember() && request.resource.data.sellerId == request.auth.uid;
+      allow create: if isMember()
+        && request.resource.data.sellerId == request.auth.uid
+        && validListing(request.resource.data);
       allow update: if isMember()
         && resource.data.sellerId == request.auth.uid
-        && request.resource.data.sellerId == request.auth.uid;
+        && request.resource.data.sellerId == request.auth.uid
+        && validListing(request.resource.data);
       allow delete: if isMember() && resource.data.sellerId == request.auth.uid;
     }
 

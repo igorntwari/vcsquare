@@ -20,11 +20,13 @@ class CommunityCard extends StatelessWidget {
     required this.community,
     required this.isJoined,
     this.onJoin,
+    this.onTap,
   });
 
   final CommunityModel community;
   final bool isJoined;
   final VoidCallback? onJoin;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +59,13 @@ class CommunityCard extends StatelessWidget {
                           backgroundColor: AppColors.chipBackground,
                           foregroundColor: AppColors.textPrimary,
                         ),
+                        if (onTap != null)
+                          IconButton(
+                            tooltip: AppStrings.communityDetailsTitle,
+                            onPressed: onTap,
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Icons.arrow_forward_ios),
+                          ),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.xxs),
