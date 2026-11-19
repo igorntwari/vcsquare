@@ -147,6 +147,30 @@ describe('editing a profile', () => {
   });
 });
 
+describe('device tokens', () => {
+  test('a member can store and remove their own device', async () => {
+    const db = member();
+    await assertSucceeds(
+      setDoc(doc(db, 'users/amara/devices/tok1'), { platform: 'android' }),
+    );
+    await assertSucceeds(deleteDoc(doc(db, 'users/amara/devices/tok1')));
+  });
+
+  test('nobody can read or write someone else\'s devices', async () => {
+    const kofi = as('kofi', 'k.mensah@alustudent.com');
+    await assertFails(getDoc(doc(kofi, 'users/amara/devices/tok1')));
+    await assertFails(
+      setDoc(doc(kofi, 'users/amara/devices/tok1'), { platform: 'android' }),
+    );
+  });
+
+  test('unverified accounts can\'t register devices', async () => {
+    await assertFails(
+      setDoc(doc(unverified(), 'users/nadia/devices/tok1'), { platform: 'android' }),
+    );
+  });
+});
+
 describe('deleting an account', () => {
   test('the owner can delete their profile and suggestions', async () => {
     const db = member();
