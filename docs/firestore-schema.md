@@ -40,7 +40,8 @@ users/{uid}
   ├─ savedListings/{listingId}
   ├─ memberships/{communityOrClubId}
   ├─ following/{officialHandleOrUserId}
-  └─ peerSuggestions/{otherUid}
+  ├─ peerSuggestions/{otherUid}
+  └─ devices/{fcmToken}
 posts/{postId}
 connectionRequests/{senderId}_{recipientId}
 listings/{listingId}
@@ -101,6 +102,7 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | `savedListings` | listing id | `ListingModel.isFavorited` |
 | `memberships` | community id or club user id | `CommunityModel.isJoined`, `UserModel.isJoined` |
 | `following` | official handle id or user id | `OfficialHandleModel.isFollowing` |
+| `devices` | the device's FCM token | written by the app on sign-in and deleted on sign-out (`FirebaseDeviceRegistry`). Fields: `platform`, `updatedAt` (timestamp). Owner-only. |
 | `peerSuggestions` | suggested user's uid | backend-written; the owner can only delete them (account deletion). Fields: `program`, `focus`, `mutualCount` (int), `sharedInterest` |
 
 `MessageModel.isMine` was replaced by `senderId`; compare it with the signed-in uid.

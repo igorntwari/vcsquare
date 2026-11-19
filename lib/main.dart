@@ -12,7 +12,7 @@ void main() async {
 
   final notifications = NotificationService.instance;
   await notifications.init();
-  notifications.setOpenInboxHandler(AppRouter.openNotifications);
+  notifications.setOpenHandler(AppRouter.openFromNotification);
 
   runApp(const ProviderScope(child: App()));
 

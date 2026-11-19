@@ -82,6 +82,10 @@ service cloud.firestore {
       match /following/{targetId} {
         allow read, write: if isSelf(uid) && isMember();
       }
+      // Push tokens, written by FirebaseDeviceRegistry.
+      match /devices/{token} {
+        allow read, write: if isSelf(uid) && isMember();
+      }
       // Backend-written; the owner can only delete them.
       match /peerSuggestions/{otherId} {
         allow read, delete: if isSelf(uid) && isMember();

@@ -26,6 +26,9 @@ import 'explore/sample_explore_repository.dart';
 import 'listings/firebase_listings_repository.dart';
 import 'listings/listings_repository.dart';
 import 'listings/sample_listings_repository.dart';
+import 'notifications/device_registry.dart';
+import 'notifications/notification_prefs_repository.dart';
+import 'notifications/push_messaging.dart';
 import 'posts/firebase_posts_repository.dart';
 import 'posts/posts_repository.dart';
 import 'posts/sample_posts_repository.dart';
@@ -46,6 +49,25 @@ final authRepositoryProvider = Provider<AuthRepository>(
         )
       : SampleAuthRepository(),
 );
+
+final pushMessagingProvider = Provider<PushMessaging>(
+  (ref) =>
+      AppConfig.useFirebase ? FirebasePushMessaging() : SamplePushMessaging(),
+);
+
+final deviceRegistryProvider = Provider<DeviceRegistry>(
+  (ref) => AppConfig.useFirebase
+      ? FirebaseDeviceRegistry(
+          ref.watch(firestoreProvider),
+          ref.watch(pushMessagingProvider),
+        )
+      : SampleDeviceRegistry(),
+);
+
+final notificationPrefsRepositoryProvider =
+    Provider<NotificationPrefsRepository>(
+      (ref) => NotificationPrefsRepository(),
+    );
 
 final postsRepositoryProvider = Provider<PostsRepository>(
   (ref) => AppConfig.useFirebase

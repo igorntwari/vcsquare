@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/services/notification_service.dart';
 import '../../data/dummy/dummy_conversations.dart';
 import '../../data/models/listing_model.dart';
+import '../../data/models/notification_model.dart';
 import '../../data/repositories/repository_providers.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
@@ -20,6 +22,7 @@ import '../../features/market/screens/listing_preview_screen.dart';
 import '../../features/market/screens/market_screen.dart';
 import '../../features/market/screens/sell_item_screen.dart';
 import '../../features/messages/screens/messages_screen.dart';
+import '../../features/notifications/screens/notification_settings_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/onboarding/screens/why_institutional_login_screen.dart';
 import '../../features/profile/screens/account_settings_screen.dart';
@@ -48,9 +51,36 @@ abstract final class AppRouter {
     if (!alreadyOpen) navigator.pushNamed(RouteNames.notifications);
   }
 
+  static final ValueNotifier<int?> shellTab = ValueNotifier(null);
+
+  // Push custom data key "screen" -> tab. Anything else opens the inbox.
+  static const Map<String, int> _tabsByScreen = {
+    'home': 0,
+    'market': 1,
+    'explore': 2,
+    'messages': 3,
+    'profile': 4,
+  };
+
+  static void openFromNotification(NotificationModel? notification) {
+    final navigator = navigatorKey.currentState;
+    if (navigator == null) return;
+    if (notification != null) {
+      NotificationService.instance.markRead(notification.id);
+    }
+    final tab = _tabsByScreen[notification?.data['screen']];
+    if (tab == null) {
+      openNotifications();
+      return;
+    }
+    navigator.popUntil((route) => route.isFirst);
+    shellTab.value = tab;
+  }
+
   static Widget buildMainShell(BuildContext context) => MainShell(
     // Messages/chats are owned separately; still on dummy data.
     messagesBadgeCount: dummyUnreadConversationCount,
+    tabRequests: shellTab,
     tabs: [
       HomeScreen(
         onCreatePost: () {
@@ -165,12 +195,20 @@ abstract final class AppRouter {
         ),
       ),
     ),
-    RouteNames.notifications: (context) =>
-        NotificationsScreen(onBack: () => Navigator.of(context).pop()),
+    RouteNames.notifications: (context) => NotificationsScreen(
+      onBack: () => Navigator.of(context).pop(),
+      onOpen: openFromNotification,
+      onOpenSettings: () =>
+          Navigator.of(context).pushNamed(RouteNames.notificationSettings),
+    ),
+    RouteNames.notificationSettings: (context) =>
+        NotificationSettingsScreen(onBack: () => Navigator.of(context).pop()),
     RouteNames.editProfile: (context) =>
         EditProfileScreen(onDone: () => Navigator.of(context).pop()),
     RouteNames.accountSettings: (context) => AccountSettingsScreen(
       onBack: () => Navigator.of(context).pop(),
+      onNotificationSettings: () =>
+          Navigator.of(context).pushNamed(RouteNames.notificationSettings),
       onEditProfile: () =>
           Navigator.of(context).pushNamed(RouteNames.editProfile),
     ),

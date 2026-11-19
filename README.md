@@ -94,6 +94,20 @@ The **auth gate** (`lib/app/auth_gate.dart`) is the app's root screen. It shows 
 
 **Emulator:** the Auth emulator doesn't send real emails. It prints verification and reset links in the terminal running `firebase emulators:start`. Open the link in a browser, then tap "I've verified my email".
 
+## Notifications
+
+Pushes come from Firebase Cloud Messaging. Every device is subscribed to the topic `all`. Signed-in users also follow the topics `announcements`, `marketplace` and `messages`, unless they turn them off under **Profile → ⚙ → Notification settings**. Those choices, and "Show alerts" for pushes arriving while the app is open, are saved on the device with SharedPreferences, so they survive a restart.
+
+When a user signs in, the device's FCM token is stored at `users/{uid}/devices/{token}`. It's removed on sign-out or account deletion.
+
+**Sending a push from Firebase Console** (Messaging → New campaign → Notifications):
+
+- To everyone, or to one category: target **Topic** `all`, `announcements`, `marketplace` or `messages`.
+- To one person: open their `users/{uid}/devices` in Firestore, copy the document id (the token), then use **Send test message**.
+- To open a tab when tapped: under **Additional options → Custom data**, add the key `screen` with the value `home`, `market`, `explore`, `messages` or `profile`. Without it, tapping opens the notifications inbox.
+
+Received pushes are kept in the in-app inbox (bell icon) on the device.
+
 ## Firebase Emulator Suite
 
 The emulators let you test against Auth and Firestore on your own machine, without touching the live project. Ports are set in `firebase.json`:
@@ -174,7 +188,8 @@ flutter test
 | `test/core/` | Form validators (ALU email, password strength, handle, lengths) |
 | `test/data/repositories/auth_*`, `firebase_auth_repository_test.dart` | Error mapping, sign-up/sign-in/reset/sign-out/delete account and profile edits against `firebase_auth_mocks` and `fake_cloud_firestore` |
 | `test/features/` | Each main screen renders its sample data and shows an error state when loading fails. Also the auth flow through the real routes and gate, edit profile, account actions, and layouts in landscape and on a small phone |
-| `test/helpers/` | Shared widget-test setup (phone-sized screen, real fonts) |
+| `test/data/repositories/notification_prefs_repository_test.dart`, `device_registry_test.dart`, `test/features/notification*_test.dart`, `push_sync_test.dart`, `main_shell_test.dart` | Notification settings saved and restored, topics applied, device token stored on sign-in and cleared on sign-out, inbox taps and tab switching |
+| `test/helpers/`, `test/flutter_test_config.dart` | Shared widget-test setup (phone-sized screen, real fonts, in-memory SharedPreferences) |
 | `test/seed_data_test.dart` | Seed JSON matches the sample data |
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs `flutter analyze`, `flutter test` and the rules tests on every pull request into `dev`.

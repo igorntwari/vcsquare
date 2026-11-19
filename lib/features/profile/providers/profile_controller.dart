@@ -26,8 +26,16 @@ class ProfileController extends AsyncNotifier<void> {
     ref.invalidate(profileProvider);
   });
 
-  Future<bool> signOut() =>
-      _run(() => ref.read(authRepositoryProvider).signOut());
+  Future<bool> signOut() => _run(() async {
+    final userId = ref.read(authAccountProvider).value?.id;
+    if (userId != null) {
+      // Must happen while still signed in; sign out even if it fails.
+      try {
+        await ref.read(deviceRegistryProvider).unregister(userId);
+      } catch (_) {}
+    }
+    await ref.read(authRepositoryProvider).signOut();
+  });
 
   Future<bool> deleteAccount({String? password}) => _run(
     () => ref.read(authRepositoryProvider).deleteAccount(password: password),

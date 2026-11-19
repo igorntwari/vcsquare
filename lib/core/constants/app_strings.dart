@@ -450,4 +450,27 @@ abstract final class AppStrings {
       'Your edits to your profile haven\'t been saved.';
   static const String discard = 'Discard';
   static const String keepEditing = 'Keep editing';
+
+  // Notification settings
+  static const String notificationSettings = 'Notification settings';
+  static const String notificationSettingsSubtitle =
+      'Choose which alerts you get';
+  static const String pushSection = 'PUSH NOTIFICATIONS';
+  static const String whileOpenSection = 'WHILE THE APP IS OPEN';
+  static const String topicAnnouncements = 'Campus announcements';
+  static const String topicAnnouncementsSubtitle =
+      'News and events from official handles';
+  static const String topicMarketplace = 'Marketplace';
+  static const String topicMarketplaceSubtitle =
+      'New listings and deals on campus';
+  static const String topicMessages = 'Messages';
+  static const String topicMessagesSubtitle = 'When someone messages you';
+  static const String inAppAlerts = 'Show alerts';
+  static const String inAppAlertsSubtitle =
+      'Pop up new notifications while you\'re using the app';
+  static const String settingNotSaved =
+      'Couldn\'t update that setting. Check your connection and try again.';
+  static const String notificationsOffTitle = 'Notifications are off';
+  static const String notificationsOffMessage =
+      'Turn them on for vsquare in your phone\'s Settings to get alerts.';
 }
