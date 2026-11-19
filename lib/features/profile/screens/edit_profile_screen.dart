@@ -1,6 +1,7 @@
 // Edit profile form, saved to users/{uid}.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
@@ -9,7 +10,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/validators.dart';
 import '../../../data/models/profile_edit_model.dart';
-import '../../../shared/widgets/avatars/user_avatar.dart';
+import '../../../shared/services/media_providers.dart';
 import '../../../shared/widgets/buttons/primary_button.dart';
 import '../../../shared/widgets/feedback/app_snack_bar.dart';
 import '../../../shared/widgets/feedback/error_state.dart';
@@ -18,6 +19,8 @@ import '../../../shared/widgets/inputs/app_form_field.dart';
 import '../providers/profile_controller.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/confirm_dialog.dart';
+import '../widgets/photo_source_sheet.dart';
+import '../widgets/profile_photo_editor.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key, this.onDone});
@@ -40,8 +43,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   ProfileEdit? _original;
 
+  // Saved photo URL (null once removed) and a newly picked, unsaved photo.
+  final ValueNotifier<String?> _photoUrl = ValueNotifier(null);
+  final ValueNotifier<XFile?> _newPhoto = ValueNotifier(null);
+
   @override
   void dispose() {
+    _photoUrl.dispose();
+    _newPhoto.dispose();
     for (final controller in [
       _name,
       _handle,
@@ -66,6 +75,34 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _campus.text = profile.campus;
     _program.text = profile.program;
     _bio.text = profile.bio;
+    _photoUrl.value = profile.avatarPath;
+  }
+
+  Future<void> _changePhoto() async {
+    final action = await showPhotoSourceSheet(
+      context,
+      canRemove: _newPhoto.value != null || _photoUrl.value != null,
+    );
+    if (action == null || !mounted) return;
+    if (action == PhotoAction.remove) {
+      _newPhoto.value = null;
+      _photoUrl.value = null;
+      return;
+    }
+    try {
+      final photo = await ref
+          .read(imagePickerProvider)
+          .pickImage(
+            source: action == PhotoAction.camera
+                ? ImageSource.camera
+                : ImageSource.gallery,
+            imageQuality: 85,
+            maxWidth: 800,
+          );
+      if (photo != null) _newPhoto.value = photo;
+    } catch (_) {
+      if (mounted) showAppSnackBar(context, AppStrings.photoPickFailed);
+    }
   }
 
   ProfileEdit _current() => ProfileEdit(
@@ -77,10 +114,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     program: _program.text,
     bio: _bio.text,
     bioHighlight: _original?.bioHighlight,
+    avatarPath: _photoUrl.value,
   ).normalized();
 
   bool get _hasChanges =>
-      _original != null && _current() != _original!.normalized();
+      _original != null &&
+      (_newPhoto.value != null || _current() != _original!.normalized());
 
   Future<void> _save() async {
     FocusScope.of(context).unfocus();
@@ -91,7 +130,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
     final saved = await ref
         .read(profileControllerProvider.notifier)
-        .saveProfile(_current());
+        .saveProfile(_current(), newPhoto: _newPhoto.value);
     if (!saved || !mounted) return;
     showAppSnackBar(context, AppStrings.profileUpdated);
     widget.onDone?.call();
@@ -116,7 +155,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     ref.listen(profileControllerProvider, (_, next) {
-      if (next.hasError) showAppSnackBar(context, AppStrings.saveFailed);
+      if (next case AsyncError(:final error)) {
+        // Upload problems (too large, not configured) carry their own text.
+        showAppSnackBar(
+          context,
+          error is StateError ? error.message : AppStrings.saveFailed,
+        );
+      }
     });
     final busy = ref.watch(profileControllerProvider).isLoading;
     final loaded = ref.watch(profileProvider);
@@ -162,12 +207,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             ? (loaded.hasError
                   ? ErrorState(onRetry: () => ref.invalidate(profileProvider))
                   : const LoadingIndicator())
-            : _buildForm(profile.user.avatarPath, busy),
+            : _buildForm(busy),
       ),
     );
   }
 
-  Widget _buildForm(String? avatarPath, bool busy) {
+  Widget _buildForm(bool busy) {
     final bioCounter = ValueListenableBuilder<TextEditingValue>(
       valueListenable: _bio,
       builder: (context, value, _) => Text(
@@ -183,19 +228,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            Center(
-              child: UserAvatar(
-                size: AppSizes.avatarEdit,
-                imagePath: avatarPath,
+            ListenableBuilder(
+              listenable: Listenable.merge([_photoUrl, _newPhoto]),
+              builder: (context, _) => ProfilePhotoEditor(
+                photoUrl: _photoUrl.value,
+                newPhoto: _newPhoto.value,
+                onChange: busy ? null : _changePhoto,
               ),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              AppStrings.photoFromGoogle,
-              textAlign: TextAlign.center,
-              style: AppTypography.caption.copyWith(color: AppColors.textMuted),
-            ),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.lg),
             AppFormField(
               controller: _name,
               label: AppStrings.fullNameLabel,
