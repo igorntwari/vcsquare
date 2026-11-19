@@ -94,6 +94,12 @@ The **auth gate** (`lib/app/auth_gate.dart`) is the app's root screen. It shows 
 
 **Emulator:** the Auth emulator doesn't send real emails. It prints verification and reset links in the terminal running `firebase emulators:start`. Open the link in a browser, then tap "I've verified my email".
 
+## Following students
+
+Explore lists **Students on campus**: everyone who has signed up, newest first. Students can follow each other from that list, or from a student's profile page (tap a student). Follows are saved in `users/{uid}/following`. The Followers and Following numbers on profiles update live (see `docs/firestore-schema.md`). After pulling, deploy the indexes too: `firebase deploy --only firestore`.
+
+The older **People You May Know** list (with **Connect**) needs a backend to fill `peerSuggestions`, so it stays empty on the Spark plan.
+
 ## Notifications
 
 Pushes come from Firebase Cloud Messaging. Every device is subscribed to the topic `all`. Signed-in users also follow the topics `announcements`, `marketplace` and `messages`, unless they turn them off under **Profile → ⚙ → Notification settings**. Those choices, and "Show alerts" for pushes arriving while the app is open, are saved on the device with SharedPreferences, so they survive a restart.
