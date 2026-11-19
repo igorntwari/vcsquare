@@ -41,3 +41,14 @@ final profileProvider = FutureProvider<ProfileData?>((ref) async {
     savedListingIds: saved,
   );
 });
+
+// Live counts.
+final followerCountProvider = StreamProvider.family<int, String>(
+  (ref, userId) =>
+      ref.watch(followRepositoryProvider).watchFollowerCount(userId),
+);
+
+final followingCountProvider = StreamProvider.family<int, String>(
+  (ref, userId) =>
+      ref.watch(followRepositoryProvider).watchFollowingCount(userId),
+);

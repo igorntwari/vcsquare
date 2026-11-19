@@ -161,8 +161,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ProfileStatsRow(
                   posts: data.posts.length,
                   listings: data.listings.length,
-                  followers: profile.followerCount,
-                  following: profile.followingCount,
+                  followers:
+                      ref.watch(followerCountProvider(userId)).value ?? 0,
+                  following:
+                      ref.watch(followingCountProvider(userId)).value ?? 0,
                 ),
                 if (profile.recognitionTitle.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.md),
