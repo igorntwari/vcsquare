@@ -194,8 +194,10 @@ abstract final class AppRouter {
         ),
       ),
     ),
-    RouteNames.notifications: (context) =>
-        NotificationsScreen(onBack: () => Navigator.of(context).pop()),
+    RouteNames.notifications: (context) => NotificationsScreen(
+      onBack: () => Navigator.of(context).pop(),
+      onOpen: openFromNotification,
+    ),
     RouteNames.editProfile: (context) =>
         EditProfileScreen(onDone: () => Navigator.of(context).pop()),
     RouteNames.accountSettings: (context) => AccountSettingsScreen(

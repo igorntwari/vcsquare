@@ -1,27 +1,47 @@
 // Inbox listing push notifications received on this device.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/models/notification_model.dart';
+import '../../../shared/widgets/cards/info_banner.dart';
 import '../../../shared/widgets/feedback/empty_state.dart';
+import '../providers/inbox_provider.dart';
 import '../widgets/notification_tile.dart';
 
-class NotificationsScreen extends StatelessWidget {
-  const NotificationsScreen({super.key, this.onBack});
+class NotificationsScreen extends ConsumerWidget {
+  const NotificationsScreen({
+    super.key,
+    this.onBack,
+    this.onOpen,
+    this.onOpenSettings,
+  });
 
   final VoidCallback? onBack;
 
-  NotificationService get _service => NotificationService.instance;
+  final ValueChanged<NotificationModel>? onOpen;
+  final VoidCallback? onOpenSettings;
 
-  void _remove(BuildContext context, NotificationModel notification) {
-    _service.remove(notification.id);
+  void _tap(WidgetRef ref, NotificationModel notification) {
+    if (notification.data['screen'] != null && onOpen != null) {
+      onOpen!(notification);
+    } else {
+      ref.read(inboxProvider.notifier).markRead(notification.id);
+    }
+  }
+
+  void _remove(
+    BuildContext context,
+    WidgetRef ref,
+    NotificationModel notification,
+  ) {
+    ref.read(inboxProvider.notifier).remove(notification.id);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -30,65 +50,75 @@ class NotificationsScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifications = ref.watch(inboxProvider);
+    final permissionDenied = ref.watch(notificationPermissionProvider) == false;
+    final hasUnread = notifications.any((n) => !n.isRead);
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: AppColors.background,
-        body: ValueListenableBuilder<List<NotificationModel>>(
-          valueListenable: _service.notifications,
-          builder: (context, notifications, _) {
-            final hasUnread = notifications.any((n) => !n.isRead);
-            return Column(
-              children: [
-                _buildHeader(context, hasUnread),
-                Expanded(
-                  child: notifications.isEmpty
-                      ? const SingleChildScrollView(
-                          padding: EdgeInsets.all(AppSpacing.lg),
-                          child: EmptyState(
-                            icon: Icons.notifications_none,
-                            title: AppStrings.noNotificationsTitle,
-                            message: AppStrings.noNotificationsMessage,
-                          ),
-                        )
-                      : ListView.separated(
-                          padding: EdgeInsets.fromLTRB(
-                            AppSpacing.lg,
-                            AppSpacing.lg,
-                            AppSpacing.lg,
-                            MediaQuery.paddingOf(context).bottom +
-                                AppSpacing.lg,
-                          ),
-                          itemCount: notifications.length,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(height: AppSpacing.sm),
-                          itemBuilder: (context, index) {
-                            final notification = notifications[index];
-                            return Dismissible(
-                              key: ValueKey(notification.id),
-                              direction: DismissDirection.endToStart,
-                              onDismissed: (_) =>
-                                  _remove(context, notification),
-                              background: _buildDismissBackground(),
-                              child: NotificationTile(
-                                notification: notification,
-                                onTap: () =>
-                                    _service.markRead(notification.id),
-                              ),
-                            );
-                          },
-                        ),
+        body: Column(
+          children: [
+            _buildHeader(context, ref, hasUnread),
+            if (permissionDenied)
+              const Padding(
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                  0,
                 ),
-              ],
-            );
-          },
+                child: InfoBanner(
+                  tone: InfoBannerTone.warning,
+                  title: AppStrings.notificationsOffTitle,
+                  message: AppStrings.notificationsOffMessage,
+                ),
+              ),
+            Expanded(
+              child: notifications.isEmpty
+                  ? const SingleChildScrollView(
+                      padding: EdgeInsets.all(AppSpacing.lg),
+                      child: EmptyState(
+                        icon: Icons.notifications_none,
+                        title: AppStrings.noNotificationsTitle,
+                        message: AppStrings.noNotificationsMessage,
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        AppSpacing.lg,
+                        AppSpacing.lg,
+                        MediaQuery.paddingOf(context).bottom + AppSpacing.lg,
+                      ),
+                      itemCount: notifications.length,
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(height: AppSpacing.sm),
+                      itemBuilder: (context, index) {
+                        final notification = notifications[index];
+                        return Dismissible(
+                          key: ValueKey(notification.id),
+                          direction: DismissDirection.endToStart,
+                          onDismissed: (_) =>
+                              _remove(context, ref, notification),
+                          background: _buildDismissBackground(),
+                          child: NotificationTile(
+                            notification: notification,
+                            onTap: () => _tap(ref, notification),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, bool hasUnread) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref, bool hasUnread) {
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: AppColors.frostedSurface,
@@ -138,12 +168,22 @@ class NotificationsScreen extends StatelessWidget {
               ),
               if (hasUnread)
                 TextButton(
-                  onPressed: _service.markAllRead,
+                  onPressed: ref.read(inboxProvider.notifier).markAllRead,
                   child: Text(
                     AppStrings.markAllRead,
                     style: AppTypography.buttonSmall.copyWith(
                       color: AppColors.accent,
                     ),
+                  ),
+                ),
+              if (onOpenSettings != null)
+                IconButton(
+                  tooltip: AppStrings.notificationSettings,
+                  onPressed: onOpenSettings,
+                  icon: const Icon(
+                    Icons.settings_outlined,
+                    size: AppSizes.iconMd,
+                    color: AppColors.iconDefault,
                   ),
                 ),
             ],
