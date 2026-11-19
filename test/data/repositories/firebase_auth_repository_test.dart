@@ -197,6 +197,7 @@ void main() {
       await users.doc('u1').collection('likedPosts').doc('p1').set({});
       await users.doc('u1').collection('savedListings').doc('l9').set({});
       await users.doc('u1').collection('following').doc('h1').set({});
+      await users.doc('u1').collection('devices').doc('tok1').set({});
       await db.collection('posts').doc('p1').set({
         'authorId': 'other',
         'likeCount': 3,
@@ -222,6 +223,7 @@ void main() {
         (await users.doc('u1').collection('savedListings').get()).docs,
         isEmpty,
       );
+      expect((await users.doc('u1').collection('devices').get()).docs, isEmpty);
       expect((await db.collection('posts').doc('mine').get()).exists, isFalse);
       expect((await db.collection('listings').doc('l1').get()).exists, isFalse);
       expect((await db.collection('listings').doc('l2').get()).exists, isTrue);

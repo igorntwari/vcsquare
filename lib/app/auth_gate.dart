@@ -6,6 +6,7 @@ import '../core/theme/app_colors.dart';
 import '../data/models/auth_account_model.dart';
 import '../data/repositories/repository_providers.dart';
 import '../features/auth/screens/verify_email_screen.dart';
+import '../features/notifications/providers/push_sync_provider.dart';
 import '../features/onboarding/screens/splash_screen.dart';
 import '../shared/widgets/feedback/loading_indicator.dart';
 import 'routes/app_router.dart';
@@ -27,6 +28,8 @@ class AuthGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(pushSyncProvider);
+
     // Clear pushed routes so Back can't return to the previous stage.
     ref.listen(authAccountProvider, (previous, next) {
       final before = previous == null ? null : authStageOf(previous);
