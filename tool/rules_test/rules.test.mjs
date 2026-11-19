@@ -8,13 +8,17 @@ import {
   initializeTestEnvironment,
 } from '@firebase/rules-unit-testing';
 import {
+  collectionGroup,
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   increment,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from 'firebase/firestore';
 
 let env;
@@ -69,6 +73,14 @@ beforeEach(async () => {
     });
     await setDoc(doc(db, 'users/amara/peerSuggestions/kofi'), { mutualCount: 3 });
     await setDoc(doc(db, 'posts/p1'), { authorId: 'kofi', likeCount: 3, commentCount: 0 });
+    await setDoc(doc(db, 'posts/p1/pollVotes/amara'), {
+      userId: 'amara',
+      option: 'Yes',
+    });
+    await setDoc(doc(db, 'posts/p1/pollVotes/kofi'), {
+      userId: 'kofi',
+      option: 'No',
+    });
   });
 });
 
@@ -91,6 +103,24 @@ describe('who can see anything', () => {
       setDoc(doc(context.firestore(), 'users/nadia'), { name: 'Nadia' }),
     );
     await assertSucceeds(getDoc(doc(unverified(), 'users/nadia')));
+  });
+});
+
+describe('poll vote collection-group reads', () => {
+  test('a member can query their own votes across posts', async () => {
+    const votes = query(
+      collectionGroup(member(), 'pollVotes'),
+      where('userId', '==', 'amara'),
+    );
+    await assertSucceeds(getDocs(votes));
+  });
+
+  test('a member cannot query another member’s votes', async () => {
+    const votes = query(
+      collectionGroup(member(), 'pollVotes'),
+      where('userId', '==', 'kofi'),
+    );
+    await assertFails(getDocs(votes));
   });
 });
 
