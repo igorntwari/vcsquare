@@ -82,12 +82,12 @@ One document per account: students, campus offices (`type: "official"`) and club
 
 Created by `FirebaseAuthRepository.newUserDoc` at sign-up (email) or first sign-in (Google), with exactly: `name`, `handle`, `type` (`student`), `avatarPath`, `cohort`, `isVerified` (`false`), `isOnline`, `email`, `emailDomain`, `createdAt`, `roleTag`, `campus`, `program`, `bio`. The counters and recognition fields are absent until the backend sets them; the app reads them as `0` / `""`.
 
-Edited from **Edit profile** (`ProfileEdit`): `name`, `handle`, `cohort`, `roleTag`, `campus`, `program`, `bio`, `bioHighlight`. Deleted from **Account settings → Delete account**, along with the user's subcollections, posts and listings (`AccountDataEraser`).
+Edited from **Edit profile** (`ProfileEdit`): `name`, `handle`, `cohort`, `roleTag`, `campus`, `program`, `bio`, `bioHighlight`, `avatarPath` (a Cloudinary URL after a photo upload, or `null` once removed). Deleted from **Account settings → Delete account**, along with the user's subcollections, posts and listings (`AccountDataEraser`).
 
 **Rules:**
 - **Read:** verified ALU members. An unverified account can read only its own document.
 - **Create:** the owner, with an ALU email, only the keys above, `email` equal to the token's email, `type == "student"` and `isVerified == false`. Verification isn't needed yet, because sign-up writes this before the email is verified.
-- **Update:** the owner, once verified, and only the editable fields. `name` must be 1–50 characters, `handle` must match `@[a-z0-9._]{3,30}`, and `bio` can be at most 300 characters.
+- **Update:** the owner, once verified, and only the editable fields. `name` must be 1–50 characters, `handle` must match `@[a-z0-9._]{3,30}`, `bio` can be at most 300 characters, and `avatarPath` must be `null` or an `https://` URL of at most 500 characters.
 - **Delete:** the owner.
 - Counters and verification are backend-only.
 

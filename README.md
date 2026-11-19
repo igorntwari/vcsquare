@@ -158,6 +158,8 @@ In Android Studio, open **Run → Edit Configurations**, select the Flutter run 
 
 Do not add a Cloudinary API secret to the app or repository. Restrict the unsigned preset to the image formats the app needs. The app compresses images, limits their width to 2000 pixels and rejects files larger than 8 MB; Cloudinary presets do not enforce a per-preset file-size limit.
 
+Profile photos (Profile → ⚙ → Edit profile → Change photo) use the same upload. They're resized to 800 pixels wide and saved to `users/{uid}.avatarPath` when you tap Save.
+
 ## Testing the security rules
 
 `tool/rules_test` runs `firestore.rules` against the Firestore emulator. It covers who can read, profile create/update/delete, ALU-only access and verified-only access. It needs Node and Java 21+.

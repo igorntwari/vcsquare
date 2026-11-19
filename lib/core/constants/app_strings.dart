@@ -443,8 +443,11 @@ abstract final class AppStrings {
   static const String programHint = 'e.g. BSc Software Engineering • 2027';
   static const String bioLabel = 'Bio';
   static const String bioHint = 'Tell classmates what you\'re working on.';
-  static const String photoFromGoogle =
-      'Your photo comes from your Google account.';
+  static const String changePhoto = 'Change photo';
+  static const String chooseFromGallery = 'Choose from gallery';
+  static const String takePhoto = 'Take a photo';
+  static const String removeProfilePhoto = 'Remove photo';
+  static const String photoPickFailed = 'Couldn\'t open your photos.';
   static const String discardChangesTitle = 'Discard changes?';
   static const String discardChangesBody =
       'Your edits to your profile haven\'t been saved.';

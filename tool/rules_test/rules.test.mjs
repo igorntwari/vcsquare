@@ -134,6 +134,15 @@ describe('editing a profile', () => {
     );
   });
 
+  test('a photo must be an https URL, or removed', async () => {
+    const db = member();
+    await assertSucceeds(updateDoc(doc(db, 'users/amara'), {
+      avatarPath: 'https://res.cloudinary.com/demo/image/upload/a.jpg',
+    }));
+    await assertSucceeds(updateDoc(doc(db, 'users/amara'), { avatarPath: null }));
+    await assertFails(updateDoc(doc(db, 'users/amara'), { avatarPath: 'file:///x.jpg' }));
+  });
+
   test('not counters, and not invalid values', async () => {
     const db = member();
     await assertFails(updateDoc(doc(db, 'users/amara'), { followerCount: 10000 }));

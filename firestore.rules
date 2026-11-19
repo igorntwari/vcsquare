@@ -34,7 +34,11 @@ service cloud.firestore {
         && data.name.size() > 0 && data.name.size() <= 50
         && data.handle is string
         && data.handle.matches('@[a-z0-9._]{3,30}')
-        && (!('bio' in data) || (data.bio is string && data.bio.size() <= 300));
+        && (!('bio' in data) || (data.bio is string && data.bio.size() <= 300))
+        && (!('avatarPath' in data) || data.avatarPath == null
+            || (data.avatarPath is string
+                && data.avatarPath.matches('https://.+')
+                && data.avatarPath.size() <= 500));
     }
 
     // Only these keys may change in an update.
