@@ -22,6 +22,7 @@ import '../../features/market/screens/listing_preview_screen.dart';
 import '../../features/market/screens/market_screen.dart';
 import '../../features/market/screens/sell_item_screen.dart';
 import '../../features/messages/screens/messages_screen.dart';
+import '../../features/notifications/screens/notification_settings_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/onboarding/screens/why_institutional_login_screen.dart';
 import '../../features/profile/screens/account_settings_screen.dart';
@@ -197,11 +198,17 @@ abstract final class AppRouter {
     RouteNames.notifications: (context) => NotificationsScreen(
       onBack: () => Navigator.of(context).pop(),
       onOpen: openFromNotification,
+      onOpenSettings: () =>
+          Navigator.of(context).pushNamed(RouteNames.notificationSettings),
     ),
+    RouteNames.notificationSettings: (context) =>
+        NotificationSettingsScreen(onBack: () => Navigator.of(context).pop()),
     RouteNames.editProfile: (context) =>
         EditProfileScreen(onDone: () => Navigator.of(context).pop()),
     RouteNames.accountSettings: (context) => AccountSettingsScreen(
       onBack: () => Navigator.of(context).pop(),
+      onNotificationSettings: () =>
+          Navigator.of(context).pushNamed(RouteNames.notificationSettings),
       onEditProfile: () =>
           Navigator.of(context).pushNamed(RouteNames.editProfile),
     ),

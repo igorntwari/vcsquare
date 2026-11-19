@@ -18,10 +18,16 @@ import '../widgets/settings_list_tile.dart';
 import '../../../shared/widgets/cards/settings_section.dart';
 
 class AccountSettingsScreen extends ConsumerWidget {
-  const AccountSettingsScreen({super.key, this.onBack, this.onEditProfile});
+  const AccountSettingsScreen({
+    super.key,
+    this.onBack,
+    this.onEditProfile,
+    this.onNotificationSettings,
+  });
 
   final VoidCallback? onBack;
   final VoidCallback? onEditProfile;
+  final VoidCallback? onNotificationSettings;
 
   Future<void> _signOut(BuildContext context, WidgetRef ref) async {
     final confirmed = await showConfirmDialog(
@@ -98,6 +104,12 @@ class AccountSettingsScreen extends ConsumerWidget {
                       title: AppStrings.editProfile,
                       subtitle: AppStrings.editProfileSubtitle,
                       onTap: onEditProfile,
+                    ),
+                    SettingsListTile(
+                      icon: Icons.notifications_none,
+                      title: AppStrings.notificationSettings,
+                      subtitle: AppStrings.notificationSettingsSubtitle,
+                      onTap: onNotificationSettings,
                     ),
                     SettingsListTile(
                       icon: Icons.logout,
