@@ -14,11 +14,13 @@ import '../../../data/models/listing_model.dart';
 import '../../../data/models/post_model.dart';
 import '../../../data/repositories/repository_providers.dart';
 import '../../../shared/widgets/cards/listing_card.dart';
+import '../../../shared/widgets/feedback/app_snack_bar.dart';
 import '../../../shared/widgets/feedback/empty_state.dart';
 import '../../../shared/widgets/feedback/error_state.dart';
 import '../../../shared/widgets/feedback/loading_indicator.dart';
 import '../../../shared/widgets/layout/app_top_bar.dart';
 import '../providers/profile_providers.dart';
+import '../widgets/profile_action_button.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_post_card.dart';
 import '../widgets/profile_stats_row.dart';
@@ -57,6 +59,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _update(VoidCallback change) {
     if (mounted) setState(change);
   }
+
+  void _showComingSoon() => showAppSnackBar(context, AppStrings.comingSoon);
 
   void _showSaveFailed() {
     if (!mounted) return;
@@ -123,75 +127,94 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         .where((listing) => _savedListingIds.contains(listing.id))
         .toList();
 
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: ProfileHeader(
-            profile: profile,
-            onSettings: widget.onOpenSettings,
-            onStudentId: () {},
-            onEdit: widget.onEditProfile,
+    return RefreshIndicator(
+      onRefresh: () => ref.refresh(profileProvider.future),
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: ProfileHeader(
+              profile: profile,
+              onSettings: widget.onOpenSettings,
+              actions: [
+                ProfileActionButton(
+                  icon: Icons.badge_outlined,
+                  label: AppStrings.studentId,
+                  background: AppColors.blueSurface,
+                  foreground: AppColors.textPrimary,
+                  onTap: _showComingSoon,
+                ),
+                ProfileActionButton(
+                  icon: Icons.edit_outlined,
+                  label: AppStrings.edit,
+                  background: AppColors.primary,
+                  foreground: AppColors.textOnDark,
+                  onTap: widget.onEditProfile,
+                ),
+              ],
+            ),
           ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          sliver: SliverList.list(
-            children: [
-              ProfileStatsRow(
-                posts: data.posts.length,
-                listings: data.listings.length,
-                followers: profile.followerCount,
-                following: profile.followingCount,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              RecognitionBanner(
-                title: profile.recognitionTitle,
-                subtitle: profile.recognitionSubtitle,
-                onTap: () {},
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              ProfileTabBar(
-                labels: [
-                  AppStrings.tabMyPosts,
-                  AppStrings.tabListings(data.listings.length),
-                  AppStrings.tabSaved,
+          SliverPadding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            sliver: SliverList.list(
+              children: [
+                ProfileStatsRow(
+                  posts: data.posts.length,
+                  listings: data.listings.length,
+                  followers: profile.followerCount,
+                  following: profile.followingCount,
+                ),
+                if (profile.recognitionTitle.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  RecognitionBanner(
+                    title: profile.recognitionTitle,
+                    subtitle: profile.recognitionSubtitle,
+                  ),
                 ],
-                selectedIndex: _tab.index,
-                onSelected: (index) =>
-                    setState(() => _tab = _ProfileTab.values[index]),
+                const SizedBox(height: AppSpacing.lg),
+                ProfileTabBar(
+                  labels: [
+                    AppStrings.tabMyPosts,
+                    AppStrings.tabListings(data.listings.length),
+                    AppStrings.tabSaved,
+                  ],
+                  selectedIndex: _tab.index,
+                  onSelected: (index) =>
+                      setState(() => _tab = _ProfileTab.values[index]),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+              ],
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            sliver: switch (_tab) {
+              _ProfileTab.posts => _buildPosts(data.posts, userId),
+              _ProfileTab.listings => _buildListingGrid(
+                data.listings,
+                userId,
+                emptyTitle: AppStrings.noListingsTitle,
+                emptyMessage: AppStrings.noListingsMessage,
               ),
-              const SizedBox(height: AppSpacing.lg),
-            ],
+              _ProfileTab.saved => _buildListingGrid(
+                saved,
+                userId,
+                emptyTitle: AppStrings.noSavedTitle,
+                emptyMessage: AppStrings.noSavedMessage,
+              ),
+            },
           ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          sliver: switch (_tab) {
-            _ProfileTab.posts => _buildPosts(data.posts, userId),
-            _ProfileTab.listings => _buildListingGrid(
-              data.listings,
-              userId,
-              emptyTitle: AppStrings.noListingsTitle,
-              emptyMessage: AppStrings.noListingsMessage,
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.xl,
+              AppSpacing.lg,
+              MediaQuery.paddingOf(context).bottom + AppSpacing.lg,
             ),
-            _ProfileTab.saved => _buildListingGrid(
-              saved,
-              userId,
-              emptyTitle: AppStrings.noSavedTitle,
-              emptyMessage: AppStrings.noSavedMessage,
-            ),
-          },
-        ),
-        SliverPadding(
-          padding: EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.xl,
-            AppSpacing.lg,
-            MediaQuery.paddingOf(context).bottom + AppSpacing.lg,
+            sliver: SliverToBoxAdapter(child: _buildAccountSection()),
           ),
-          sliver: SliverToBoxAdapter(child: _buildAccountSection()),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -284,7 +307,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   title: AppStrings.studentIdCardTitle,
                   subtitle: AppStrings.studentIdCardSubtitle,
                   isVerified: true,
-                  onTap: () {},
+                  onTap: _showComingSoon,
                 ),
                 SettingsListTile(
                   icon: Icons.manage_accounts_outlined,
@@ -297,7 +320,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   iconColor: AppColors.accent,
                   title: AppStrings.campusAccessTitle,
                   subtitle: AppStrings.campusAccessSubtitle,
-                  onTap: () {},
+                  onTap: _showComingSoon,
                 ),
               ],
             ),
