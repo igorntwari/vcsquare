@@ -28,6 +28,7 @@ import '../../features/onboarding/screens/why_institutional_login_screen.dart';
 import '../../features/profile/screens/account_settings_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/profile/screens/student_profile_screen.dart';
 import '../../shared/widgets/navigation/main_shell.dart';
 import '../auth_gate.dart';
 import 'route_names.dart';
@@ -121,6 +122,19 @@ abstract final class AppRouter {
                 ),
               ),
             ),
+        onOpenStudent: (student) => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (studentContext) => StudentProfileScreen(
+              userId: student.id,
+              onBack: () => Navigator.of(studentContext).pop(),
+              onOpenListing: (listing) => Navigator.of(studentContext).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => ListingDetailScreen(listing: listing),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
       const MessagesScreen(),
       ProfileScreen(

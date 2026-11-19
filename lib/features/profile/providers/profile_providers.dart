@@ -52,3 +52,20 @@ final followingCountProvider = StreamProvider.family<int, String>(
   (ref, userId) =>
       ref.watch(followRepositoryProvider).watchFollowingCount(userId),
 );
+
+typedef StudentProfileData = ({
+  ProfileModel profile,
+  List<PostModel> posts,
+  List<ListingModel> listings,
+});
+
+// Another student's profile, posts and listings.
+final studentProfileProvider = FutureProvider.autoDispose
+    .family<StudentProfileData, String>((ref, userId) async {
+      final (profile, posts, listings) = await (
+        ref.watch(profileRepositoryProvider).fetchProfile(userId),
+        ref.watch(postsRepositoryProvider).fetchPostsByAuthor(userId),
+        ref.watch(listingsRepositoryProvider).fetchListingsBySeller(userId),
+      ).wait;
+      return (profile: profile, posts: posts, listings: listings);
+    });
