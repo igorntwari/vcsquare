@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/services/notification_service.dart';
 import '../../data/dummy/dummy_conversations.dart';
 import '../../data/models/listing_model.dart';
+import '../../data/models/notification_model.dart';
 import '../../data/repositories/repository_providers.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
@@ -48,9 +50,36 @@ abstract final class AppRouter {
     if (!alreadyOpen) navigator.pushNamed(RouteNames.notifications);
   }
 
+  static final ValueNotifier<int?> shellTab = ValueNotifier(null);
+
+  // Push custom data key "screen" -> tab. Anything else opens the inbox.
+  static const Map<String, int> _tabsByScreen = {
+    'home': 0,
+    'market': 1,
+    'explore': 2,
+    'messages': 3,
+    'profile': 4,
+  };
+
+  static void openFromNotification(NotificationModel? notification) {
+    final navigator = navigatorKey.currentState;
+    if (navigator == null) return;
+    if (notification != null) {
+      NotificationService.instance.markRead(notification.id);
+    }
+    final tab = _tabsByScreen[notification?.data['screen']];
+    if (tab == null) {
+      openNotifications();
+      return;
+    }
+    navigator.popUntil((route) => route.isFirst);
+    shellTab.value = tab;
+  }
+
   static Widget buildMainShell(BuildContext context) => MainShell(
     // Messages/chats are owned separately; still on dummy data.
     messagesBadgeCount: dummyUnreadConversationCount,
+    tabRequests: shellTab,
     tabs: [
       HomeScreen(
         onCreatePost: () {

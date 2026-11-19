@@ -47,8 +47,14 @@ class NotificationService with WidgetsBindingObserver {
     const [],
   );
 
-  VoidCallback? _openInboxHandler;
-  bool _openInboxPending = false;
+  // Null until the user answers the permission prompt.
+  final ValueNotifier<bool?> permissionGranted = ValueNotifier(null);
+
+  bool _inAppAlerts = true;
+
+  void Function(NotificationModel?)? _openHandler;
+  bool _openPending = false;
+  NotificationModel? _pendingNotification;
 
   int get unreadCount => notifications.value.where((n) => !n.isRead).length;
 
@@ -67,7 +73,8 @@ class NotificationService with WidgetsBindingObserver {
           requestSoundPermission: false,
         ),
       ),
-      onDidReceiveNotificationResponse: (_) => _requestOpenInbox(),
+      onDidReceiveNotificationResponse: (response) =>
+          _requestOpen(_byId(response.payload)),
     );
     await _local
         .resolvePlatformSpecificImplementation<
@@ -86,25 +93,29 @@ class NotificationService with WidgetsBindingObserver {
     FirebaseMessaging.onMessage.listen((message) async {
       final model = _toModel(message);
       await _add(model);
-      if (defaultTargetPlatform == TargetPlatform.android) {
+      if (_inAppAlerts && defaultTargetPlatform == TargetPlatform.android) {
         await _showLocal(model);
       }
     });
 
     // App in background and the user taps the notification.
     FirebaseMessaging.onMessageOpenedApp.listen((message) async {
-      await _add(_toModel(message));
-      _requestOpenInbox();
+      final model = _toModel(message);
+      await _add(model);
+      _requestOpen(model);
     });
 
     // App was closed and launched by tapping a notification.
     final initial = await messaging.getInitialMessage();
     if (initial != null) {
-      await _add(_toModel(initial));
-      _requestOpenInbox();
+      final model = _toModel(initial);
+      await _add(model);
+      _requestOpen(model);
     } else {
       final launch = await _local.getNotificationAppLaunchDetails();
-      if (launch?.didNotificationLaunchApp ?? false) _requestOpenInbox();
+      if (launch?.didNotificationLaunchApp ?? false) {
+        _requestOpen(_byId(launch?.notificationResponse?.payload));
+      }
     }
 
     // The newer register()/onRegistered API returns an installation id, not
@@ -119,6 +130,8 @@ class NotificationService with WidgetsBindingObserver {
   Future<void> requestPermissionAndSubscribe() async {
     final messaging = FirebaseMessaging.instance;
     final settings = await messaging.requestPermission();
+    permissionGranted.value =
+        settings.authorizationStatus != AuthorizationStatus.denied;
     if (settings.authorizationStatus == AuthorizationStatus.denied) {
       debugPrint('[Notifications] Permission denied by the user.');
       return;
@@ -134,16 +147,32 @@ class NotificationService with WidgetsBindingObserver {
     }
   }
 
-  // The app layer decides how the inbox is opened (see AppRouter).
-  void setOpenInboxHandler(VoidCallback handler) {
-    _openInboxHandler = handler;
-    if (_openInboxPending) {
-      _openInboxPending = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) => handler());
+  // Set by AppRouter.
+  void setOpenHandler(void Function(NotificationModel?) handler) {
+    _openHandler = handler;
+    if (_openPending) {
+      _openPending = false;
+      final pending = _pendingNotification;
+      _pendingNotification = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) => handler(pending));
     }
   }
 
-  void openInbox() => _requestOpenInbox();
+  void openInbox() => _requestOpen(null);
+
+  Future<void> setInAppAlerts(bool on) async {
+    _inAppAlerts = on;
+    try {
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+            alert: on,
+            badge: true,
+            sound: on,
+          );
+    } catch (error) {
+      debugPrint('[Notifications] Could not update alerts: $error');
+    }
+  }
 
   Future<void> markRead(String id) => _update(
     notifications.value
@@ -164,12 +193,22 @@ class NotificationService with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) _reload();
   }
 
-  void _requestOpenInbox() {
-    final handler = _openInboxHandler;
+  NotificationModel? _byId(String? id) {
+    for (final n in notifications.value) {
+      if (n.id == id) return n;
+    }
+    return null;
+  }
+
+  void _requestOpen(NotificationModel? notification) {
+    final handler = _openHandler;
     if (handler == null) {
-      _openInboxPending = true;
+      _openPending = true;
+      _pendingNotification = notification;
     } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) => handler());
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => handler(notification),
+      );
       WidgetsBinding.instance.scheduleFrame();
     }
   }
