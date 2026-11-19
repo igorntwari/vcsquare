@@ -6,6 +6,7 @@ import '../../../data/models/listing_model.dart';
 import '../../../data/models/official_handle_model.dart';
 import '../../../data/models/peer_suggestion_model.dart';
 import '../../../data/models/post_model.dart';
+import '../../../data/models/user_model.dart';
 import '../../../data/models/trending_topic_model.dart';
 import '../../../data/repositories/repository_providers.dart';
 
@@ -65,4 +66,13 @@ final exploreProvider = FutureProvider<ExploreData>((ref) async {
     joinedIds: joined,
     requestedPeerIds: requests,
   );
+});
+
+// Students who have signed up, newest first, without the signed-in user.
+final studentsProvider = FutureProvider<List<UserModel>>((ref) async {
+  final userId = await ref.watch(currentUserIdProvider.future);
+  if (userId == null) return const [];
+  return ref
+      .watch(followRepositoryProvider)
+      .fetchStudents(excludeUserId: userId);
 });

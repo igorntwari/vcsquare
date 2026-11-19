@@ -23,6 +23,9 @@ import 'chats/sample_chats_repository.dart';
 import 'explore/explore_repository.dart';
 import 'explore/firebase_explore_repository.dart';
 import 'explore/sample_explore_repository.dart';
+import 'follow/firebase_follow_repository.dart';
+import 'follow/follow_repository.dart';
+import 'follow/sample_follow_repository.dart';
 import 'listings/firebase_listings_repository.dart';
 import 'listings/listings_repository.dart';
 import 'listings/sample_listings_repository.dart';
@@ -68,6 +71,22 @@ final notificationPrefsRepositoryProvider =
     Provider<NotificationPrefsRepository>(
       (ref) => NotificationPrefsRepository(),
     );
+
+final followRepositoryProvider = Provider<FollowRepository>(
+  (ref) => AppConfig.useFirebase
+      ? FirebaseFollowRepository(ref.watch(firestoreProvider))
+      : SampleFollowRepository(),
+);
+
+// The signed-in user's follows, live. Empty when signed out.
+final followingIdsProvider = StreamProvider<Set<String>>((ref) async* {
+  final userId = await ref.watch(currentUserIdProvider.future);
+  if (userId == null) {
+    yield const {};
+    return;
+  }
+  yield* ref.watch(followRepositoryProvider).watchFollowingIds(userId);
+});
 
 final postsRepositoryProvider = Provider<PostsRepository>(
   (ref) => AppConfig.useFirebase

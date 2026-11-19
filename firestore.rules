@@ -83,8 +83,15 @@ service cloud.firestore {
       match /memberships/{groupId} {
         allow read, write: if isSelf(uid) && isMember();
       }
+      // Public to members, so follower and following counts work.
       match /following/{targetId} {
-        allow read, write: if isSelf(uid) && isMember();
+        allow read: if isMember();
+        allow delete: if isSelf(uid) && isMember();
+        // A student follow names its target, which can't be yourself.
+        allow create, update: if isSelf(uid) && isMember()
+          && (!('targetId' in request.resource.data)
+            || (request.resource.data.targetId == targetId
+              && targetId != uid));
       }
       // Push tokens, written by FirebaseDeviceRegistry.
       match /devices/{token} {
@@ -169,6 +176,11 @@ service cloud.firestore {
 
     // Home loads a member's votes across posts with a collection-group query.
     // Keep that query private to the authenticated member's own vote docs.
+    // Counting a student's followers across everyone's following lists.
+    match /{path=**}/following/{followId} {
+      allow read: if isMember();
+    }
+
     match /{path=**}/pollVotes/{voteId} {
       allow read: if isMember() && resource.data.userId == request.auth.uid;
     }

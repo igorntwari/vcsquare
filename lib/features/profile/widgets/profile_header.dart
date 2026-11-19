@@ -11,21 +11,21 @@ import '../../../data/models/profile_model.dart';
 import '../../../shared/widgets/avatars/user_avatar.dart';
 import '../../../shared/widgets/chips/status_tag.dart';
 
-// Gradient cover, overlapping avatar with Student ID / Edit buttons, then
-// name, verified email, tags, programme and bio.
+// Profile cover, avatar and details. Empty fields are left out.
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({
     super.key,
     required this.profile,
+    this.actions = const [],
     this.onSettings,
-    this.onStudentId,
-    this.onEdit,
   });
 
   final ProfileModel profile;
+
+  final List<Widget> actions;
+
+  // The settings gear only shows when this is set.
   final VoidCallback? onSettings;
-  final VoidCallback? onStudentId;
-  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -53,21 +53,10 @@ class ProfileHeader extends StatelessWidget {
                 children: [
                   _buildAvatar(),
                   const Spacer(),
-                  _buildActionButton(
-                    icon: Icons.badge_outlined,
-                    label: AppStrings.studentId,
-                    background: AppColors.blueSurface,
-                    foreground: AppColors.textPrimary,
-                    onTap: onStudentId,
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  _buildActionButton(
-                    icon: Icons.edit_outlined,
-                    label: AppStrings.edit,
-                    background: AppColors.primary,
-                    foreground: AppColors.textOnDark,
-                    onTap: onEdit,
-                  ),
+                  for (final (index, action) in actions.indexed) ...[
+                    if (index > 0) const SizedBox(width: AppSpacing.xs),
+                    action,
+                  ],
                 ],
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -90,44 +79,59 @@ class ProfileHeader extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.xs),
-              Wrap(
-                spacing: AppSpacing.xs,
-                runSpacing: AppSpacing.xs,
-                children: [
-                  StatusTag(
-                    label: profile.roleTag,
-                    backgroundColor: AppColors.redSurface,
-                    foregroundColor: AppColors.accent,
+              if (profile.user.handle.isNotEmpty)
+                Text(
+                  profile.user.handle,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textMuted,
                   ),
-                  StatusTag(
-                    label: profile.campus,
-                    backgroundColor: AppColors.chipBackground,
-                    foregroundColor: AppColors.textSecondary,
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.school_outlined,
-                    size: AppSizes.iconSm,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Expanded(
-                    child: Text(
-                      profile.program,
-                      style: AppTypography.titleMedium.copyWith(
-                        color: AppColors.textSecondary,
+                ),
+              if (profile.roleTag.isNotEmpty || profile.campus.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Wrap(
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xs,
+                  children: [
+                    if (profile.roleTag.isNotEmpty)
+                      StatusTag(
+                        label: profile.roleTag,
+                        backgroundColor: AppColors.redSurface,
+                        foregroundColor: AppColors.accent,
+                      ),
+                    if (profile.campus.isNotEmpty)
+                      StatusTag(
+                        label: profile.campus,
+                        backgroundColor: AppColors.chipBackground,
+                        foregroundColor: AppColors.textSecondary,
+                      ),
+                  ],
+                ),
+              ],
+              if (profile.program.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.school_outlined,
+                      size: AppSizes.iconSm,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: Text(
+                        profile.program,
+                        style: AppTypography.titleMedium.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _buildBio(),
+                  ],
+                ),
+              ],
+              if (profile.bio.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.sm),
+                _buildBio(),
+              ],
             ],
           ),
         ),
@@ -145,24 +149,25 @@ class ProfileHeader extends StatelessWidget {
         const DecoratedBox(
           decoration: BoxDecoration(gradient: AppColors.coverFade),
         ),
-        Positioned(
-          top: AppSpacing.md,
-          right: AppSpacing.lg,
-          child: IconButton(
-            tooltip: AppStrings.accountSettings,
-            onPressed: onSettings,
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.coverButtonBackground,
-              fixedSize: const Size.square(AppSizes.settingsIconBox),
-              minimumSize: const Size.square(AppSizes.settingsIconBox),
-            ),
-            icon: const Icon(
-              Icons.settings_outlined,
-              size: AppSizes.iconSm,
-              color: AppColors.textOnDark,
+        if (onSettings != null)
+          Positioned(
+            top: AppSpacing.md,
+            right: AppSpacing.lg,
+            child: IconButton(
+              tooltip: AppStrings.accountSettings,
+              onPressed: onSettings,
+              style: IconButton.styleFrom(
+                backgroundColor: AppColors.coverButtonBackground,
+                fixedSize: const Size.square(AppSizes.settingsIconBox),
+                minimumSize: const Size.square(AppSizes.settingsIconBox),
+              ),
+              icon: const Icon(
+                Icons.settings_outlined,
+                size: AppSizes.iconSm,
+                color: AppColors.textOnDark,
+              ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -212,43 +217,6 @@ class ProfileHeader extends StatelessWidget {
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required Color background,
-    required Color foreground,
-    VoidCallback? onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-      child: Material(
-        color: background,
-        shape: const StadiumBorder(),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: SizedBox(
-            height: AppSizes.profileActionHeight,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, size: AppSizes.iconSm, color: foreground),
-                  const SizedBox(width: AppSpacing.xs),
-                  Text(
-                    label,
-                    style: AppTypography.label.copyWith(color: foreground),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 

@@ -13,6 +13,7 @@ import '../../../data/models/community_model.dart';
 import '../../../data/models/listing_model.dart';
 import '../../../data/models/official_handle_model.dart';
 import '../../../data/models/post_model.dart';
+import '../../../data/models/user_model.dart';
 import '../../../data/repositories/repository_providers.dart';
 import '../../../shared/widgets/cards/app_card.dart';
 import '../../../shared/widgets/chips/app_chip.dart';
@@ -29,6 +30,7 @@ import '../widgets/explore_listing_result_tile.dart';
 import '../widgets/explore_post_result_tile.dart';
 import '../widgets/official_handle_card.dart';
 import '../widgets/person_suggestion_tile.dart';
+import '../widgets/students_on_campus_section.dart';
 import '../widgets/trending_topics.dart';
 
 class ExploreScreen extends ConsumerStatefulWidget {
@@ -36,11 +38,13 @@ class ExploreScreen extends ConsumerStatefulWidget {
     super.key,
     this.onOpenCommunity,
     this.onOpenOfficialHandle,
+    this.onOpenStudent,
   });
 
   final void Function(CommunityModel, bool, VoidCallback)? onOpenCommunity;
   final void Function(OfficialHandleModel, bool, VoidCallback)?
   onOpenOfficialHandle;
+  final ValueChanged<UserModel>? onOpenStudent;
 
   @override
   ConsumerState<ExploreScreen> createState() => _ExploreScreenState();
@@ -284,6 +288,10 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                         ),
                         const SizedBox(height: AppSpacing.sm),
                       ],
+                      const SizedBox(height: AppSpacing.lg),
+                      StudentsOnCampusSection(
+                        onOpenStudent: widget.onOpenStudent,
+                      ),
                     ],
                   ),
                 ),
