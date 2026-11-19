@@ -12,3 +12,5 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+# Shared debug key (not secret): one SHA-1 in Firebase for the whole team.
+!app/team-debug.keystore

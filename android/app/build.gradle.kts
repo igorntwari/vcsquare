@@ -34,6 +34,17 @@ android {
         versionName = flutter.versionName
     }
 
+    // One shared key for every teammate's build, so a single SHA-1 in
+    // Firebase makes Google sign-in work for everyone.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("team-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
