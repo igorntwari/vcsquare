@@ -20,7 +20,7 @@ class SampleProfileRepository implements ProfileRepository {
         name: edit.name,
         handle: edit.handle,
         type: user.type,
-        avatarPath: user.avatarPath,
+        avatarPath: edit.avatarPath,
         cohort: edit.cohort,
         isVerified: user.isVerified,
         isOnline: user.isOnline,

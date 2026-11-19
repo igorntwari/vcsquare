@@ -2,9 +2,11 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/profile_edit_model.dart';
 import '../../../data/repositories/repository_providers.dart';
+import '../../../shared/services/media_providers.dart';
 import 'profile_providers.dart';
 
 final profileControllerProvider =
@@ -16,15 +18,22 @@ class ProfileController extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
 
-  Future<bool> saveProfile(ProfileEdit edit) => _run(() async {
-    final userId = await ref.read(currentUserIdProvider.future);
-    if (userId == null) return;
-    await ref
-        .read(profileRepositoryProvider)
-        .updateProfile(userId, edit.normalized());
-    // The profile page doesn't update live, so reload it.
-    ref.invalidate(profileProvider);
-  });
+  // [newPhoto] is uploaded first and replaces edit.avatarPath.
+  Future<bool> saveProfile(ProfileEdit edit, {XFile? newPhoto}) =>
+      _run(() async {
+        final userId = await ref.read(currentUserIdProvider.future);
+        if (userId == null) return;
+        final saved = newPhoto == null
+            ? edit
+            : edit.withAvatar(
+                await ref.read(imageUploadServiceProvider).upload(newPhoto),
+              );
+        await ref
+            .read(profileRepositoryProvider)
+            .updateProfile(userId, saved.normalized());
+        // The profile page doesn't update live, so reload it.
+        ref.invalidate(profileProvider);
+      });
 
   Future<bool> signOut() => _run(() async {
     final userId = ref.read(authAccountProvider).value?.id;

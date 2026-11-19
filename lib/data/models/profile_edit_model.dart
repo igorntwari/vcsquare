@@ -12,6 +12,7 @@ class ProfileEdit {
     required this.bio,
     this.cohort,
     this.bioHighlight,
+    this.avatarPath,
   });
 
   factory ProfileEdit.fromProfile(ProfileModel profile) => ProfileEdit(
@@ -23,6 +24,7 @@ class ProfileEdit {
     program: profile.program,
     bio: profile.bio,
     bioHighlight: profile.bioHighlight,
+    avatarPath: profile.user.avatarPath,
   );
 
   final String name;
@@ -33,6 +35,21 @@ class ProfileEdit {
   final String program;
   final String bio;
   final String? bioHighlight;
+
+  // Null means no photo.
+  final String? avatarPath;
+
+  ProfileEdit withAvatar(String? path) => ProfileEdit(
+    name: name,
+    handle: handle,
+    cohort: cohort,
+    roleTag: roleTag,
+    campus: campus,
+    program: program,
+    bio: bio,
+    bioHighlight: bioHighlight,
+    avatarPath: path,
+  );
 
   // Drops bioHighlight if the new bio no longer contains it.
   ProfileEdit normalized() {
@@ -51,6 +68,7 @@ class ProfileEdit {
       bioHighlight: bioHighlight != null && trimmedBio.contains(bioHighlight!)
           ? bioHighlight
           : null,
+      avatarPath: avatarPath,
     );
   }
 
@@ -63,6 +81,7 @@ class ProfileEdit {
     'program': program,
     'bio': bio,
     'bioHighlight': bioHighlight,
+    'avatarPath': avatarPath,
   };
 
   @override
@@ -75,7 +94,8 @@ class ProfileEdit {
       other.campus == campus &&
       other.program == program &&
       other.bio == bio &&
-      other.bioHighlight == bioHighlight;
+      other.bioHighlight == bioHighlight &&
+      other.avatarPath == avatarPath;
 
   @override
   int get hashCode => Object.hash(
@@ -87,5 +107,6 @@ class ProfileEdit {
     program,
     bio,
     bioHighlight,
+    avatarPath,
   );
 }
