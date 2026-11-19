@@ -167,6 +167,12 @@ service cloud.firestore {
       }
     }
 
+    // Home loads a member's votes across posts with a collection-group query.
+    // Keep that query private to the authenticated member's own vote docs.
+    match /{path=**}/pollVotes/{voteId} {
+      allow read: if isMember() && resource.data.userId == request.auth.uid;
+    }
+
     // Explore connect requests. Only pending requests are stored here; a
     // recipient can read a request, while the sender can cancel it.
     match /connectionRequests/{requestId} {
