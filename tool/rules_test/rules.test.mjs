@@ -232,3 +232,47 @@ describe('deleting an account', () => {
     );
   });
 });
+
+describe('following students', () => {
+  const follow = (db, from, to, data = {}) =>
+    setDoc(doc(db, `users/${from}/following/${to}`), {
+      targetId: to,
+      type: 'user',
+      ...data,
+    });
+
+  test('a member can follow and unfollow a student', async () => {
+    const db = member();
+    await assertSucceeds(follow(db, 'amara', 'kofi'));
+    await assertSucceeds(deleteDoc(doc(db, 'users/amara/following/kofi')));
+  });
+
+  test('no following yourself, or naming someone else as the target', async () => {
+    const db = member();
+    await assertFails(follow(db, 'amara', 'amara'));
+    await assertFails(follow(db, 'amara', 'kofi', { targetId: 'nadia' }));
+  });
+
+  test('no writing into someone else\'s following list', async () => {
+    const kofi = as('kofi', 'k.mensah@alustudent.com');
+    await assertFails(follow(kofi, 'amara', 'kofi'));
+  });
+
+  test('members can count followers across everyone', async () => {
+    await env.withSecurityRulesDisabled((context) =>
+      setDoc(doc(context.firestore(), 'users/kofi/following/amara'), {
+        targetId: 'amara',
+        type: 'user',
+      }),
+    );
+    const followers = query(
+      collectionGroup(member(), 'following'),
+      where('targetId', '==', 'amara'),
+    );
+    await assertSucceeds(getDocs(followers));
+    await assertFails(getDocs(query(
+      collectionGroup(unverified(), 'following'),
+      where('targetId', '==', 'amara'),
+    )));
+  });
+});

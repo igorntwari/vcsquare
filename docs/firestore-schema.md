@@ -75,8 +75,8 @@ One document per account: students, campus offices (`type: "official"`) and club
 | `program` | string | profile, e.g. `"BSc Software Engineering • Class of 2027"` |
 | `bio` | string | profile |
 | `bioHighlight` | string? | part of `bio` shown in bold |
-| `followerCount` | int | set by the backend |
-| `followingCount` | int | set by the backend |
+| `followerCount` | int | set by the backend; the app shows a live count instead (see below) |
+| `followingCount` | int | set by the backend; the app shows a live count instead (see below) |
 | `recognitionTitle` | string | profile banner, set by the backend |
 | `recognitionSubtitle` | string | profile banner, set by the backend |
 
@@ -101,9 +101,13 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | `eventRsvps` | event post id | event attendance |
 | `savedListings` | listing id | `ListingModel.isFavorited` |
 | `memberships` | community id or club user id | `CommunityModel.isJoined`, `UserModel.isJoined` |
-| `following` | official handle id or user id | `OfficialHandleModel.isFollowing` |
+| `following` | official handle id or user id | `OfficialHandleModel.isFollowing`, and students you follow. A student follow also stores `targetId` (the student's uid) and `type: "user"`. Readable by any member, so follower and following counts work. Only the owner writes; `targetId` must equal the document id and can't be yourself. |
 | `devices` | the device's FCM token | written by the app on sign-in and deleted on sign-out (`FirebaseDeviceRegistry`). Fields: `platform`, `updatedAt` (timestamp). Owner-only. |
 | `peerSuggestions` | suggested user's uid | backend-written; the owner can only delete them (account deletion). Fields: `program`, `focus`, `mutualCount` (int), `sharedInterest` |
+
+**Follower and following counts** are counted live by the app (`FirebaseFollowRepository`), because the stored counters need a backend:
+- **Following:** the number of documents in `users/{uid}/following`, covering official handles and students.
+- **Followers:** a collection-group query on `following` where `targetId == uid`. This needs the `following.targetId` collection-group index in `firestore.indexes.json`.
 
 `MessageModel.isMine` was replaced by `senderId`; compare it with the signed-in uid.
 

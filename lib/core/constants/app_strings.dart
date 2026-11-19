@@ -174,6 +174,9 @@ abstract final class AppStrings {
   static const String peopleYouMayKnow = 'People You May Know';
   static const String syncContacts = 'Sync Contacts';
   static const String follow = 'Follow';
+  static const String onCampus = 'ON CAMPUS';
+  static const String studentsOnCampus = 'Students on campus';
+  static const String noStudentsYet = 'No other students have joined yet.';
   static const String following = 'Following';
   static const String join = 'Join';
   static const String connect = 'Connect';
@@ -209,12 +212,18 @@ abstract final class AppStrings {
   // Profile
   static const String accountSettings = 'Account settings';
   static const String studentId = 'Student ID';
+  static const String comingSoon = 'Coming soon.';
   static const String edit = 'Edit';
   static const String statPosts = 'Posts';
   static const String statListings = 'Listings';
   static const String statFollowers = 'Followers';
   static const String statFollowing = 'Following';
   static const String tabMyPosts = 'My Posts';
+  static const String tabPosts = 'Posts';
+  static const String noStudentPostsTitle = 'No posts yet';
+  static const String noStudentPostsMessage = 'Nothing shared yet.';
+  static const String noStudentListingsTitle = 'No listings yet';
+  static const String noStudentListingsMessage = 'Nothing for sale right now.';
   static String tabListings(int count) => 'Listings ($count)';
   static const String tabSaved = 'Saved Items';
   static const String accountVerification = 'ACCOUNT & CAMPUS VERIFICATION';
