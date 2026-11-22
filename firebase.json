@@ -22,6 +22,12 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+  "functions": [
+    {
+      "source": "functions/home_market",
+      "codebase": "home_market"
+    }
+  ],
   "emulators": {
     "singleProjectMode": true,
     "auth": {
@@ -29,6 +35,9 @@
     },
     "firestore": {
       "port": 8080
+    },
+    "functions": {
+      "port": 5001
     },
     "ui": {
       "enabled": true,

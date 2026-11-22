@@ -132,6 +132,9 @@ service cloud.firestore {
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.likeCount == 0
         && request.resource.data.commentCount == 0
+        && request.resource.data.pollCounts is map
+        && request.resource.data.pollCounts.size() == 0
+        && request.resource.data.pollTotal == 0
         && (!('poll' in request.resource.data)
           || request.resource.data.poll == null
           || (request.resource.data.poll is map

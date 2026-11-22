@@ -138,8 +138,10 @@ The Firebase query for a user's sent pending requests filters by `senderId` and 
 | `event` | map? | `{ title, startsAt: timestamp, venue, label?, note?, priceRwf?: int, showAsBanner: bool }` |
 | `commentPreview` | map? | `{ authorId, text }` (latest comment) |
 | `poll` | map? | `{ question: string, options: string[] }`; 2–6 options |
+| `pollCounts` | map<string, int> | Starts empty; public per-option aggregate, updated by the `home_market` Cloud Function; vote documents remain private |
+| `pollTotal` | int | Starts at 0; sum of `pollCounts`, updated by the `home_market` Cloud Function |
 
-**Rules:** verified ALU members read. The author creates (with counts at 0), edits content and deletes. Any member may change `likeCount` by exactly ±1 or add a comment while incrementing `commentCount` and updating `commentPreview` in the same transaction.
+**Rules:** verified ALU members read. The author creates, edits content and deletes. Any member may change `likeCount` by exactly ±1 or add a comment while incrementing `commentCount` and updating `commentPreview` in the same transaction. Likes and comments are global post counts. They update transactionally, and visible Home cards listen for count changes from other members.
 
 **Index:** `authorId ASC, createdAt DESC` (Profile → My Posts).
 
@@ -153,7 +155,7 @@ The Firebase query for a user's sent pending requests filters by `senderId` and 
 
 ### posts/{postId}/pollVotes/{voteId}
 
-Each verified member has one vote document, keyed by their uid, with `userId`, `option` (the selected option text) and `createdAt`. A member can change or delete their own vote. Polls are optional on posts; the composer requires a question and at least two options. This version does not include close times or public result totals.
+Each verified member has one vote document, keyed by their uid, with `userId`, `option` (the selected option text) and `createdAt`. A member can change or delete their own vote. Polls are optional on posts; the composer requires a question and at least two options. The `home_market` Cloud Function updates public per-option `pollCounts` and `pollTotal` when a vote is created, changed or deleted. It also recursively removes comments and poll votes when an author deletes a post.
 
 ## listings/{listingId}
 
@@ -176,6 +178,8 @@ Each verified member has one vote document, keyed by their uid, with `userId`, `
 | `tagStyle` | string | `dark` \| `accent` \| `light` |
 
 **Rules:** members read. Only the seller creates, updates (and can't change `sellerId`) or deletes.
+
+The seller can edit the listing, mark it sold or available, or permanently delete it. Sold listings stay on the seller's profile with a Sold label, and are hidden from Market and Explore search results.
 
 **Index:** `sellerId ASC, createdAt DESC` (Profile → Listings).
 

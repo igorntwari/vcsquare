@@ -137,18 +137,23 @@ The emulators let you test against Auth and Firestore on your own machine, witho
 | --- | --- |
 | Auth | 9099 |
 | Firestore | 8080 |
+| Functions | 5001 |
 | Emulator UI | 4000 |
 
-You need the Firebase CLI (`npm install -g firebase-tools`) and Java 11+.
+You need the Firebase CLI (`npm install -g firebase-tools`), Node.js 22 and Java 21+.
 
 ```sh
-# 1. Start the emulators (leave this running)
-firebase emulators:start
+# Install the isolated Home/Market backend dependencies once, then return to
+# the repository root.
+cd functions/home_market && npm install && cd ../..
 
-# 2. Seed the fixed data (categories, pickup hubs, official accounts, communities)
+# Terminal 1: start the emulators and leave them running.
+firebase emulators:start --only auth,firestore,functions
+
+# Terminal 2, from the repository root: seed the fixed data.
 cd tool/seed && npm install && npm run seed
 
-# 3. Run the app against them
+# Run the app against the emulators.
 flutter run --dart-define=USE_FIREBASE=true --dart-define=USE_EMULATORS=true
 ```
 
@@ -196,6 +201,14 @@ cd tool/rules_test && npm install && npm test
 ```sh
 firebase deploy --only firestore:rules,firestore:indexes
 ```
+
+The Home/Market Cloud Functions use Node.js 22 and are isolated in their own `home_market` codebase. They maintain poll result totals and recursively clean up post comments and votes after a post is deleted. Deploy only this codebase with:
+
+```sh
+firebase deploy --only functions:home_market --project vcsquared-131f0
+```
+
+Production Cloud Functions deployment requires the Firebase Blaze plan and a linked billing account. Use the Functions emulator for local testing. This deployment target does not deploy the separate functions in `functions/index.js` owned by other workstreams.
 
 ## Tests and CI
 
