@@ -6,12 +6,15 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../data/models/listing_draft_model.dart';
 import '../../../data/models/listing_model.dart';
+import '../../../data/repositories/repository_providers.dart';
 import '../../../shared/widgets/cards/app_card.dart';
 import '../../../shared/widgets/chips/app_chip.dart';
 import '../../../shared/widgets/chips/status_tag.dart';
@@ -52,7 +55,7 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
   ListingCondition? _condition;
   String? _hubId;
   bool _negotiable = true;
-  int _draftCount = 1;
+  String? _draftId;
 
   static const List<String> _quickAdds = [
     AppStrings.quickAddOriginalBox,
@@ -107,9 +110,7 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
       if (photo != null && mounted) setState(() => _photos.add(photo.path));
     } catch (error) {
       _showMessage(
-        error is StateError
-            ? error.message.toString()
-            : AppStrings.saveFailed,
+        error is StateError ? error.message.toString() : AppStrings.saveFailed,
       );
     }
   }
@@ -127,9 +128,143 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void _saveDraft() {
-    setState(() => _draftCount++);
-    _showMessage(AppStrings.draftSaved);
+  Future<void> _saveDraft() async {
+    final userId = await ref.read(currentUserIdProvider.future);
+    if (userId == null || _isUploadingPhotos) return;
+    setState(() => _isUploadingPhotos = true);
+    try {
+      final photoUrls = <String>[];
+      for (final path in _photos) {
+        final url = _uploadedPhotoUrls[path] ??=
+            AppConfig.useFirebase && !path.startsWith('https://')
+            ? await _uploader.upload(XFile(path))
+            : path;
+        photoUrls.add(url);
+      }
+      final id = await ref
+          .read(listingsRepositoryProvider)
+          .saveDraft(
+            userId: userId,
+            draft: ListingDraftModel(
+              id: _draftId ?? '',
+              title: _titleController.text.trim(),
+              description: _descriptionController.text.trim(),
+              priceText: _priceController.text.trim(),
+              categoryId: _categoryId,
+              condition: _condition,
+              pickupHubId: _hubId,
+              negotiable: _negotiable,
+              photoUrls: photoUrls,
+              updatedAt: DateTime.now(),
+            ),
+          );
+      if (!mounted) return;
+      setState(() => _draftId = id);
+      _showMessage(AppStrings.draftSaved);
+    } catch (error) {
+      if (mounted) {
+        _showMessage(
+          error is StateError
+              ? error.message.toString()
+              : AppStrings.saveFailed,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploadingPhotos = false);
+    }
+  }
+
+  Future<void> _openDrafts() async {
+    final userId = await ref.read(currentUserIdProvider.future);
+    if (userId == null) return;
+    try {
+      final drafts = await ref
+          .read(listingsRepositoryProvider)
+          .fetchDrafts(userId);
+      if (!mounted) return;
+      if (drafts.isEmpty) {
+        _showMessage(AppStrings.noDraftsSaved);
+        return;
+      }
+      final selected = await showModalBottomSheet<ListingDraftModel>(
+        context: context,
+        isScrollControlled: true,
+        builder: (sheetContext) => StatefulBuilder(
+          builder: (context, setSheetState) => SafeArea(
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              children: [
+                Text(
+                  AppStrings.drafts,
+                  style: AppTypography.headingMedium.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                for (final draft in drafts)
+                  ListTile(
+                    title: Text(
+                      draft.title.isEmpty
+                          ? AppStrings.draftTitleFallback
+                          : draft.title,
+                    ),
+                    subtitle: Text(
+                      '${draft.updatedAt.toLocal()}'.split('.').first,
+                    ),
+                    onTap: () => Navigator.of(sheetContext).pop(draft),
+                    trailing: IconButton(
+                      tooltip: AppStrings.deleteDraft,
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () async {
+                        try {
+                          await ref
+                              .read(listingsRepositoryProvider)
+                              .deleteDraft(userId: userId, draftId: draft.id);
+                          setSheetState(
+                            () => drafts.removeWhere(
+                              (item) => item.id == draft.id,
+                            ),
+                          );
+                          if (drafts.isEmpty && sheetContext.mounted) {
+                            Navigator.of(sheetContext).pop();
+                          }
+                        } catch (_) {
+                          if (mounted) _showMessage(AppStrings.saveFailed);
+                        }
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+      if (selected != null && mounted) {
+        _applyDraft(selected);
+        _showMessage(AppStrings.draftLoaded);
+      }
+    } catch (_) {
+      if (mounted) _showMessage(AppStrings.saveFailed);
+    }
+  }
+
+  void _applyDraft(ListingDraftModel draft) {
+    setState(() {
+      _draftId = draft.id;
+      _titleController.text = draft.title;
+      _descriptionController.text = draft.description;
+      _priceController.text = draft.priceText;
+      _categoryId = draft.categoryId;
+      _condition = draft.condition;
+      _hubId = draft.pickupHubId;
+      _negotiable = draft.negotiable;
+      _photos
+        ..clear()
+        ..addAll(draft.photoUrls);
+      _uploadedPhotoUrls
+        ..clear()
+        ..addEntries(draft.photoUrls.map((url) => MapEntry(url, url)));
+    });
   }
 
   Future<void> _preview() async {
@@ -170,6 +305,7 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
           pickupHubName: hubMatches.isEmpty ? null : hubMatches.first.name,
           negotiable: _negotiable,
           photoUrls: List.unmodifiable(photoUrls),
+          savedDraftId: _draftId,
         ),
       );
     } catch (_) {
@@ -267,7 +403,7 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
                 shape: const StadiumBorder(),
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
-                  onTap: () {},
+                  onTap: _openDrafts,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.sm,
@@ -286,12 +422,6 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
                           style: AppTypography.label.copyWith(
                             color: AppColors.textSecondary,
                           ),
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        StatusTag(
-                          label: '$_draftCount',
-                          backgroundColor: AppColors.orangeSurface,
-                          foregroundColor: AppColors.orangeDeep,
                         ),
                       ],
                     ),

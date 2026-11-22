@@ -19,6 +19,7 @@ abstract final class FirestoreCollections {
   static const String eventRsvps = 'eventRsvps';
   static const String pollVotes = 'pollVotes';
   static const String savedListings = 'savedListings';
+  static const String listingDrafts = 'listingDrafts';
   static const String memberships = 'memberships';
   static const String following = 'following';
   static const String peerSuggestions = 'peerSuggestions';

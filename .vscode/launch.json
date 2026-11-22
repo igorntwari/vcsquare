@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "VCSquared · Sample data",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart"
+    },
+    {
+      "name": "VCSquared · Firebase Emulator",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "preLaunchTask": "Prepare Firebase emulator",
+      "toolArgs": [
+        "--dart-define-from-file=env.json",
+        "--dart-define=USE_FIREBASE=true",
+        "--dart-define=USE_EMULATORS=true"
+      ]
+    }
+  ]
+}

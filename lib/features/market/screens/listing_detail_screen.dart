@@ -21,11 +21,69 @@ class ListingDetailScreen extends StatelessWidget {
   const ListingDetailScreen({
     super.key,
     required this.listing,
+    this.isOwner = false,
     this.onMessageSeller,
+    this.onMarkSold,
+    this.onDelete,
   });
 
   final ListingModel listing;
+  final bool isOwner;
   final VoidCallback? onMessageSeller;
+  final Future<void> Function()? onMarkSold;
+  final Future<void> Function()? onDelete;
+
+  Future<void> _handleOwnerAction(BuildContext context, String action) async {
+    if (action == 'sold') {
+      try {
+        await onMarkSold?.call();
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.listingMarkedSold)),
+        );
+        Navigator.of(context).pop();
+      } catch (_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text(AppStrings.saveFailed)));
+        }
+      }
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(AppStrings.deleteListing),
+        content: const Text(AppStrings.confirmDeleteListing),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(AppStrings.deleteListing),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await onDelete?.call();
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text(AppStrings.listingDeleted)));
+      Navigator.of(context).pop();
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text(AppStrings.saveFailed)));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +98,23 @@ class ListingDetailScreen extends StatelessWidget {
             color: AppColors.textOnDark,
           ),
         ),
+        actions: [
+          if (isOwner)
+            PopupMenuButton<String>(
+              onSelected: (action) => _handleOwnerAction(context, action),
+              itemBuilder: (context) => [
+                if (listing.status != 'sold')
+                  const PopupMenuItem(
+                    value: 'sold',
+                    child: Text(AppStrings.markListingSold),
+                  ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text(AppStrings.deleteListing),
+                ),
+              ],
+            ),
+        ],
         leading: IconButton(
           tooltip: AppStrings.back,
           onPressed: () => Navigator.of(context).maybePop(),
@@ -156,7 +231,9 @@ class ListingDetailScreen extends StatelessWidget {
           child: PrimaryButton(
             label: AppStrings.messageSeller,
             icon: Icons.chat_bubble_outline,
-            onPressed: onMessageSeller,
+            onPressed: isOwner || listing.status == 'sold'
+                ? null
+                : onMessageSeller,
           ),
         ),
       ),

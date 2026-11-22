@@ -26,6 +26,21 @@ By default the app uses **sample data** (`lib/data/dummy`), so you need no Fireb
 flutter run --dart-define=USE_FIREBASE=true --dart-define=USE_EMULATORS=true
 ```
 
+### Run from VS Code
+
+1. Copy `env.example.json` to `env.json` and fill in the Firebase values plus
+   the Cloudinary cloud name and unsigned upload preset. Keep `env.json`
+   private; it is gitignored.
+2. Select **Run and Debug → VCSquared · Sample data** for a backend-free run,
+   or **VCSquared · Firebase Emulator** to start Auth/Firestore locally, seed
+   the fixed campus data, and run against the emulator.
+
+The emulator launch requires the Firebase CLI, Java 11+, Node.js, and npm.
+The first launch installs the seed tool's locked dependencies. To prepare it
+manually instead, run `firebase emulators:start` from the repository root, then
+`npm ci && npm run seed` from `tool/seed`. Emulator mode is explicitly enabled
+in the VS Code launch configuration; it will not write to the live project.
+
 ### env.json (Firebase keys)
 
 The Firebase keys are kept out of `lib/firebase_options.dart` and passed in at build time.
