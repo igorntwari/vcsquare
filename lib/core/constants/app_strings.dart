@@ -114,7 +114,7 @@ abstract final class AppStrings {
   static const String freeEntry = 'Free Entry';
   static const String rsvpNow = 'RSVP Now';
   static const String rsvped = 'Going';
-  static const String addToCalendar = 'Add to Calendar';
+  static const String cancelRsvp = 'Going · Tap to cancel';
   static const String like = 'Like';
   static const String comment = 'Comment';
   static const String share = 'Share';

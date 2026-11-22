@@ -19,6 +19,7 @@ import '../../../shared/widgets/inputs/app_search_bar.dart';
 import '../../../shared/widgets/layout/app_top_bar.dart';
 import '../providers/home_providers.dart';
 import 'post_comments_sheet.dart';
+import '../widgets/event_details_sheet.dart';
 import '../widgets/pinned_announcement_card.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_composer_bar.dart';
@@ -162,6 +163,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           .setSaved(userId: userId, postId: post.id, saved: saved),
       onError: _showSaveFailed,
     );
+  }
+
+  Future<void> _openEvent(PostModel post) async {
+    final event = post.event;
+    if (event == null) return;
+    final toggle = await showModalBottomSheet<bool>(
+      context: context,
+      useSafeArea: true,
+      builder: (_) => EventDetailsSheet(
+        event: event,
+        isRsvped: _rsvpedPostIds.contains(post.id),
+      ),
+    );
+    if (toggle == true) _toggleRsvp(post);
   }
 
   Future<void> _votePoll(PostModel post, String option) async {
@@ -442,6 +457,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       isSaved: _savedPostIds.contains(post.id),
       onSave: () => _toggleSave(post),
       onMoreOptions: () => _openPostOptions(post),
+      isRsvped: _rsvpedPostIds.contains(post.id),
+      onEventTap: () => _openEvent(post),
       selectedPollOption: _pollVoteOptions[post.id],
       onVote: (option) => _votePoll(post, option),
     );

@@ -21,7 +21,7 @@ import 'post_photo.dart';
 import 'poll_card.dart';
 
 // Student, office or club post. Club posts get a Join button; event posts
-// get the navy flyer and an "Add to Calendar" action.
+// get the navy flyer and an RSVP action that opens the event details.
 class PostCard extends StatelessWidget {
   const PostCard({
     super.key,
@@ -29,6 +29,7 @@ class PostCard extends StatelessWidget {
     required this.isLiked,
     required this.likeCount,
     this.isSaved = false,
+    this.isRsvped = false,
     this.isJoined = false,
     this.onLike,
     this.onJoin,
@@ -36,6 +37,7 @@ class PostCard extends StatelessWidget {
     this.onShare,
     this.onSave,
     this.onMoreOptions,
+    this.onEventTap,
     this.selectedPollOption,
     this.onVote,
   });
@@ -44,6 +46,7 @@ class PostCard extends StatelessWidget {
   final bool isLiked;
   final int likeCount;
   final bool isSaved;
+  final bool isRsvped;
   final bool isJoined;
   final VoidCallback? onLike;
   final VoidCallback? onJoin;
@@ -51,6 +54,7 @@ class PostCard extends StatelessWidget {
   final VoidCallback? onShare;
   final VoidCallback? onSave;
   final VoidCallback? onMoreOptions;
+  final VoidCallback? onEventTap;
   final String? selectedPollOption;
   final ValueChanged<String>? onVote;
 
@@ -125,7 +129,7 @@ class PostCard extends StatelessWidget {
     }
     if (post.event != null) {
       return InkWell(
-        onTap: () {},
+        onTap: onEventTap,
         borderRadius: const BorderRadius.all(Radius.circular(AppRadius.pill)),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xs),
@@ -133,16 +137,16 @@ class PostCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                AppStrings.addToCalendar,
+                isRsvped ? AppStrings.rsvped : AppStrings.rsvpNow,
                 style: AppTypography.label.copyWith(
-                  color: AppColors.textPrimary,
+                  color: isRsvped ? AppColors.success : AppColors.textPrimary,
                 ),
               ),
               const SizedBox(width: AppSpacing.xs),
-              const Icon(
-                Icons.event_outlined,
+              Icon(
+                isRsvped ? Icons.event_available : Icons.event_outlined,
                 size: AppSizes.iconSm,
-                color: AppColors.textPrimary,
+                color: isRsvped ? AppColors.success : AppColors.textPrimary,
               ),
             ],
           ),
