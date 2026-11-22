@@ -1,4 +1,3 @@
-
 // Inbox screen listing live conversations.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +6,6 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../data/dummy/dummy_users.dart';
 import '../../../data/models/conversation_model.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/repositories/repository_providers.dart';
@@ -15,6 +13,7 @@ import '../../../shared/widgets/buttons/floating_pill_button.dart';
 import '../../../shared/widgets/chips/app_chip.dart';
 import '../../../shared/widgets/chips/filter_chip_bar.dart';
 import '../../../shared/widgets/feedback/empty_state.dart';
+import '../../../shared/widgets/feedback/error_state.dart';
 import '../../../shared/widgets/inputs/app_search_bar.dart';
 import '../../../shared/widgets/layout/app_top_bar.dart';
 import '../providers/chats_providers.dart';
@@ -46,8 +45,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
         _InboxFilter.all => true,
         _InboxFilter.marketplace =>
           conversation.type == ConversationType.marketplace,
-        _InboxFilter.official =>
-          conversation.type == ConversationType.official,
+        _InboxFilter.official => conversation.type == ConversationType.official,
         _InboxFilter.unread => conversation.unreadCount > 0,
       };
 
@@ -75,7 +73,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   Future<void> _newChat() async {
     final repo = ref.read(chatsRepositoryProvider);
-    final me = currentChatUserId();
+    final me = await ref.read(currentUserIdProvider.future);
+    if (me == null) return;
 
     try {
       final people = await repo.fetchPeople(me);
@@ -102,9 +101,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not start the chat. Try again.'),
-        ),
+        const SnackBar(content: Text('Could not start the chat. Try again.')),
       );
     }
   }
@@ -112,6 +109,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   @override
   Widget build(BuildContext context) {
     final inbox = ref.watch(conversationsProvider);
+    final currentUser = ref.watch(currentUserProvider).value;
     final conversations = _filtered(inbox.value ?? const []);
     final loading = inbox.isLoading && !inbox.hasValue;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
@@ -120,7 +118,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       children: [
         AppTopBar(
           title: AppStrings.navMessages,
-          avatarImagePath: dummyCurrentUser.avatarPath,
+          avatarImagePath: currentUser?.avatarPath,
         ),
         Expanded(
           child: Stack(
@@ -139,9 +137,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                         AppChip(label: AppStrings.filterOfficial),
                         AppChip(label: AppStrings.filterUnread),
                       ],
-                      onSelected: (index) => setState(
-                        () => _filter = _InboxFilter.values[index],
-                      ),
+                      onSelected: (index) =>
+                          setState(() => _filter = _InboxFilter.values[index]),
                     ),
                   ),
                   SliverPadding(
@@ -153,7 +150,12 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                     ),
                     sliver: conversations.isEmpty
                         ? SliverToBoxAdapter(
-                            child: loading
+                            child: inbox.hasError
+                                ? ErrorState(
+                                    onRetry: () =>
+                                        ref.invalidate(conversationsProvider),
+                                  )
+                                : loading
                                 ? const Padding(
                                     padding: EdgeInsets.all(AppSpacing.xxl),
                                     child: Center(
@@ -175,7 +177,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
                               return ConversationTile(
                                 conversation: conversation,
-                                currentUserId: currentChatUserId(),
+                                currentUserId: currentUser?.id ?? '',
                                 unreadCount: conversation.unreadCount,
                                 onTap: () => _openChat(conversation),
                               );
@@ -237,4 +239,3 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     );
   }
 }
-

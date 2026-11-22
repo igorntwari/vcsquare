@@ -8,17 +8,22 @@ import {
   initializeTestEnvironment,
 } from '@firebase/rules-unit-testing';
 import {
+  arrayRemove,
+  arrayUnion,
+  collection,
   collectionGroup,
   deleteDoc,
   doc,
   getDoc,
   getDocs,
   increment,
+  orderBy,
   query,
   serverTimestamp,
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 
 let env;
@@ -233,6 +238,41 @@ describe('deleting an account', () => {
   });
 });
 
+describe('marketplace drafts', () => {
+  const draft = {
+    title: 'Desk',
+    description: 'Wooden desk',
+    priceText: '25000',
+    categoryId: 'furniture',
+    condition: 'good',
+    pickupHubId: 'library',
+    negotiable: true,
+    photoUrls: [],
+    updatedAt: serverTimestamp(),
+  };
+
+  test('a member can save, read and delete their own draft', async () => {
+    const ref = doc(member(), 'users/amara/listingDrafts/desk');
+    await assertSucceeds(setDoc(ref, draft));
+    await assertSucceeds(getDoc(ref));
+    await assertSucceeds(deleteDoc(ref));
+  });
+
+  test('a member cannot read or write another user’s drafts', async () => {
+    await env.withSecurityRulesDisabled((context) =>
+      setDoc(doc(context.firestore(), 'users/amara/listingDrafts/desk'), {
+        ...draft,
+        updatedAt: new Date(),
+      }),
+    );
+    const other = as('kofi', 'k.mensah@alustudent.com');
+    await assertFails(getDoc(doc(other, 'users/amara/listingDrafts/desk')));
+    await assertFails(
+      setDoc(doc(other, 'users/amara/listingDrafts/desk'), draft),
+    );
+  });
+});
+
 describe('following students', () => {
   const follow = (db, from, to, data = {}) =>
     setDoc(doc(db, `users/${from}/following/${to}`), {
@@ -274,5 +314,94 @@ describe('following students', () => {
       collectionGroup(unverified(), 'following'),
       where('targetId', '==', 'amara'),
     )));
+  });
+});
+
+describe('chats', () => {
+  const kofi = () => as('kofi', 'k.mensah@alustudent.com');
+  const nadia = () => as('nadia', 'n.uwase@alustudent.com');
+  const id = 'amara_kofi';
+  const chat = (db) => doc(db, `conversations/${id}`);
+  // Matches FirebaseChatsRepository.openConversation.
+  const fresh = () => ({
+    participantIds: ['amara', 'kofi'],
+    type: 'peer',
+    subject: null,
+    listingId: null,
+    lastMessage: {},
+    updatedAt: new Date(),
+    unreadCounts: { amara: 0, kofi: 0 },
+    mutedBy: [],
+  });
+  const seed = () =>
+    env.withSecurityRulesDisabled((context) =>
+      setDoc(chat(context.firestore()), fresh()),
+    );
+  const message = (senderId) => ({
+    text: 'Hi',
+    sentAt: new Date(),
+    senderId,
+    status: 'sent',
+  });
+
+  test('a member can check for a new chat, then start it', async () => {
+    const db = member();
+    await assertSucceeds(getDoc(chat(db)));
+    await assertSucceeds(setDoc(chat(db), fresh()));
+    await assertSucceeds(getDoc(chat(db)));
+  });
+
+  test('non-members cannot check for chats', async () => {
+    await assertFails(getDoc(chat(outsider())));
+    await assertFails(getDoc(chat(unverified())));
+  });
+
+  test('once a chat exists, only its participants can read it', async () => {
+    await seed();
+    await assertSucceeds(getDoc(chat(kofi())));
+    await assertFails(getDoc(chat(nadia())));
+  });
+
+  test('no starting a chat you are not in', async () => {
+    await assertFails(setDoc(chat(nadia()), fresh()));
+  });
+
+  // Matches FirebaseChatsRepository.sendMessage and watchMessages.
+  test('a participant can send and read messages', async () => {
+    await seed();
+    const db = member();
+    const sent = message('amara');
+    const batch = writeBatch(db);
+    batch.set(doc(db, `conversations/${id}/messages/m1`), sent);
+    batch.update(chat(db), {
+      lastMessage: sent,
+      updatedAt: sent.sentAt,
+      'unreadCounts.kofi': increment(1),
+    });
+    await assertSucceeds(batch.commit());
+    await assertSucceeds(
+      getDocs(query(collection(kofi(), `conversations/${id}/messages`), orderBy('sentAt'))),
+    );
+    await assertFails(getDocs(collection(nadia(), `conversations/${id}/messages`)));
+  });
+
+  test('no sending as someone else or into someone else\'s chat', async () => {
+    await seed();
+    await assertFails(setDoc(doc(member(), `conversations/${id}/messages/m2`), message('kofi')));
+    await assertFails(setDoc(doc(nadia(), `conversations/${id}/messages/m3`), message('nadia')));
+  });
+
+  test('a participant can mark read and mute or unmute themselves', async () => {
+    await seed();
+    await assertSucceeds(updateDoc(chat(kofi()), { 'unreadCounts.kofi': 0 }));
+    await assertSucceeds(updateDoc(chat(kofi()), { mutedBy: arrayUnion('kofi') }));
+    await assertSucceeds(updateDoc(chat(kofi()), { mutedBy: arrayRemove('kofi') }));
+  });
+
+  test('no muting for someone else or changing who is in the chat', async () => {
+    await seed();
+    await assertFails(updateDoc(chat(kofi()), { mutedBy: arrayUnion('amara') }));
+    await assertFails(updateDoc(chat(kofi()), { participantIds: ['kofi', 'nadia'] }));
+    await assertFails(updateDoc(chat(nadia()), { mutedBy: arrayUnion('nadia') }));
   });
 });

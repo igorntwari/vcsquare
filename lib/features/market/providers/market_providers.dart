@@ -8,6 +8,7 @@ import '../../../data/repositories/repository_providers.dart';
 
 typedef MarketData = ({
   List<ListingModel> listings,
+  List<ListingModel> myListings,
   List<CategoryModel> categories,
   // Listings the signed-in user has saved.
   Set<String> savedListingIds,
@@ -17,14 +18,22 @@ final marketProvider = FutureProvider<MarketData>((ref) async {
   final userId = await ref.watch(currentUserIdProvider.future);
   final repo = ref.watch(listingsRepositoryProvider);
 
-  final (listings, categories, saved) = await (
+  final (listings, myListings, categories, saved) = await (
     repo.fetchListings(),
+    userId == null
+        ? Future.value(<ListingModel>[])
+        : repo.fetchListingsBySeller(userId),
     repo.fetchCategories(),
     userId == null
         ? Future.value(<String>{})
         : repo.fetchSavedListingIds(userId),
   ).wait;
-  return (listings: listings, categories: categories, savedListingIds: saved);
+  return (
+    listings: listings,
+    myListings: myListings,
+    categories: categories,
+    savedListingIds: saved,
+  );
 });
 
 typedef SellFormOptions = ({

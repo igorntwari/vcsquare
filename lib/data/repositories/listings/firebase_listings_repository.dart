@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../models/category_model.dart';
 import '../../models/firestore_helpers.dart';
+import '../../models/listing_draft_model.dart';
 import '../../models/listing_model.dart';
 import '../../models/pickup_hub_model.dart';
 import '../firebase/firestore_collections.dart';
@@ -27,6 +28,62 @@ class FirebaseListingsRepository implements ListingsRepository {
     await reference.set(listing.toFirestore());
     return reference.id;
   }
+
+  @override
+  Future<void> updateListing(ListingModel listing) =>
+      _listings.doc(listing.id).update({
+        'title': listing.title,
+        'details': listing.details,
+        'priceRwf': listing.priceRwf,
+        'condition': listing.condition.name,
+        'categoryId': listing.categoryId,
+        'imagePath': listing.imagePath,
+        'photoUrls': listing.photoUrls,
+        'pickupHubId': listing.pickupHubId,
+        'negotiable': listing.negotiable,
+        'status': listing.status,
+        'tag': listing.tag,
+        'tagStyle': listing.tagStyle.name,
+      });
+
+  @override
+  Future<void> deleteListing(String listingId) =>
+      _listings.doc(listingId).delete();
+
+  CollectionReference<Map<String, dynamic>> _draftsOf(String userId) => _db
+      .collection(FirestoreCollections.users)
+      .doc(userId)
+      .collection(FirestoreCollections.listingDrafts);
+
+  @override
+  Future<List<ListingDraftModel>> fetchDrafts(String userId) async {
+    final snapshot = await _draftsOf(userId)
+        .orderBy('updatedAt', descending: true)
+        .get();
+    return [
+      for (final doc in snapshot.docs)
+        ListingDraftModel.fromFirestore(doc.id, doc.data()),
+    ];
+  }
+
+  @override
+  Future<String> saveDraft({
+    required String userId,
+    required ListingDraftModel draft,
+  }) async {
+    final reference = draft.id.isEmpty
+        ? _draftsOf(userId).doc()
+        : _draftsOf(userId).doc(draft.id);
+    await reference.set({
+      ...draft.toFirestore(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    return reference.id;
+  }
+
+  @override
+  Future<void> deleteDraft({required String userId, required String draftId}) =>
+      _draftsOf(userId).doc(draftId).delete();
 
   @override
   Future<List<ListingModel>> fetchListings() async {

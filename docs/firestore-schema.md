@@ -38,6 +38,7 @@ users/{uid}
   ├─ likedPosts/{postId}
   ├─ eventRsvps/{postId}
   ├─ savedListings/{listingId}
+  ├─ listingDrafts/{draftId}
   ├─ memberships/{communityOrClubId}
   ├─ following/{officialHandleOrUserId}
   ├─ peerSuggestions/{otherUid}
@@ -103,6 +104,7 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | `memberships` | community id or club user id | `CommunityModel.isJoined`, `UserModel.isJoined` |
 | `following` | official handle id or user id | `OfficialHandleModel.isFollowing`, and students you follow. A student follow also stores `targetId` (the student's uid) and `type: "user"`. Readable by any member, so follower and following counts work. Only the owner writes; `targetId` must equal the document id and can't be yourself. |
 | `devices` | the device's FCM token | written by the app on sign-in and deleted on sign-out (`FirebaseDeviceRegistry`). Fields: `platform`, `updatedAt` (timestamp). Owner-only. |
+| `listingDrafts` | draft id | Private marketplace drafts: title, description, priceText, categoryId, condition, pickupHubId, negotiable, photoUrls, updatedAt. Owner-only; photo URLs point to Cloudinary. |
 | `peerSuggestions` | suggested user's uid | backend-written; the owner can only delete them (account deletion). Fields: `program`, `focus`, `mutualCount` (int), `sharedInterest` |
 
 **Follower and following counts** are counted live by the app (`FirebaseFollowRepository`), because the stored counters need a backend:

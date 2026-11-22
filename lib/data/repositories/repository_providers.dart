@@ -1,6 +1,5 @@
 // Riverpod providers for every repository. Screens read data through these,
-// never from lib/data/dummy directly. (The Messages screens are owned
-// separately and still read dummy data; chatsRepositoryProvider is ready.)
+// never from lib/data/dummy directly.
 //
 // AppConfig.useFirebase picks the implementation. Tests override a provider
 // to plug in a fake:
@@ -100,7 +99,6 @@ final listingsRepositoryProvider = Provider<ListingsRepository>(
       : SampleListingsRepository(),
 );
 
-// Ready for the Messages screens; not used by them yet (owned separately).
 final chatsRepositoryProvider = Provider<ChatsRepository>(
   (ref) => AppConfig.useFirebase
       ? FirebaseChatsRepository(ref.watch(firestoreProvider))

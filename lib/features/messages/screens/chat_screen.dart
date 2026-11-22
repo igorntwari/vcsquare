@@ -1,53 +1,81 @@
 // Screen for a single chat conversation.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../data/dummy/dummy_messages.dart';
-import '../../../data/dummy/dummy_users.dart';
 import '../../../data/models/conversation_model.dart';
-import '../../../data/models/message_model.dart';
+import '../../../data/repositories/repository_providers.dart';
+import '../../../shared/widgets/feedback/error_state.dart';
 import '../../../shared/widgets/avatars/user_avatar.dart';
+import '../providers/chats_providers.dart';
 import '../widgets/chat_input_bar.dart';
 import '../widgets/listing_preview_chip.dart';
 import '../widgets/message_bubble.dart';
 
-// Navy header, the listing being discussed (if any), bubbles and input bar.
-// Sent messages are kept locally for now.
-class ChatScreen extends StatefulWidget {
+// Navy header, the listing being discussed (if any), live messages and input.
+class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key, required this.conversation});
 
   final ConversationModel conversation;
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
-  late final List<MessageModel> _messages = [
-    ...?dummyMessages[widget.conversation.id],
-  ];
+class _ChatScreenState extends ConsumerState<ChatScreen> {
+  bool _isSending = false;
+  String? _readMarkedForUser;
 
-  void _send(String text) {
-    setState(() {
-      _messages.add(
-        MessageModel(
-          id: 'local_${_messages.length}',
-          text: text,
-          sentAt: DateTime.now(),
-          senderId: dummyCurrentUser.id,
-          status: MessageStatus.sent,
-        ),
-      );
-    });
+  Future<void> _markRead(String userId) async {
+    if (_readMarkedForUser == userId) return;
+    _readMarkedForUser = userId;
+    try {
+      await ref
+          .read(chatsRepositoryProvider)
+          .markRead(conversationId: widget.conversation.id, userId: userId);
+    } catch (_) {
+      _readMarkedForUser = null;
+      _showError(AppStrings.saveFailed);
+    }
+  }
+
+  Future<void> _send(String text, String? userId) async {
+    if (userId == null || _isSending) return;
+    setState(() => _isSending = true);
+    try {
+      await ref
+          .read(chatsRepositoryProvider)
+          .sendMessage(
+            conversationId: widget.conversation.id,
+            senderId: userId,
+            text: text,
+          );
+    } catch (_) {
+      _showError(AppStrings.sendFailed);
+    } finally {
+      if (mounted) setState(() => _isSending = false);
+    }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
+    final userId = ref.watch(currentUserProvider).value?.id;
+    final messages = ref.watch(messagesProvider(widget.conversation.id));
+    if (userId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _markRead(userId));
+    }
     final listing = widget.conversation.listing;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -73,22 +101,35 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             Expanded(
               // Reversed so the newest message sits just above the input bar.
-              child: ListView.separated(
-                reverse: true,
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                itemCount: _messages.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(height: AppSpacing.sm),
-                itemBuilder: (context, index) {
-                  final message = _messages[_messages.length - 1 - index];
-                  return MessageBubble(
-                    message: message,
-                    isMine: message.isFrom(dummyCurrentUser.id),
-                  );
-                },
+              child: messages.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, _) => ErrorState(
+                  onRetry: () =>
+                      ref.invalidate(messagesProvider(widget.conversation.id)),
+                ),
+                data: (items) => ListView.separated(
+                  reverse: true,
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  itemCount: items.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: AppSpacing.sm),
+                  itemBuilder: (context, index) {
+                    final message = items[items.length - 1 - index];
+                    return MessageBubble(
+                      message: message,
+                      isMine: userId != null && message.isFrom(userId),
+                    );
+                  },
+                ),
               ),
             ),
-            ChatInputBar(onSend: _send),
+            IgnorePointer(
+              ignoring: _isSending || userId == null,
+              child: Opacity(
+                opacity: _isSending || userId == null ? 0.6 : 1,
+                child: ChatInputBar(onSend: (text) => _send(text, userId)),
+              ),
+            ),
           ],
         ),
       ),

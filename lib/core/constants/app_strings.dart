@@ -124,6 +124,17 @@ abstract final class AppStrings {
   static const String noListingDescription = 'No description provided.';
   static String previewPhotoCount(int count) => '$count photos added';
   static const String messageSeller = 'Message seller';
+  static const String myListings = 'My listings';
+  static const String markListingSold = 'Mark as sold';
+  static const String deleteListing = 'Delete listing';
+  static const String listingMarkedSold = 'Listing marked as sold.';
+  static const String listingDeleted = 'Listing deleted.';
+  static const String listingSold = 'Sold';
+  static const String confirmDeleteListing = 'Delete this listing?';
+  static const String noDraftsSaved = 'You have no saved drafts yet.';
+  static const String draftLoaded = 'Draft loaded.';
+  static const String deleteDraft = 'Delete draft';
+  static const String draftTitleFallback = 'Untitled draft';
   static const String marketLocation = 'Kigali Innovation City';
   static const String verifiedStudentSellers = 'Verified Student Sellers';
   static const String underBudget = 'Under RWF 50,000';

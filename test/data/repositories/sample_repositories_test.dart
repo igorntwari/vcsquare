@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vsquare/data/dummy/dummy_listings.dart';
 import 'package:vsquare/data/dummy/dummy_posts.dart';
 import 'package:vsquare/data/dummy/dummy_users.dart';
+import 'package:vsquare/data/models/listing_draft_model.dart';
+import 'package:vsquare/data/models/listing_model.dart';
 import 'package:vsquare/data/repositories/auth/sample_auth_repository.dart';
 import 'package:vsquare/data/repositories/chats/sample_chats_repository.dart';
 import 'package:vsquare/data/repositories/explore/sample_explore_repository.dart';
@@ -39,6 +41,59 @@ void main() {
     expect(await repo.fetchSavedListingIds(me), {'l04', 'l06', 'l14'});
     await repo.setSaved(userId: me, listingId: 'l01', saved: true);
     expect(await repo.fetchSavedListingIds(me), contains('l01'));
+  });
+
+  test('listings: seller updates and removes listings and drafts', () async {
+    final repo = SampleListingsRepository();
+    final listing = dummyListings.first;
+    await repo.updateListing(
+      ListingModel(
+        id: listing.id,
+        title: listing.title,
+        details: listing.details,
+        priceRwf: listing.priceRwf,
+        condition: listing.condition,
+        categoryId: listing.categoryId,
+        seller: listing.seller,
+        createdAt: listing.createdAt,
+        distanceKm: listing.distanceKm,
+        imagePath: listing.imagePath,
+        photoUrls: listing.photoUrls,
+        pickupHubId: listing.pickupHubId,
+        negotiable: listing.negotiable,
+        status: 'sold',
+        tag: listing.tag,
+        tagStyle: listing.tagStyle,
+      ),
+    );
+    expect(
+      (await repo.fetchListings())
+          .firstWhere((item) => item.id == listing.id)
+          .status,
+      'sold',
+    );
+    await repo.deleteListing(listing.id);
+    expect(
+      (await repo.fetchListings()).any((item) => item.id == listing.id),
+      isFalse,
+    );
+
+    final draft = ListingDraftModel(
+      id: '',
+      title: 'Desk',
+      description: '',
+      priceText: '',
+      categoryId: null,
+      condition: null,
+      pickupHubId: null,
+      negotiable: true,
+      photoUrls: const [],
+      updatedAt: DateTime(2026),
+    );
+    final id = await repo.saveDraft(userId: me, draft: draft);
+    expect((await repo.fetchDrafts(me)).single.title, 'Desk');
+    await repo.deleteDraft(userId: me, draftId: id);
+    expect(await repo.fetchDrafts(me), isEmpty);
   });
 
   test('explore: follows and joins', () async {

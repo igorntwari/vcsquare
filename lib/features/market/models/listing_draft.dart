@@ -13,6 +13,7 @@ class ListingDraft {
     required this.pickupHubName,
     required this.negotiable,
     required this.photoUrls,
+    this.savedDraftId,
   });
 
   final String title;
@@ -25,4 +26,5 @@ class ListingDraft {
   final String? pickupHubName;
   final bool negotiable;
   final List<String> photoUrls;
+  final String? savedDraftId;
 }
