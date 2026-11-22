@@ -71,6 +71,7 @@ abstract final class AppStrings {
   static const String attachMedia = 'Attach media';
   static const String createPoll = 'Create poll';
   static const String createPostTitle = 'Create post';
+  static const String createPostButton = 'Create Post';
   static const String postAudience = 'Who can see this?';
   static const String audienceCampus = 'All Campus';
   static const String postBodyHint = 'What would you like to share?';

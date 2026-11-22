@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -22,7 +23,6 @@ import 'post_comments_sheet.dart';
 import '../widgets/event_details_sheet.dart';
 import '../widgets/pinned_announcement_card.dart';
 import '../widgets/post_card.dart';
-import '../widgets/post_composer_bar.dart';
 
 enum _PostAction { copy, delete }
 
@@ -185,11 +185,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final previous = _pollVoteOptions[post.id];
     setState(() => _pollVoteOptions[post.id] = option);
     try {
-      await ref.read(postsRepositoryProvider).setPollVote(
-        userId: userId,
-        postId: post.id,
-        option: option,
-      );
+      await ref
+          .read(postsRepositoryProvider)
+          .setPollVote(userId: userId, postId: post.id, option: option);
     } catch (_) {
       if (previous == null) {
         _pollVoteOptions.remove(post.id);
@@ -305,71 +303,91 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final feed = ref.watch(homeFeedProvider);
     if (feed.value case final loaded?) _adopt(loaded);
 
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+
     return Column(
       children: [
         AppTopBar(title: AppStrings.navHome, avatarImagePath: user?.avatarPath),
         Expanded(
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: _buildHeader(user?.avatarPath, user?.isOnline ?? false),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                  child: FilterChipBar(
-                    chips: [
-                      AppChip(
-                        label: AppStrings.filterAllCampus,
-                        icon: Icons.public,
+          child: Stack(
+            children: [
+              CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(child: _buildHeader()),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                      child: FilterChipBar(
+                        chips: [
+                          AppChip(
+                            label: AppStrings.filterAllCampus,
+                            icon: Icons.public,
+                          ),
+                          AppChip(label: AppStrings.filterMyFeed),
+                          AppChip(
+                            label: AppStrings.filterOfficialAnnouncements,
+                            dotColor: AppColors.accent,
+                          ),
+                          AppChip(label: AppStrings.filterStudentLife),
+                          AppChip(
+                            label: AppStrings.filterTechInnovation,
+                            icon: Icons.lightbulb_outline,
+                          ),
+                        ],
+                        onSelected: (index) =>
+                            setState(() => _selectedFeedFilter = index),
                       ),
-                      AppChip(label: AppStrings.filterMyFeed),
-                      AppChip(
-                        label: AppStrings.filterOfficialAnnouncements,
-                        dotColor: AppColors.accent,
-                      ),
-                      AppChip(label: AppStrings.filterStudentLife),
-                      AppChip(
-                        label: AppStrings.filterTechInnovation,
-                        icon: Icons.lightbulb_outline,
-                      ),
-                    ],
-                    onSelected: (index) =>
-                        setState(() => _selectedFeedFilter = index),
+                    ),
                   ),
-                ),
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      0,
+                      AppSpacing.lg,
+                      // Leaves room for the floating Create Post button and nav bar.
+                      bottomInset + AppSpacing.xxxl + AppSpacing.xxl,
+                    ),
+                    sliver: _feed == null
+                        ? SliverToBoxAdapter(
+                            child: feed.hasError
+                                ? ErrorState(
+                                    onRetry: () =>
+                                        ref.invalidate(homeFeedProvider),
+                                  )
+                                : const LoadingIndicator(),
+                          )
+                        : _visiblePosts.isEmpty
+                        ? const SliverToBoxAdapter(
+                            child: EmptyState(
+                              icon: Icons.search_off,
+                              title: AppStrings.noMatchingPostsTitle,
+                              message: AppStrings.noMatchingPostsMessage,
+                            ),
+                          )
+                        : SliverList.separated(
+                            itemCount: _visiblePosts.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: AppSpacing.lg),
+                            itemBuilder: (context, index) =>
+                                _buildPost(_visiblePosts[index]),
+                          ),
+                  ),
+                ],
               ),
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  0,
-                  AppSpacing.lg,
-                  // Clears the floating bottom nav bar.
-                  MediaQuery.paddingOf(context).bottom + AppSpacing.lg,
+              // Round "new post" button in the bottom-right corner.
+              Positioned(
+                right: AppSpacing.lg,
+                bottom: bottomInset + AppSpacing.lg,
+                child: FloatingActionButton(
+                  // Other tabs stay mounted in the shell; avoid a Hero clash.
+                  heroTag: null,
+                  tooltip: AppStrings.createPostButton,
+                  onPressed: _createPost,
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: AppColors.textOnDark,
+                  shape: const CircleBorder(),
+                  child: const Icon(Icons.add, size: AppSizes.iconLg),
                 ),
-                sliver: _feed == null
-                    ? SliverToBoxAdapter(
-                        child: feed.hasError
-                            ? ErrorState(
-                                onRetry: () => ref.invalidate(homeFeedProvider),
-                              )
-                            : const LoadingIndicator(),
-                      )
-                    : _visiblePosts.isEmpty
-                    ? const SliverToBoxAdapter(
-                        child: EmptyState(
-                          icon: Icons.search_off,
-                          title: AppStrings.noMatchingPostsTitle,
-                          message: AppStrings.noMatchingPostsMessage,
-                        ),
-                      )
-                    : SliverList.separated(
-                        itemCount: _visiblePosts.length,
-                        separatorBuilder: (_, _) =>
-                            const SizedBox(height: AppSpacing.lg),
-                        itemBuilder: (context, index) =>
-                            _buildPost(_visiblePosts[index]),
-                      ),
               ),
             ],
           ),
@@ -378,8 +396,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  // Search and composer on the navy band that continues the top bar.
-  Widget _buildHeader(String? avatarPath, bool isOnline) {
+  // Opens Create post; refreshes the feed if a post was published.
+  Future<void> _createPost() async {
+    if (kDebugMode) {
+      debugPrint('[Home] Create Post tapped; opening create-post route.');
+    }
+    final created = await widget.onCreatePost();
+    if (kDebugMode) {
+      debugPrint('[Home] Create-post route returned: $created');
+    }
+    if (created != true) return;
+    ref.invalidate(homeFeedProvider);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text(AppStrings.postPublished)));
+  }
+
+  // Search on the navy band that continues the top bar. Posts are created
+  // from the floating Create Post button.
+  Widget _buildHeader() {
     return ColoredBox(
       color: AppColors.topBarBackground,
       child: Padding(
@@ -394,31 +430,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             AppSearchBar(
               hintText: AppStrings.searchHint,
               onChanged: (value) => setState(() => _searchQuery = value),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            PostComposerBar(
-              avatarImagePath: avatarPath,
-              isOnline: isOnline,
-              onComposeTap: () async {
-                if (kDebugMode) {
-                  debugPrint(
-                    '[Home] Composer tapped; opening create-post route.',
-                  );
-                }
-                final created = await widget.onCreatePost();
-                if (kDebugMode) {
-                  debugPrint('[Home] Create-post route returned: $created');
-                }
-                if (created == true) {
-                  ref.invalidate(homeFeedProvider);
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      const SnackBar(content: Text(AppStrings.postPublished)),
-                    );
-                }
-              },
             ),
           ],
         ),

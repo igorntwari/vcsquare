@@ -11,7 +11,9 @@ import '../helpers/test_app.dart';
 void main() {
   setUpAll(loadAppFonts);
 
-  testWidgets('Home composer opens the create-post screen', (tester) async {
+  testWidgets('Home Create Post button opens the create-post screen', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -29,7 +31,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 
-    await tester.tap(find.text(AppStrings.composerHint));
+    await tester.tap(find.byTooltip(AppStrings.createPostButton));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 
