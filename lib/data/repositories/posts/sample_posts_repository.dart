@@ -9,19 +9,34 @@ import 'posts_repository.dart';
 class SamplePostsRepository implements PostsRepository {
   final Set<String> _likedPostIds = {...dummyLikedPostIds};
   final Set<String> _rsvpedPostIds = {};
+  final Set<String> _savedPostIds = {};
   final List<PostModel> _createdPosts = [];
+  final Set<String> _deletedPostIds = {};
   final Map<String, List<PostComment>> _comments = {};
   final Map<String, Map<String, String>> _pollVotes = {};
 
   @override
-  Future<List<PostModel>> fetchFeed() async =>
-      [..._createdPosts.reversed, ...dummyPosts].map(_withComments).toList();
+  Future<List<PostModel>> fetchFeed() async => [
+    ..._createdPosts.reversed,
+    ...dummyPosts,
+  ].where(_isKept).map(_withComments).toList();
 
   @override
   Future<List<PostModel>> fetchPostsByAuthor(String authorId) async => [
     ..._createdPosts,
     ...dummyPosts,
-  ].where((post) => post.author.id == authorId).map(_withComments).toList();
+  ]
+      .where((post) => _isKept(post) && post.author.id == authorId)
+      .map(_withComments)
+      .toList();
+
+  bool _isKept(PostModel post) => !_deletedPostIds.contains(post.id);
+
+  @override
+  Future<void> deletePost(String postId) async {
+    _deletedPostIds.add(postId);
+    _createdPosts.removeWhere((post) => post.id == postId);
+  }
 
   @override
   Future<String> createPost(PostModel post) async {
@@ -103,6 +118,20 @@ class SamplePostsRepository implements PostsRepository {
   Future<Set<String>> fetchRsvpedPostIds(String userId) async => {
     ..._rsvpedPostIds,
   };
+
+  @override
+  Future<Set<String>> fetchSavedPostIds(String userId) async => {
+    ..._savedPostIds,
+  };
+
+  @override
+  Future<void> setSaved({
+    required String userId,
+    required String postId,
+    required bool saved,
+  }) async {
+    saved ? _savedPostIds.add(postId) : _savedPostIds.remove(postId);
+  }
 
   @override
   Future<Map<String, String>> fetchPollVotes(String userId) async =>

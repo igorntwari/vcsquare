@@ -35,7 +35,8 @@ flutter run --dart-define=USE_FIREBASE=true --dart-define=USE_EMULATORS=true
    or **VCSquared · Firebase Emulator** to start Auth/Firestore locally, seed
    the fixed campus data, and run against the emulator.
 
-The emulator launch requires the Firebase CLI, Java 11+, Node.js, and npm.
+The emulator launch requires the Firebase CLI, Java 21+, Node.js, and npm
+(see [Installing Java](#installing-java)).
 The first launch installs the seed tool's locked dependencies. To prepare it
 manually instead, run `firebase emulators:start` from the repository root, then
 `npm ci && npm run seed` from `tool/seed`. Emulator mode is explicitly enabled
@@ -139,7 +140,7 @@ The emulators let you test against Auth and Firestore on your own machine, witho
 | Firestore | 8080 |
 | Emulator UI | 4000 |
 
-You need the Firebase CLI (`npm install -g firebase-tools`) and Java 11+.
+You need the Firebase CLI (`npm install -g firebase-tools`) and Java 21+ (see [Installing Java](#installing-java)).
 
 ```sh
 # 1. Start the emulators (leave this running)
@@ -153,6 +154,19 @@ flutter run --dart-define=USE_FIREBASE=true --dart-define=USE_EMULATORS=true
 ```
 
 Open http://localhost:4000 to browse and edit the data. Emulator data is wiped when you stop it. To keep it between runs, use `firebase emulators:start --import=.emulator-data --export-on-exit`.
+
+### Installing Java
+
+The emulators stop with "Unable to locate a Java Runtime" when Java is missing. On macOS:
+
+```sh
+brew install openjdk@21
+# Homebrew doesn't put this Java on your PATH. Add these lines to ~/.zshrc:
+export JAVA_HOME=/opt/homebrew/opt/openjdk@21
+export PATH="$JAVA_HOME/bin:$PATH"
+```
+
+Open a new terminal and check with `java -version`.
 
 ## Seeding the live project
 
@@ -183,7 +197,7 @@ Profile photos (Profile → ⚙ → Edit profile → Change photo) use the same 
 
 ## Testing the security rules
 
-`tool/rules_test` runs `firestore.rules` against the Firestore emulator. It covers who can read, profile create/update/delete, ALU-only access and verified-only access. It needs Node and Java 21+.
+`tool/rules_test` runs `firestore.rules` against the Firestore emulator. It covers who can read, profile create/update/delete, ALU-only access, verified-only access, chats, blocks, saved posts and post deletion. It needs Node and Java 21+.
 
 ```sh
 cd tool/rules_test && npm install && npm test

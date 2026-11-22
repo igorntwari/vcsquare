@@ -405,3 +405,57 @@ describe('chats', () => {
     await assertFails(updateDoc(chat(nadia()), { mutedBy: arrayUnion('nadia') }));
   });
 });
+
+describe('blocking', () => {
+  const block = (db, owner) => doc(db, 'users', owner, 'blocks', 'kofi');
+
+  test('a member can block someone and read their own blocks', async () => {
+    const db = member();
+    await assertSucceeds(setDoc(block(db, 'amara'), { createdAt: serverTimestamp() }));
+    await assertSucceeds(getDoc(block(db, 'amara')));
+  });
+
+  test('nobody else can see or change a block list', async () => {
+    await assertFails(setDoc(block(member(), 'nadia'), { createdAt: serverTimestamp() }));
+    await assertFails(getDoc(block(member(), 'nadia')));
+    await assertFails(setDoc(block(outsider(), 'eve'), { createdAt: serverTimestamp() }));
+  });
+});
+
+describe('saved posts', () => {
+  const saved = (db, owner) => doc(db, 'users', owner, 'savedPosts', 'p01');
+
+  test('a member can save and unsave a post for themselves', async () => {
+    const db = member();
+    await assertSucceeds(setDoc(saved(db, 'amara'), { createdAt: serverTimestamp() }));
+    await assertSucceeds(getDoc(saved(db, 'amara')));
+    await assertSucceeds(deleteDoc(saved(db, 'amara')));
+  });
+
+  test('saved posts are private to their owner', async () => {
+    await assertFails(getDoc(saved(member(), 'nadia')));
+    await assertFails(setDoc(saved(member(), 'nadia'), { createdAt: serverTimestamp() }));
+  });
+});
+
+describe('deleting posts', () => {
+  const seed = () =>
+    env.withSecurityRulesDisabled((context) =>
+      setDoc(doc(context.firestore(), 'posts/mine'), {
+        authorId: 'amara',
+        likeCount: 0,
+        commentCount: 0,
+      }),
+    );
+
+  test('the author can delete their own post', async () => {
+    await seed();
+    await assertSucceeds(deleteDoc(doc(member(), 'posts/mine')));
+  });
+
+  test('nobody else can delete it', async () => {
+    await seed();
+    await assertFails(deleteDoc(doc(as('kofi', 'k.mensah@alustudent.com'), 'posts/mine')));
+    await assertFails(deleteDoc(doc(outsider(), 'posts/mine')));
+  });
+});

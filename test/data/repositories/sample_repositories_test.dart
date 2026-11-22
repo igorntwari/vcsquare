@@ -31,6 +31,23 @@ void main() {
     await repo.setLiked(userId: me, postId: 'p01', liked: true);
     await repo.setLiked(userId: me, postId: 'p05', liked: false);
     expect(await repo.fetchLikedPostIds(me), {'p01', 'p16', 'p21'});
+
+    expect(await repo.fetchSavedPostIds(me), isEmpty);
+    await repo.setSaved(userId: me, postId: 'p02', saved: true);
+    expect(await repo.fetchSavedPostIds(me), {'p02'});
+    await repo.setSaved(userId: me, postId: 'p02', saved: false);
+    expect(await repo.fetchSavedPostIds(me), isEmpty);
+  });
+
+  test('posts: deleting removes the post from the feed', () async {
+    final repo = SamplePostsRepository();
+    final mine = (await repo.fetchPostsByAuthor(me)).first;
+    await repo.deletePost(mine.id);
+    expect((await repo.fetchFeed()).any((p) => p.id == mine.id), isFalse);
+    expect(
+      (await repo.fetchPostsByAuthor(me)).any((p) => p.id == mine.id),
+      isFalse,
+    );
   });
 
   test('listings: categories, hubs and saved listings', () async {
@@ -127,5 +144,20 @@ void main() {
     final after = await repo.fetchConversations(me);
     expect(after.first.unreadCount, 0);
     expect(after.first.lastMessage.text, 'Hello');
+  });
+
+  test('chats: mute toggles and blocking hides the conversation', () async {
+    final repo = SampleChatsRepository();
+    final first = (await repo.fetchConversations(me)).first;
+
+    await repo.setMuted(conversationId: first.id, userId: me, muted: true);
+    expect(
+      await repo.watchMuted(conversationId: first.id, userId: me).first,
+      isTrue,
+    );
+
+    await repo.blockUser(userId: me, blockedId: first.participant.id);
+    final after = await repo.fetchConversations(me);
+    expect(after.any((c) => c.participant.id == first.participant.id), isFalse);
   });
 }

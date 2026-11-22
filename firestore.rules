@@ -77,6 +77,9 @@ service cloud.firestore {
       match /eventRsvps/{postId} {
         allow read, write: if isSelf(uid) && isMember();
       }
+      match /savedPosts/{postId} {
+        allow read, write: if isSelf(uid) && isMember();
+      }
       match /savedListings/{listingId} {
         allow read, write: if isSelf(uid) && isMember();
       }
@@ -100,6 +103,10 @@ service cloud.firestore {
         allow read, delete: if isSelf(uid) && isMember();
         allow create, update: if isSelf(uid) && isMember()
           && validDraft(request.resource.data);
+      }
+      // People this user has blocked; hides their chats from the inbox.
+      match /blocks/{blockedId} {
+        allow read, write: if isSelf(uid) && isMember();
       }
       match /memberships/{groupId} {
         allow read, write: if isSelf(uid) && isMember();

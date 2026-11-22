@@ -87,6 +87,12 @@ abstract final class AppStrings {
   static const String removePostPhoto = 'Remove photo';
   static const String imageTooLarge = 'Choose an image smaller than 8 MB.';
   static const String postCopied = 'Post text copied to clipboard.';
+  static const String copyPostText = 'Copy text';
+  static const String deletePost = 'Delete post';
+  static const String confirmDeletePost = 'Delete this post?';
+  static const String confirmDeletePostBody =
+      'It will be removed from the feed for everyone. This can\'t be undone.';
+  static const String postDeleted = 'Post deleted.';
   static const String commentsTitle = 'Comments';
   static const String commentHint = 'Write a comment...';
   static const String noCommentsMessage = 'Be the first to comment.';
@@ -108,11 +114,12 @@ abstract final class AppStrings {
   static const String freeEntry = 'Free Entry';
   static const String rsvpNow = 'RSVP Now';
   static const String rsvped = 'Going';
-  static const String addToCalendar = 'Add to Calendar';
+  static const String cancelRsvp = 'Going · Tap to cancel';
   static const String like = 'Like';
   static const String comment = 'Comment';
   static const String share = 'Share';
   static const String save = 'Save';
+  static const String unsavePost = 'Remove from saved';
   static const String moreOptions = 'More options';
   static const String timezone = 'CAT';
 
@@ -239,6 +246,10 @@ abstract final class AppStrings {
   static const String tabSaved = 'Saved Items';
   static const String accountVerification = 'ACCOUNT & CAMPUS VERIFICATION';
   static const String studentIdCardTitle = 'Digital Student ID Card';
+  static const String idProgram = 'Programme';
+  static const String idCampus = 'Campus';
+  static const String idCohort = 'Cohort';
+  static const String idVerifiedEmail = 'Verified email';
   static const String studentIdCardSubtitle =
       'Verified for Academic Year 2026–2027';
   static const String securitySettingsTitle = 'Account & Security Settings';
@@ -496,4 +507,16 @@ abstract final class AppStrings {
   static const String notificationsOffTitle = 'Notifications are off';
   static const String notificationsOffMessage =
       'Turn them on for vsquare in your phone\'s Settings to get alerts.';
+
+  // Chat options menu
+  static const String muteChat = 'Mute notifications';
+  static const String unmuteChat = 'Unmute notifications';
+  static const String chatMuted = 'Chat muted.';
+  static const String chatUnmuted = 'Chat unmuted.';
+  static const String blockUser = 'Block';
+  static const String blockConfirmTitle = 'Block this person?';
+  static const String blockConfirmBody =
+      'They\'ll disappear from your inbox and you won\'t see this chat again.';
+  static const String userBlocked =
+      'Blocked. This chat is hidden from your inbox.';
 }

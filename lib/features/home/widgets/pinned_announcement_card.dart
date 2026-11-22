@@ -23,21 +23,27 @@ class PinnedAnnouncementCard extends StatelessWidget {
     required this.post,
     required this.isLiked,
     required this.likeCount,
+    this.isSaved = false,
     this.isRsvped = false,
     this.onLike,
     this.onRsvp,
     this.onComment,
     this.onShare,
+    this.onSave,
+    this.onMoreOptions,
   });
 
   final PostModel post;
   final bool isLiked;
   final int likeCount;
+  final bool isSaved;
   final bool isRsvped;
   final VoidCallback? onLike;
   final VoidCallback? onRsvp;
   final VoidCallback? onComment;
   final VoidCallback? onShare;
+  final VoidCallback? onSave;
+  final VoidCallback? onMoreOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +92,7 @@ class PinnedAnnouncementCard extends StatelessWidget {
                 PostAuthorHeader(
                   author: post.author,
                   timeAgo: Formatters.timeAgo(post.createdAt),
+                  onMoreOptions: onMoreOptions,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 PostBodyText(title: post.title, body: post.body),
@@ -100,6 +107,8 @@ class PinnedAnnouncementCard extends StatelessWidget {
                   onLike: onLike,
                   onComment: onComment,
                   onShare: onShare,
+                  isSaved: isSaved,
+                  onSave: onSave,
                   trailing: post.isMandatoryRead
                       ? const StatusTag(
                           label: AppStrings.mandatoryRead,

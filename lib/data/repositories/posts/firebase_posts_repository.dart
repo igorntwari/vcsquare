@@ -28,6 +28,9 @@ class FirebasePostsRepository implements PostsRepository {
   }
 
   @override
+  Future<void> deletePost(String postId) => _posts.doc(postId).delete();
+
+  @override
   Future<List<PostComment>> fetchComments(String postId) async {
     final snapshot = await _posts
         .doc(postId)
@@ -95,6 +98,23 @@ class FirebasePostsRepository implements PostsRepository {
   @override
   Future<Set<String>> fetchRsvpedPostIds(String userId) =>
       readIdSet(_db, userId, FirestoreCollections.eventRsvps);
+
+  @override
+  Future<Set<String>> fetchSavedPostIds(String userId) =>
+      readIdSet(_db, userId, FirestoreCollections.savedPosts);
+
+  @override
+  Future<void> setSaved({
+    required String userId,
+    required String postId,
+    required bool saved,
+  }) => writeIdFlag(
+    _db,
+    userId: userId,
+    subcollection: FirestoreCollections.savedPosts,
+    id: postId,
+    value: saved,
+  );
 
   @override
   Future<Map<String, String>> fetchPollVotes(String userId) async {
