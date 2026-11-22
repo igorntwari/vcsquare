@@ -128,4 +128,19 @@ void main() {
     expect(after.first.unreadCount, 0);
     expect(after.first.lastMessage.text, 'Hello');
   });
+
+  test('chats: mute toggles and blocking hides the conversation', () async {
+    final repo = SampleChatsRepository();
+    final first = (await repo.fetchConversations(me)).first;
+
+    await repo.setMuted(conversationId: first.id, userId: me, muted: true);
+    expect(
+      await repo.watchMuted(conversationId: first.id, userId: me).first,
+      isTrue,
+    );
+
+    await repo.blockUser(userId: me, blockedId: first.participant.id);
+    final after = await repo.fetchConversations(me);
+    expect(after.any((c) => c.participant.id == first.participant.id), isFalse);
+  });
 }

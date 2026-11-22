@@ -101,6 +101,10 @@ service cloud.firestore {
         allow create, update: if isSelf(uid) && isMember()
           && validDraft(request.resource.data);
       }
+      // People this user has blocked; hides their chats from the inbox.
+      match /blocks/{blockedId} {
+        allow read, write: if isSelf(uid) && isMember();
+      }
       match /memberships/{groupId} {
         allow read, write: if isSelf(uid) && isMember();
       }

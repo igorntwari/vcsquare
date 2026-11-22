@@ -15,6 +15,7 @@ class SampleChatsRepository implements ChatsRepository {
   };
   final Set<String> _readIds = {};
   final Set<String> _mutedIds = {};
+  final Set<String> _blockedIds = {};
   final StreamController<String> _changed = StreamController.broadcast();
 
   // Fires for anything the inbox or menu cares about. Kept apart from
@@ -24,18 +25,19 @@ class SampleChatsRepository implements ChatsRepository {
   @override
   Future<List<ConversationModel>> fetchConversations(String userId) async => [
     for (final conversation in dummyConversations)
-      ConversationModel(
-        id: conversation.id,
-        participant: conversation.participant,
-        type: conversation.type,
-        lastMessage:
-            _messages[conversation.id]?.last ?? conversation.lastMessage,
-        subject: conversation.subject,
-        listing: conversation.listing,
-        unreadCount: _readIds.contains(conversation.id)
-            ? 0
-            : conversation.unreadCount,
-      ),
+      if (!_blockedIds.contains(conversation.participant.id))
+        ConversationModel(
+          id: conversation.id,
+          participant: conversation.participant,
+          type: conversation.type,
+          lastMessage:
+              _messages[conversation.id]?.last ?? conversation.lastMessage,
+          subject: conversation.subject,
+          listing: conversation.listing,
+          unreadCount: _readIds.contains(conversation.id)
+              ? 0
+              : conversation.unreadCount,
+        ),
   ];
 
   @override
@@ -136,5 +138,8 @@ class SampleChatsRepository implements ChatsRepository {
   Future<void> blockUser({
     required String userId,
     required String blockedId,
-  }) async {}
+  }) async {
+    _blockedIds.add(blockedId);
+    _inbox.add(blockedId);
+  }
 }

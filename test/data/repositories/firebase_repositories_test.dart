@@ -184,4 +184,21 @@ void main() {
     await repo.markRead(conversationId: conversation.id, userId: me);
     expect((await repo.fetchConversations(me)).single.unreadCount, 0);
   });
+
+  test('chats: blocking hides the conversation from the inbox', () async {
+    final conversation = dummyConversations.first;
+    await db
+        .collection('conversations')
+        .doc(conversation.id)
+        .set(conversation.toFirestore(currentUserId: me));
+    final repo = FirebaseChatsRepository(db);
+    expect(await repo.fetchConversations(me), hasLength(1));
+
+    await repo.blockUser(userId: me, blockedId: conversation.participant.id);
+    final block = await db
+        .doc('users/$me/blocks/${conversation.participant.id}')
+        .get();
+    expect(block.exists, isTrue);
+    expect(await repo.fetchConversations(me), isEmpty);
+  });
 }

@@ -405,3 +405,19 @@ describe('chats', () => {
     await assertFails(updateDoc(chat(nadia()), { mutedBy: arrayUnion('nadia') }));
   });
 });
+
+describe('blocking', () => {
+  const block = (db, owner) => doc(db, 'users', owner, 'blocks', 'kofi');
+
+  test('a member can block someone and read their own blocks', async () => {
+    const db = member();
+    await assertSucceeds(setDoc(block(db, 'amara'), { createdAt: serverTimestamp() }));
+    await assertSucceeds(getDoc(block(db, 'amara')));
+  });
+
+  test('nobody else can see or change a block list', async () => {
+    await assertFails(setDoc(block(member(), 'nadia'), { createdAt: serverTimestamp() }));
+    await assertFails(getDoc(block(member(), 'nadia')));
+    await assertFails(setDoc(block(outsider(), 'eve'), { createdAt: serverTimestamp() }));
+  });
+});

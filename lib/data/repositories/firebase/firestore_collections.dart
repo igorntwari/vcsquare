@@ -25,4 +25,5 @@ abstract final class FirestoreCollections {
   static const String peerSuggestions = 'peerSuggestions';
   static const String connectionRequests = 'connectionRequests';
   static const String devices = 'devices';
+  static const String blocks = 'blocks';
 }

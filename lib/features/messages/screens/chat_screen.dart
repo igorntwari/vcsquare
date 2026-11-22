@@ -17,6 +17,8 @@ import '../widgets/chat_input_bar.dart';
 import '../widgets/listing_preview_chip.dart';
 import '../widgets/message_bubble.dart';
 
+enum _ChatAction { mute, block }
+
 // Navy header, the listing being discussed (if any), live messages and input.
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key, required this.conversation});
@@ -40,7 +42,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           .markRead(conversationId: widget.conversation.id, userId: userId);
     } catch (_) {
       _readMarkedForUser = null;
-      _showError(AppStrings.saveFailed);
+      _showSnackBar(AppStrings.saveFailed);
     }
   }
 
@@ -56,13 +58,110 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             text: text,
           );
     } catch (_) {
-      _showError(AppStrings.sendFailed);
+      _showSnackBar(AppStrings.sendFailed);
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
   }
 
-  void _showError(String message) {
+  Future<void> _toggleMute(bool muted) async {
+    final userId = ref.read(currentUserProvider).value?.id;
+    if (userId == null) return;
+    try {
+      await ref
+          .read(chatsRepositoryProvider)
+          .setMuted(
+            conversationId: widget.conversation.id,
+            userId: userId,
+            muted: !muted,
+          );
+      _showSnackBar(muted ? AppStrings.chatUnmuted : AppStrings.chatMuted);
+    } catch (_) {
+      _showSnackBar(AppStrings.saveFailed);
+    }
+  }
+
+  Future<void> _block() async {
+    final userId = ref.read(currentUserProvider).value?.id;
+    if (userId == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(AppStrings.blockConfirmTitle),
+        content: const Text(AppStrings.blockConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(AppStrings.blockUser),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await ref
+          .read(chatsRepositoryProvider)
+          .blockUser(
+            userId: userId,
+            blockedId: widget.conversation.participant.id,
+          );
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      Navigator.of(context).maybePop();
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text(AppStrings.userBlocked)));
+    } catch (_) {
+      _showSnackBar(AppStrings.saveFailed);
+    }
+  }
+
+  // Mute or unmute this chat, or block the other person.
+  Widget _buildMenu() {
+    final muted =
+        ref.watch(mutedProvider(widget.conversation.id)).value ?? false;
+    return PopupMenuButton<_ChatAction>(
+      tooltip: AppStrings.moreOptions,
+      icon: const Icon(
+        Icons.more_vert,
+        size: AppSizes.iconLg,
+        color: AppColors.textOnDark,
+      ),
+      onSelected: (action) => switch (action) {
+        _ChatAction.mute => _toggleMute(muted),
+        _ChatAction.block => _block(),
+      },
+      itemBuilder: (_) => [
+        PopupMenuItem(
+          value: _ChatAction.mute,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(
+              muted
+                  ? Icons.notifications_active_outlined
+                  : Icons.notifications_off_outlined,
+            ),
+            title: Text(muted ? AppStrings.unmuteChat : AppStrings.muteChat),
+          ),
+        ),
+        if (widget.conversation.participant.isStudent)
+          const PopupMenuItem(
+            value: _ChatAction.block,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.block, color: AppColors.error),
+              title: Text(AppStrings.blockUser),
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _showSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -202,15 +301,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ],
                 ),
               ),
-              IconButton(
-                tooltip: AppStrings.moreOptions,
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.more_vert,
-                  size: AppSizes.iconLg,
-                  color: AppColors.textOnDark,
-                ),
-              ),
+              _buildMenu(),
             ],
           ),
         ),

@@ -496,4 +496,16 @@ abstract final class AppStrings {
   static const String notificationsOffTitle = 'Notifications are off';
   static const String notificationsOffMessage =
       'Turn them on for vsquare in your phone\'s Settings to get alerts.';
+
+  // Chat options menu
+  static const String muteChat = 'Mute notifications';
+  static const String unmuteChat = 'Unmute notifications';
+  static const String chatMuted = 'Chat muted.';
+  static const String chatUnmuted = 'Chat unmuted.';
+  static const String blockUser = 'Block';
+  static const String blockConfirmTitle = 'Block this person?';
+  static const String blockConfirmBody =
+      'They\'ll disappear from your inbox and you won\'t see this chat again.';
+  static const String userBlocked =
+      'Blocked. This chat is hidden from your inbox.';
 }
