@@ -37,6 +37,7 @@ So an account made outside the app with someone else's address, or never verifie
 users/{uid}
   ├─ likedPosts/{postId}
   ├─ eventRsvps/{postId}
+  ├─ savedPosts/{postId}
   ├─ savedListings/{listingId}
   ├─ listingDrafts/{draftId}
   ├─ blocks/{blockedUid}
@@ -101,6 +102,7 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | --- | --- | --- |
 | `likedPosts` | post id | `PostModel.isLiked` |
 | `eventRsvps` | event post id | event attendance |
+| `savedPosts` | post id | Posts bookmarked with the save button on Home |
 | `savedListings` | listing id | `ListingModel.isFavorited` |
 | `memberships` | community id or club user id | `CommunityModel.isJoined`, `UserModel.isJoined` |
 | `following` | official handle id or user id | `OfficialHandleModel.isFollowing`, and students you follow. A student follow also stores `targetId` (the student's uid) and `type: "user"`. Readable by any member, so follower and following counts work. Only the owner writes; `targetId` must equal the document id and can't be yourself. |

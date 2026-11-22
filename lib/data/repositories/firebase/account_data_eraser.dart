@@ -19,6 +19,7 @@ class AccountDataEraser {
     final refs = <DocumentReference<Map<String, dynamic>>>[
       ...await _docsIn(uid, FirestoreCollections.likedPosts),
       ...await _docsIn(uid, FirestoreCollections.savedListings),
+      ...await _docsIn(uid, FirestoreCollections.savedPosts),
       ...await _docsIn(uid, FirestoreCollections.memberships),
       ...await _docsIn(uid, FirestoreCollections.following),
       ...await _docsIn(uid, FirestoreCollections.peerSuggestions),

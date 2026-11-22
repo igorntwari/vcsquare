@@ -59,6 +59,14 @@ void main() {
     expect(await repo.fetchLikedPostIds(me), isEmpty);
   });
 
+  test('posts: saved posts live in users/{uid}/savedPosts', () async {
+    final repo = FirebasePostsRepository(db);
+    await repo.setSaved(userId: me, postId: 'p03', saved: true);
+    expect(await repo.fetchSavedPostIds(me), {'p03'});
+    await repo.setSaved(userId: me, postId: 'p03', saved: false);
+    expect(await repo.fetchSavedPostIds(me), isEmpty);
+  });
+
   test('listings, ordered categories and saved listings', () async {
     for (final c in dummyCategories.reversed) {
       await db.collection('categories').doc(c.id).set(c.toFirestore());

@@ -97,6 +97,23 @@ class FirebasePostsRepository implements PostsRepository {
       readIdSet(_db, userId, FirestoreCollections.eventRsvps);
 
   @override
+  Future<Set<String>> fetchSavedPostIds(String userId) =>
+      readIdSet(_db, userId, FirestoreCollections.savedPosts);
+
+  @override
+  Future<void> setSaved({
+    required String userId,
+    required String postId,
+    required bool saved,
+  }) => writeIdFlag(
+    _db,
+    userId: userId,
+    subcollection: FirestoreCollections.savedPosts,
+    id: postId,
+    value: saved,
+  );
+
+  @override
   Future<Map<String, String>> fetchPollVotes(String userId) async {
     final snapshot = await _db
         .collectionGroup(FirestoreCollections.pollVotes)

@@ -23,6 +23,9 @@ abstract interface class PostsRepository {
 
   Future<Set<String>> fetchRsvpedPostIds(String userId);
 
+  // Posts the user bookmarked with the save button.
+  Future<Set<String>> fetchSavedPostIds(String userId);
+
   Future<Map<String, String>> fetchPollVotes(String userId);
 
   Future<void> setPollVote({
@@ -42,5 +45,11 @@ abstract interface class PostsRepository {
     required String userId,
     required String postId,
     required bool rsvped,
+  });
+
+  Future<void> setSaved({
+    required String userId,
+    required String postId,
+    required bool saved,
   });
 }

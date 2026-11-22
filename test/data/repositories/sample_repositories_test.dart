@@ -31,6 +31,12 @@ void main() {
     await repo.setLiked(userId: me, postId: 'p01', liked: true);
     await repo.setLiked(userId: me, postId: 'p05', liked: false);
     expect(await repo.fetchLikedPostIds(me), {'p01', 'p16', 'p21'});
+
+    expect(await repo.fetchSavedPostIds(me), isEmpty);
+    await repo.setSaved(userId: me, postId: 'p02', saved: true);
+    expect(await repo.fetchSavedPostIds(me), {'p02'});
+    await repo.setSaved(userId: me, postId: 'p02', saved: false);
+    expect(await repo.fetchSavedPostIds(me), isEmpty);
   });
 
   test('listings: categories, hubs and saved listings', () async {

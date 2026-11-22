@@ -28,11 +28,13 @@ class PostCard extends StatelessWidget {
     required this.post,
     required this.isLiked,
     required this.likeCount,
+    this.isSaved = false,
     this.isJoined = false,
     this.onLike,
     this.onJoin,
     this.onComment,
     this.onShare,
+    this.onSave,
     this.selectedPollOption,
     this.onVote,
   });
@@ -40,11 +42,13 @@ class PostCard extends StatelessWidget {
   final PostModel post;
   final bool isLiked;
   final int likeCount;
+  final bool isSaved;
   final bool isJoined;
   final VoidCallback? onLike;
   final VoidCallback? onJoin;
   final VoidCallback? onComment;
   final VoidCallback? onShare;
+  final VoidCallback? onSave;
   final String? selectedPollOption;
   final ValueChanged<String>? onVote;
 
@@ -94,6 +98,8 @@ class PostCard extends StatelessWidget {
             onLike: onLike,
             onComment: onComment,
             onShare: onShare,
+            isSaved: isSaved,
+            onSave: onSave,
             trailing: _buildTrailingAction(),
           ),
           if (post.commentPreview != null) ...[

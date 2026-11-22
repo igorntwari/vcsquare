@@ -421,3 +421,19 @@ describe('blocking', () => {
     await assertFails(setDoc(block(outsider(), 'eve'), { createdAt: serverTimestamp() }));
   });
 });
+
+describe('saved posts', () => {
+  const saved = (db, owner) => doc(db, 'users', owner, 'savedPosts', 'p01');
+
+  test('a member can save and unsave a post for themselves', async () => {
+    const db = member();
+    await assertSucceeds(setDoc(saved(db, 'amara'), { createdAt: serverTimestamp() }));
+    await assertSucceeds(getDoc(saved(db, 'amara')));
+    await assertSucceeds(deleteDoc(saved(db, 'amara')));
+  });
+
+  test('saved posts are private to their owner', async () => {
+    await assertFails(getDoc(saved(member(), 'nadia')));
+    await assertFails(setDoc(saved(member(), 'nadia'), { createdAt: serverTimestamp() }));
+  });
+});

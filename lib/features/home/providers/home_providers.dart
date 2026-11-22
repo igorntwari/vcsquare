@@ -9,6 +9,7 @@ typedef HomeFeed = ({
   // Posts the signed-in user has liked.
   Set<String> likedPostIds,
   Set<String> rsvpedPostIds,
+  Set<String> savedPostIds,
   Map<String, String> pollVoteOptions,
   // Clubs the signed-in user is a member of.
   Set<String> joinedIds,
@@ -21,12 +22,13 @@ final homeFeedProvider = FutureProvider<HomeFeed>((ref) async {
   final posts = ref.watch(postsRepositoryProvider);
   final explore = ref.watch(exploreRepositoryProvider);
 
-  final (feed, liked, rsvped, pollVotes, joined, followed) = await (
+  final (feed, liked, rsvped, saved, pollVotes, joined, followed) = await (
     posts.fetchFeed(),
     userId == null ? Future.value(<String>{}) : posts.fetchLikedPostIds(userId),
     userId == null
         ? Future.value(<String>{})
         : posts.fetchRsvpedPostIds(userId),
+    userId == null ? Future.value(<String>{}) : posts.fetchSavedPostIds(userId),
     userId == null
         ? Future.value(<String, String>{})
         : posts.fetchPollVotes(userId),
@@ -39,6 +41,7 @@ final homeFeedProvider = FutureProvider<HomeFeed>((ref) async {
     posts: feed,
     likedPostIds: liked,
     rsvpedPostIds: rsvped,
+    savedPostIds: saved,
     pollVoteOptions: pollVotes,
     joinedIds: joined,
     followedIds: followed,

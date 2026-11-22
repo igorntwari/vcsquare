@@ -9,6 +9,7 @@ import 'posts_repository.dart';
 class SamplePostsRepository implements PostsRepository {
   final Set<String> _likedPostIds = {...dummyLikedPostIds};
   final Set<String> _rsvpedPostIds = {};
+  final Set<String> _savedPostIds = {};
   final List<PostModel> _createdPosts = [];
   final Map<String, List<PostComment>> _comments = {};
   final Map<String, Map<String, String>> _pollVotes = {};
@@ -103,6 +104,20 @@ class SamplePostsRepository implements PostsRepository {
   Future<Set<String>> fetchRsvpedPostIds(String userId) async => {
     ..._rsvpedPostIds,
   };
+
+  @override
+  Future<Set<String>> fetchSavedPostIds(String userId) async => {
+    ..._savedPostIds,
+  };
+
+  @override
+  Future<void> setSaved({
+    required String userId,
+    required String postId,
+    required bool saved,
+  }) async {
+    saved ? _savedPostIds.add(postId) : _savedPostIds.remove(postId);
+  }
 
   @override
   Future<Map<String, String>> fetchPollVotes(String userId) async =>

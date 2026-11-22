@@ -41,6 +41,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<PostModel> _posts = const [];
   Set<String> _likedPostIds = {};
   Set<String> _rsvpedPostIds = {};
+  Set<String> _savedPostIds = {};
   Map<String, String> _pollVoteOptions = {};
   Set<String> _joinedClubIds = {};
   Set<String> _followedIds = {};
@@ -88,6 +89,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ];
     _likedPostIds = {...feed.likedPostIds};
     _rsvpedPostIds = {...feed.rsvpedPostIds};
+    _savedPostIds = {...feed.savedPostIds};
     _pollVoteOptions = {...feed.pollVoteOptions};
     _joinedClubIds = {...feed.joinedIds};
     _followedIds = {...feed.followedIds};
@@ -142,6 +144,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       save: (rsvped) => ref
           .read(postsRepositoryProvider)
           .setRsvp(userId: userId, postId: post.id, rsvped: rsvped),
+      onError: _showSaveFailed,
+    );
+  }
+
+  void _toggleSave(PostModel post) {
+    final userId = ref.read(currentUserProvider).value?.id;
+    if (userId == null) return;
+    optimisticToggle(
+      ids: _savedPostIds,
+      id: post.id,
+      update: _update,
+      save: (saved) => ref
+          .read(postsRepositoryProvider)
+          .setSaved(userId: userId, postId: post.id, saved: saved),
       onError: _showSaveFailed,
     );
   }
@@ -336,6 +352,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         onRsvp: () => _toggleRsvp(post),
         onComment: () => _openComments(post),
         onShare: () => _sharePost(post),
+        isSaved: _savedPostIds.contains(post.id),
+        onSave: () => _toggleSave(post),
       );
     }
     return PostCard(
@@ -347,6 +365,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onJoin: () => _toggleJoin(post),
       onComment: () => _openComments(post),
       onShare: () => _sharePost(post),
+      isSaved: _savedPostIds.contains(post.id),
+      onSave: () => _toggleSave(post),
       selectedPollOption: _pollVoteOptions[post.id],
       onVote: (option) => _votePoll(post, option),
     );

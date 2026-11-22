@@ -113,6 +113,7 @@ abstract final class AppStrings {
   static const String comment = 'Comment';
   static const String share = 'Share';
   static const String save = 'Save';
+  static const String unsavePost = 'Remove from saved';
   static const String moreOptions = 'More options';
   static const String timezone = 'CAT';
 
