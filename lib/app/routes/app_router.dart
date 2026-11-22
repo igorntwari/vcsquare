@@ -11,6 +11,7 @@ import '../../data/repositories/repository_providers.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/sign_up_screen.dart';
+import '../../features/explore/providers/explore_providers.dart';
 import '../../features/explore/screens/explore_screen.dart';
 import '../../features/home/screens/create_post_screen.dart';
 import '../../features/explore/screens/official_handle_detail_screen.dart';
@@ -78,19 +79,21 @@ abstract final class AppRouter {
     shellTab.value = tab;
   }
 
-  static Widget buildMainShell(BuildContext context) => MainShell(
+  static Widget buildMainShell(BuildContext context, WidgetRef ref) => MainShell(
     // Messages/chats are owned separately; still on dummy data.
     messagesBadgeCount: dummyUnreadConversationCount,
     tabRequests: shellTab,
     tabs: [
       HomeScreen(
-        onCreatePost: () {
+        onCreatePost: () async {
           if (kDebugMode) {
             debugPrint('[AppRouter] Pushing ${RouteNames.createPost}.');
           }
-          return (navigatorKey.currentState ?? Navigator.of(context))
-              .pushNamed(RouteNames.createPost)
-              .then((result) => result as bool?);
+          final result = await (navigatorKey.currentState ??
+                  Navigator.of(context))
+              .pushNamed(RouteNames.createPost);
+          if (result == true) ref.invalidate(exploreProvider);
+          return result as bool?;
         },
       ),
       MarketScreen(
@@ -201,6 +204,7 @@ abstract final class AppRouter {
                       ),
                     );
                 ref.invalidate(marketProvider);
+                ref.invalidate(exploreProvider);
                 navigator.pop();
                 navigator.pop();
               },
