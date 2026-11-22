@@ -1,0 +1,65 @@
+// Save profile, sign out and delete account.
+import 'dart:async';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../../../data/models/profile_edit_model.dart';
+import '../../../data/repositories/repository_providers.dart';
+import '../../../shared/services/media_providers.dart';
+import 'profile_providers.dart';
+
+final profileControllerProvider =
+    AsyncNotifierProvider.autoDispose<ProfileController, void>(
+      ProfileController.new,
+    );
+
+class ProfileController extends AsyncNotifier<void> {
+  @override
+  FutureOr<void> build() {}
+
+  // [newPhoto] is uploaded first and replaces edit.avatarPath.
+  Future<bool> saveProfile(ProfileEdit edit, {XFile? newPhoto}) =>
+      _run(() async {
+        final userId = await ref.read(currentUserIdProvider.future);
+        if (userId == null) return;
+        final saved = newPhoto == null
+            ? edit
+            : edit.withAvatar(
+                await ref.read(imageUploadServiceProvider).upload(newPhoto),
+              );
+        await ref
+            .read(profileRepositoryProvider)
+            .updateProfile(userId, saved.normalized());
+        // The profile page doesn't update live, so reload it.
+        ref.invalidate(profileProvider);
+      });
+
+  Future<bool> signOut() => _run(() async {
+    final userId = ref.read(authAccountProvider).value?.id;
+    if (userId != null) {
+      // Must happen while still signed in; sign out even if it fails.
+      try {
+        await ref.read(deviceRegistryProvider).unregister(userId);
+      } catch (_) {}
+    }
+    await ref.read(authRepositoryProvider).signOut();
+  });
+
+  Future<bool> deleteAccount({String? password}) => _run(
+    () => ref.read(authRepositoryProvider).deleteAccount(password: password),
+  );
+
+  Future<bool> _run(Future<void> Function() action) async {
+    state = const AsyncLoading();
+    try {
+      await action();
+      // Signing out or deleting may have disposed this already.
+      if (ref.mounted) state = const AsyncData(null);
+      return true;
+    } catch (error, stack) {
+      if (ref.mounted) state = AsyncError(error, stack);
+      return false;
+    }
+  }
+}

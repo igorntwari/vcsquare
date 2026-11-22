@@ -1,4 +1,5 @@
 // Model representing a student suggested in "People You May Know".
+import 'firestore_helpers.dart';
 import 'user_model.dart';
 
 class PeerSuggestionModel {
@@ -21,4 +22,23 @@ class PeerSuggestionModel {
 
   // Common interest, e.g. "FinTech".
   final String sharedInterest;
+
+  // users/{currentUserId}/peerSuggestions/{user.id}.
+  factory PeerSuggestionModel.fromFirestore(
+    FirestoreMap data, {
+    required UserModel user,
+  }) => PeerSuggestionModel(
+    user: user,
+    program: readString(data['program']),
+    focus: readString(data['focus']),
+    mutualCount: readInt(data['mutualCount']),
+    sharedInterest: readString(data['sharedInterest']),
+  );
+
+  FirestoreMap toFirestore() => {
+    'program': program,
+    'focus': focus,
+    'mutualCount': mutualCount,
+    'sharedInterest': sharedInterest,
+  };
 }

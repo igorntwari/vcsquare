@@ -26,6 +26,7 @@ class BottomNavBar extends StatelessWidget {
   final int messagesBadgeCount;
 
   static const int messagesIndex = 3;
+  static const int profileIndex = 4;
 
   static const List<(IconData, String)> _items = [
     (Icons.home_outlined, AppStrings.navHome),

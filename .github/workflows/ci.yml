@@ -1,0 +1,62 @@
+# Runs the analyzer, the app tests and the security rules tests on every
+# pull request into dev.
+name: CI
+
+on:
+  pull_request:
+    branches: [dev]
+  # Lets you re-run it by hand from the Actions tab.
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          # Keep in step with the version the team develops on.
+          flutter-version: 3.47.2
+          cache: true
+
+      - name: Install packages
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+  rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: tool/rules_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tool/rules_test/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Test rules
+        run: npm test

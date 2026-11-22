@@ -1,0 +1,285 @@
+rules_version = '2';
+
+// Security rules for the collections in docs/firestore-schema.md.
+// Fixed data (categories, pickupHubs, officialHandles, communities,
+// trendingTopics) is written only by the seed script, which uses the Admin
+// SDK and is not subject to these rules.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Keep in sync with AppConfig.allowedEmailDomains.
+    function isAluEmail() {
+      return signedIn()
+        && request.auth.token.email is string
+        && request.auth.token.email.lower()
+             .matches('.*@(alustudent|alueducation)[.]com');
+    }
+
+    // Verified ALU account. Google accounts are verified automatically.
+    function isMember() {
+      return isAluEmail() && request.auth.token.email_verified == true;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // Limits match AppSizes and Validators.
+    function validProfile(data) {
+      return data.name is string
+        && data.name.size() > 0 && data.name.size() <= 50
+        && data.handle is string
+        && data.handle.matches('@[a-z0-9._]{3,30}')
+        && (!('bio' in data) || (data.bio is string && data.bio.size() <= 300))
+        && (!('avatarPath' in data) || data.avatarPath == null
+            || (data.avatarPath is string
+                && data.avatarPath.matches('https://.+')
+                && data.avatarPath.size() <= 500));
+    }
+
+    // Only these keys may change in an update.
+    function onlyChanges(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    // Users
+    match /users/{uid} {
+      // Unverified accounts can still read their own profile.
+      allow read: if isMember() || isSelf(uid);
+      // Exactly the keys FirebaseAuthRepository.newUserDoc writes.
+      allow create: if isSelf(uid) && isAluEmail()
+        && request.resource.data.keys().hasOnly([
+          'name', 'handle', 'type', 'avatarPath', 'cohort', 'isVerified',
+          'isOnline', 'email', 'emailDomain', 'createdAt', 'roleTag',
+          'campus', 'program', 'bio', 'bioHighlight'
+        ])
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.type == 'student'
+        && request.resource.data.isVerified == false
+        && validProfile(request.resource.data);
+      // Counters and verification are set by the backend, not the app.
+      allow update: if isSelf(uid) && isMember()
+        && onlyChanges([
+          'name', 'handle', 'avatarPath', 'cohort', 'isOnline', 'bio',
+          'bioHighlight', 'program', 'campus', 'roleTag'
+        ])
+        && validProfile(request.resource.data);
+      allow delete: if isSelf(uid);
+
+      // Per-user state: only the owner can see or change it.
+      match /likedPosts/{postId} {
+        allow read, write: if isSelf(uid) && isMember();
+      }
+      match /eventRsvps/{postId} {
+        allow read, write: if isSelf(uid) && isMember();
+      }
+      match /savedListings/{listingId} {
+        allow read, write: if isSelf(uid) && isMember();
+      }
+      match /memberships/{groupId} {
+        allow read, write: if isSelf(uid) && isMember();
+      }
+      // Public to members, so follower and following counts work.
+      match /following/{targetId} {
+        allow read: if isMember();
+        allow delete: if isSelf(uid) && isMember();
+        // A student follow names its target, which can't be yourself.
+        allow create, update: if isSelf(uid) && isMember()
+          && (!('targetId' in request.resource.data)
+            || (request.resource.data.targetId == targetId
+              && targetId != uid));
+      }
+      // Push tokens, written by FirebaseDeviceRegistry.
+      match /devices/{token} {
+        allow read, write: if isSelf(uid) && isMember();
+      }
+      // Backend-written; the owner can only delete them.
+      match /peerSuggestions/{otherId} {
+        allow read, delete: if isSelf(uid) && isMember();
+        allow create, update: if false;
+      }
+    }
+
+    // Posts
+    match /posts/{postId} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.likeCount == 0
+        && request.resource.data.commentCount == 0
+        && (!('poll' in request.resource.data)
+          || request.resource.data.poll == null
+          || (request.resource.data.poll is map
+            && request.resource.data.poll.question is string
+            && request.resource.data.poll.question.size() > 0
+            && request.resource.data.poll.question.size() <= 120
+            && request.resource.data.poll.options is list
+            && request.resource.data.poll.options.size() >= 2
+            && request.resource.data.poll.options.size() <= 6));
+      // The author edits content; members can move likeCount by one
+      // (FirebasePostsRepository.setLiked does this in a transaction with
+      // users/{uid}/likedPosts).
+      allow update: if (
+          isMember() && resource.data.authorId == request.auth.uid
+          && onlyChanges(['body', 'title', 'topic', 'audience', 'imagePath', 'imageCaption', 'event'])
+        ) || (
+          isMember() && onlyChanges(['likeCount'])
+          && (request.resource.data.likeCount - resource.data.likeCount) in [1, -1]
+        ) || (
+          isMember()
+          && onlyChanges(['commentCount', 'commentPreview'])
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasAll(['commentCount', 'commentPreview'])
+          && request.resource.data.commentCount == resource.data.commentCount + 1
+          && request.resource.data.commentPreview is map
+          && request.resource.data.commentPreview.authorId == request.auth.uid
+          && request.resource.data.commentPreview.text is string
+          && request.resource.data.commentPreview.text.size() > 0
+          && request.resource.data.commentPreview.text.size() <= 1000
+        );
+      allow delete: if isMember() && resource.data.authorId == request.auth.uid;
+
+      match /comments/{commentId} {
+        allow read: if isMember();
+        allow create: if isMember()
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 1000
+          && request.resource.data.createdAt == request.time;
+        allow update, delete: if false;
+      }
+
+      match /pollVotes/{voteId} {
+        function hasPollOption(option) {
+          return get(/databases/$(database)/documents/posts/$(postId))
+              .data.poll.options.hasAny([option]);
+        }
+
+        allow read: if isMember() && resource.data.userId == request.auth.uid;
+        allow create, update: if isMember()
+          && voteId == request.auth.uid
+          && request.resource.data.keys().hasOnly(['userId', 'option', 'createdAt'])
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.option is string
+          && hasPollOption(request.resource.data.option)
+          && request.resource.data.createdAt == request.time;
+        allow delete: if isMember()
+          && voteId == request.auth.uid
+          && resource.data.userId == request.auth.uid;
+      }
+    }
+
+    // Home loads a member's votes across posts with a collection-group query.
+    // Keep that query private to the authenticated member's own vote docs.
+    // Counting a student's followers across everyone's following lists.
+    match /{path=**}/following/{followId} {
+      allow read: if isMember();
+    }
+
+    match /{path=**}/pollVotes/{voteId} {
+      allow read: if isMember() && resource.data.userId == request.auth.uid;
+    }
+
+    // Explore connect requests. Only pending requests are stored here; a
+    // recipient can read a request, while the sender can cancel it.
+    match /connectionRequests/{requestId} {
+      allow read: if isMember()
+        && (resource.data.senderId == request.auth.uid
+          || resource.data.recipientId == request.auth.uid);
+      allow create: if isMember()
+        && requestId == request.auth.uid + '_' + request.resource.data.recipientId
+        && request.resource.data.keys().hasOnly([
+          'senderId', 'recipientId', 'status', 'createdAt'
+        ])
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.recipientId is string
+        && request.resource.data.recipientId != request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if isMember()
+        && resource.data.senderId == request.auth.uid
+        && resource.data.status == 'pending';
+    }
+
+    // Listings
+    match /listings/{listingId} {
+      function validListing(data) {
+        return data.title is string && data.title.size() > 0
+          && data.details is string && data.details.size() > 0
+          && data.priceRwf is int && data.priceRwf > 0
+          && data.photoUrls is list
+          && data.photoUrls.size() >= 1 && data.photoUrls.size() <= 6
+          && data.imagePath == data.photoUrls[0]
+          && data.imagePath is string
+          && data.imagePath.matches('https://res[.]cloudinary[.]com/.+')
+          && data.pickupHubId is string
+          && data.negotiable is bool
+          && data.status in ['active', 'sold'];
+      }
+
+      allow read: if isMember();
+      allow create: if isMember()
+        && request.resource.data.sellerId == request.auth.uid
+        && validListing(request.resource.data);
+      allow update: if isMember()
+        && resource.data.sellerId == request.auth.uid
+        && request.resource.data.sellerId == request.auth.uid
+        && validListing(request.resource.data);
+      allow delete: if isMember() && resource.data.sellerId == request.auth.uid;
+    }
+
+    // Conversations
+    match /conversations/{conversationId} {
+      function isParticipant(data) {
+        return isMember() && request.auth.uid in data.participantIds;
+      }
+
+      allow read: if isParticipant(resource.data);
+      allow create: if isParticipant(request.resource.data)
+        && request.resource.data.participantIds.size() == 2;
+      // Participants update lastMessage, updatedAt and unread counts.
+      allow update: if isParticipant(resource.data)
+        && onlyChanges(['lastMessage', 'updatedAt', 'unreadCounts']);
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        function conversation() {
+          return get(/databases/$(database)/documents/conversations/$(conversationId)).data;
+        }
+
+        allow read: if isParticipant(conversation());
+        allow create: if isParticipant(conversation())
+          && request.resource.data.senderId == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+
+    // Fixed data
+    match /categories/{id} {
+      allow read: if isMember();
+      allow write: if false;
+    }
+    match /pickupHubs/{id} {
+      allow read: if isMember();
+      allow write: if false;
+    }
+    match /officialHandles/{id} {
+      allow read: if isMember();
+      allow write: if false;
+    }
+    match /communities/{id} {
+      allow read: if isMember();
+      allow write: if false;
+    }
+    match /trendingTopics/{id} {
+      allow read: if isMember();
+      allow write: if false;
+    }
+  }
+}

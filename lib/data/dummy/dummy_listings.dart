@@ -61,7 +61,6 @@ final List<ListingModel> dummyListings = [
     imagePath: 'assets/images/listings/milk_and_honey.jpg',
     tag: 'Book Swap',
     tagStyle: ListingTagStyle.light,
-    isFavorited: true,
   ),
   ListingModel(
     id: 'l05',
@@ -110,7 +109,7 @@ final List<ListingModel> dummyListings = [
     priceRwf: 25000,
     condition: ListingCondition.good,
     categoryId: 'electronics',
-    seller: kwameOsei,
+    seller: amaraKamau,
     createdAt: _ago(days: 1),
     distanceKm: 0.4,
     imagePath: 'assets/images/listings/desk_calculator.jpg',
@@ -151,7 +150,7 @@ final List<ListingModel> dummyListings = [
     priceRwf: 15000,
     condition: ListingCondition.likeNew,
     categoryId: 'furniture',
-    seller: aminaToure,
+    seller: amaraKamau,
     createdAt: _ago(days: 2),
     distanceKm: 1.2,
     imagePath: 'assets/images/listings/desk_lamp.jpg',
@@ -178,7 +177,7 @@ final List<ListingModel> dummyListings = [
     priceRwf: 35000,
     condition: ListingCondition.good,
     categoryId: 'other',
-    seller: zainabKamara,
+    seller: amaraKamau,
     createdAt: _ago(days: 2, hours: 10),
     distanceKm: 0.2,
     imagePath: 'assets/images/listings/backpack.jpg',
@@ -212,3 +211,4 @@ final List<ListingModel> dummyListings = [
     tag: 'Innovation Hub',
   ),
 ];
+

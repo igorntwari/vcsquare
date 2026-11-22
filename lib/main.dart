@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app/app.dart';
-import 'firebase_options.dart';
+import 'app/firebase_bootstrap.dart';
+import 'app/routes/app_router.dart';
+import 'core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const App());
+  await initializeFirebase();
+
+  final notifications = NotificationService.instance;
+  await notifications.init();
+  notifications.setOpenHandler(AppRouter.openFromNotification);
+
+  runApp(const ProviderScope(child: App()));
+
+  // Shows the permission prompt once the first screen is up.
+  notifications.requestPermissionAndSubscribe();
 }

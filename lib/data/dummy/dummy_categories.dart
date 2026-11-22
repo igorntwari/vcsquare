@@ -1,31 +1,33 @@
 // Placeholder marketplace categories for building screens before real data.
-import 'package:flutter/material.dart';
-
 import '../models/category_model.dart';
 
 const List<CategoryModel> dummyCategories = [
-  CategoryModel(id: 'electronics', name: 'Electronics', icon: Icons.laptop),
-  CategoryModel(id: 'furniture', name: 'Furniture', icon: Icons.chair_outlined),
+  CategoryModel(id: 'electronics', name: 'Electronics', iconName: 'laptop', order: 0),
+  CategoryModel(id: 'furniture', name: 'Furniture', iconName: 'chair_outlined', order: 1),
   CategoryModel(
     id: 'appliances',
     name: 'Appliances',
-    icon: Icons.microwave_outlined,
+    iconName: 'microwave_outlined',
+    order: 2,
   ),
   CategoryModel(
     id: 'books',
     name: 'Books & Notes',
-    icon: Icons.menu_book_outlined,
+    iconName: 'menu_book_outlined',
+    order: 3,
   ),
   CategoryModel(
     id: 'clothing',
     name: 'Clothing',
-    icon: Icons.checkroom_outlined,
+    iconName: 'checkroom_outlined',
+    order: 4,
   ),
-  CategoryModel(id: 'housing', name: 'Housing', icon: Icons.home_work_outlined),
+  CategoryModel(id: 'housing', name: 'Housing', iconName: 'home_work_outlined', order: 5),
   CategoryModel(
     id: 'services',
     name: 'Services',
-    icon: Icons.handyman_outlined,
+    iconName: 'handyman_outlined',
+    order: 6,
   ),
-  CategoryModel(id: 'other', name: 'Other', icon: Icons.grid_view),
+  CategoryModel(id: 'other', name: 'Other', iconName: 'grid_view', order: 7),
 ];

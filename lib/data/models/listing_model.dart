@@ -1,4 +1,5 @@
 // Model representing a marketplace listing.
+import 'firestore_helpers.dart';
 import 'user_model.dart';
 
 enum ListingCondition { brandNew, likeNew, good, used, forParts }
@@ -18,10 +19,13 @@ class ListingModel {
     required this.createdAt,
     required this.distanceKm,
     this.imagePath,
+    List<String>? photoUrls,
+    this.pickupHubId,
+    this.negotiable = true,
+    this.status = 'active',
     this.tag,
     this.tagStyle = ListingTagStyle.dark,
-    this.isFavorited = false,
-  });
+  }) : _photoUrls = photoUrls; // ignore: prefer_initializing_formals
 
   final String id;
   final String title;
@@ -39,11 +43,68 @@ class ListingModel {
   // Distance from the buyer's usual campus spot, used for sorting.
   final double distanceKm;
   final String? imagePath;
+  final List<String>? _photoUrls;
+  List<String> get photoUrls =>
+      _photoUrls ?? (imagePath == null ? const [] : [imagePath!]);
+  final String? pickupHubId;
+  final bool negotiable;
+  final String status;
 
   // Pickup or source label over the photo, e.g. "Kigali Pickup".
   final String? tag;
   final ListingTagStyle tagStyle;
 
-  // Whether the current user had saved it when the market loaded.
-  final bool isFavorited;
+  // listings/{id}. [seller] is looked up from sellerId.
+  factory ListingModel.fromFirestore(
+    String id,
+    FirestoreMap data, {
+    required UserModel seller,
+  }) => ListingModel(
+    id: id,
+    title: readString(data['title']),
+    details: readString(data['details']),
+    priceRwf: readInt(data['priceRwf']),
+    condition: readEnum(
+      ListingCondition.values,
+      data['condition'],
+      ListingCondition.used,
+    ),
+    categoryId: readString(data['categoryId']),
+    seller: seller,
+    createdAt: readDate(data['createdAt']),
+    distanceKm: (data['distanceKm'] as num?)?.toDouble() ?? 0,
+    imagePath: data['imagePath'] as String?,
+    photoUrls:
+        (data['photoUrls'] as List<dynamic>?)?.whereType<String>().toList(
+          growable: false,
+        ) ??
+        [if (data['imagePath'] is String) data['imagePath'] as String],
+    pickupHubId: data['pickupHubId'] as String?,
+    negotiable: data['negotiable'] as bool? ?? true,
+    status: data['status'] as String? ?? 'active',
+    tag: data['tag'] as String?,
+    tagStyle: readEnum(
+      ListingTagStyle.values,
+      data['tagStyle'],
+      ListingTagStyle.dark,
+    ),
+  );
+
+  FirestoreMap toFirestore() => {
+    'title': title,
+    'details': details,
+    'priceRwf': priceRwf,
+    'condition': condition.name,
+    'categoryId': categoryId,
+    'sellerId': seller.id,
+    'createdAt': writeDate(createdAt),
+    'distanceKm': distanceKm,
+    'imagePath': imagePath,
+    'photoUrls': photoUrls,
+    'pickupHubId': pickupHubId,
+    'negotiable': negotiable,
+    'status': status,
+    'tag': tag,
+    'tagStyle': tagStyle.name,
+  };
 }

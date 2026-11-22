@@ -5,10 +5,13 @@ import 'package:flutter/services.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../avatars/user_avatar.dart';
+import '../navigation/bottom_nav_bar.dart';
+import '../navigation/main_shell.dart';
 
 // Navy header with the ALU crest, screen title, notifications and avatar.
 class AppTopBar extends StatelessWidget {
@@ -16,15 +19,15 @@ class AppTopBar extends StatelessWidget {
     super.key,
     required this.title,
     this.avatarImagePath,
-    this.hasUnreadNotifications = false,
     this.onNotificationsTap,
     this.onProfileTap,
   });
 
   final String title;
   final String? avatarImagePath;
-  final bool hasUnreadNotifications;
+  // Defaults to opening the notifications inbox.
   final VoidCallback? onNotificationsTap;
+  // Defaults to switching to the Profile tab.
   final VoidCallback? onProfileTap;
 
   @override
@@ -73,7 +76,9 @@ class AppTopBar extends StatelessWidget {
                     dimension: AppSizes.tapTarget,
                     child: IconButton(
                       tooltip: AppStrings.notifications,
-                      onPressed: onNotificationsTap,
+                      onPressed:
+                          onNotificationsTap ??
+                          NotificationService.instance.openInbox,
                       padding: EdgeInsets.zero,
                       icon: Stack(
                         clipBehavior: Clip.none,
@@ -83,19 +88,28 @@ class AppTopBar extends StatelessWidget {
                             size: AppSizes.iconLg,
                             color: AppColors.textOnDark,
                           ),
-                          if (hasUnreadNotifications)
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: Container(
-                                width: AppSizes.statusDot,
-                                height: AppSizes.statusDot,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.accent,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
+                          // Red dot while any notification is unread.
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: ValueListenableBuilder(
+                              valueListenable:
+                                  NotificationService.instance.notifications,
+                              builder: (context, notifications, _) {
+                                if (notifications.every((n) => n.isRead)) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Container(
+                                  width: AppSizes.statusDot,
+                                  height: AppSizes.statusDot,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.accent,
+                                    shape: BoxShape.circle,
+                                  ),
+                                );
+                              },
                             ),
+                          ),
                         ],
                       ),
                     ),
@@ -105,7 +119,12 @@ class AppTopBar extends StatelessWidget {
                     button: true,
                     label: AppStrings.profile,
                     child: GestureDetector(
-                      onTap: onProfileTap,
+                      onTap:
+                          onProfileTap ??
+                          () => MainShell.selectTab(
+                            context,
+                            BottomNavBar.profileIndex,
+                          ),
                       child: SizedBox.square(
                         dimension: AppSizes.tapTarget,
                         child: Center(

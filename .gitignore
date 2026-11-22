@@ -46,3 +46,14 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+.env
+# Firebase dart-defines
+env.json
+
+# Firebase tooling
+node_modules/
+*-debug.log
+.firebase/
+# Service account keys for the seed script. Never commit these.
+*service-account*.json
+*-firebase-adminsdk-*.json

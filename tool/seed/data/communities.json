@@ -1,0 +1,32 @@
+{
+  "cm_software": {
+    "name": "ALU Software Engineers",
+    "tag": "Tech",
+    "description": "Open source hackathons, web3 sprints, and mock technical interviews.",
+    "memberCount": 340,
+    "activity": "Next meetup: Friday 18:00",
+    "memberPreviewIds": [],
+    "imagePath": "assets/images/communities/software_engineers.jpg",
+    "order": 0
+  },
+  "cm_debate": {
+    "name": "Pan-African Debate Society",
+    "tag": "Policy",
+    "description": "Sharpening persuasive diplomacy, governance debate, and parliamentary rhetoric.",
+    "memberCount": 180,
+    "activity": "Model AU Delegation open",
+    "memberPreviewIds": [],
+    "imagePath": "assets/images/communities/debate_society.jpg",
+    "order": 0
+  },
+  "cm_culture": {
+    "name": "Rwandan Cultural Troupe",
+    "tag": "Culture",
+    "description": "Preserving heritage through traditional Intore dance, drumming, and folklore.",
+    "memberCount": 115,
+    "activity": "Rehearsing for Cultural Gala",
+    "memberPreviewIds": [],
+    "imagePath": "assets/images/communities/cultural_troupe.jpg",
+    "order": 0
+  }
+}

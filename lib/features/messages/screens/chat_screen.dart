@@ -7,6 +7,8 @@ import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../data/dummy/dummy_messages.dart';
+import '../../../data/dummy/dummy_users.dart';
 import '../../../data/models/conversation_model.dart';
 import '../../../data/models/message_model.dart';
 import '../../../shared/widgets/avatars/user_avatar.dart';
@@ -26,7 +28,9 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  late final List<MessageModel> _messages = [...widget.conversation.messages];
+  late final List<MessageModel> _messages = [
+    ...?dummyMessages[widget.conversation.id],
+  ];
 
   void _send(String text) {
     setState(() {
@@ -35,7 +39,7 @@ class _ChatScreenState extends State<ChatScreen> {
           id: 'local_${_messages.length}',
           text: text,
           sentAt: DateTime.now(),
-          isMine: true,
+          senderId: dummyCurrentUser.id,
           status: MessageStatus.sent,
         ),
       );
@@ -75,9 +79,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 itemCount: _messages.length,
                 separatorBuilder: (_, _) =>
                     const SizedBox(height: AppSpacing.sm),
-                itemBuilder: (context, index) => MessageBubble(
-                  message: _messages[_messages.length - 1 - index],
-                ),
+                itemBuilder: (context, index) {
+                  final message = _messages[_messages.length - 1 - index];
+                  return MessageBubble(
+                    message: message,
+                    isMine: message.isFrom(dummyCurrentUser.id),
+                  );
+                },
               ),
             ),
             ChatInputBar(onSend: _send),

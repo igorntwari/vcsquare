@@ -12,13 +12,15 @@ import '../../../data/models/message_model.dart';
 
 // Navy on the right for the current user, white on the left for others.
 class MessageBubble extends StatelessWidget {
-  const MessageBubble({super.key, required this.message});
+  const MessageBubble({super.key, required this.message, required this.isMine});
 
   final MessageModel message;
 
+  // True when the signed-in user sent it.
+  final bool isMine;
+
   @override
   Widget build(BuildContext context) {
-    final isMine = message.isMine;
     final textColor = isMine ? AppColors.textOnDark : AppColors.textPrimary;
     final metaColor = isMine ? AppColors.textOnDarkMuted : AppColors.textMuted;
     const big = Radius.circular(AppRadius.lg);

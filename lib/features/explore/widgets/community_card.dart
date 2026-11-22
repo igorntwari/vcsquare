@@ -12,6 +12,7 @@ import '../../../shared/widgets/avatars/user_avatar.dart';
 import '../../../shared/widgets/buttons/follow_join_button.dart';
 import '../../../shared/widgets/cards/app_card.dart';
 import '../../../shared/widgets/chips/status_tag.dart';
+import '../../../shared/widgets/media/app_image.dart';
 
 class CommunityCard extends StatelessWidget {
   const CommunityCard({
@@ -19,11 +20,13 @@ class CommunityCard extends StatelessWidget {
     required this.community,
     required this.isJoined,
     this.onJoin,
+    this.onTap,
   });
 
   final CommunityModel community;
   final bool isJoined;
   final VoidCallback? onJoin;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +59,13 @@ class CommunityCard extends StatelessWidget {
                           backgroundColor: AppColors.chipBackground,
                           foregroundColor: AppColors.textPrimary,
                         ),
+                        if (onTap != null)
+                          IconButton(
+                            tooltip: AppStrings.communityDetailsTitle,
+                            onPressed: onTap,
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Icons.arrow_forward_ios),
+                          ),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.xxs),
@@ -151,7 +161,7 @@ class CommunityCard extends StatelessWidget {
         dimension: AppSizes.communityImage,
         child: community.imagePath == null
             ? placeholder
-            : Image.asset(
+            : AppImage(
                 community.imagePath!,
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => placeholder,

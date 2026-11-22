@@ -11,14 +11,14 @@ final List<ConversationModel> dummyConversations = [
     type: ConversationType.marketplace,
     listing: dummyListings.firstWhere((listing) => listing.id == 'l01'),
     unreadCount: 2,
-    messages: dummyMessages['cv_macbook']!,
+    lastMessage: dummyMessages['cv_macbook']!.last,
   ),
   ConversationModel(
     id: 'cv_student_life',
     participant: aluStudentLife,
     type: ConversationType.official,
     subject: 'Club Budget Allocation Approved 🎯',
-    messages: dummyMessages['cv_student_life']!,
+    lastMessage: dummyMessages['cv_student_life']!.last,
   ),
   ConversationModel(
     id: 'cv_kofi',
@@ -26,21 +26,21 @@ final List<ConversationModel> dummyConversations = [
     type: ConversationType.peer,
     subject: 'DS Study Session',
     unreadCount: 2,
-    messages: dummyMessages['cv_kofi']!,
+    lastMessage: dummyMessages['cv_kofi']!.last,
   ),
   ConversationModel(
     id: 'cv_zainab',
     participant: zainabKamara,
     type: ConversationType.peer,
     subject: 'Study Group • System Design',
-    messages: dummyMessages['cv_zainab']!,
+    lastMessage: dummyMessages['cv_zainab']!.last,
   ),
   ConversationModel(
     id: 'cv_chair',
     participant: jeanLucNiyonzima,
     type: ConversationType.marketplace,
     listing: dummyListings.firstWhere((listing) => listing.id == 'l03'),
-    messages: dummyMessages['cv_chair']!,
+    lastMessage: dummyMessages['cv_chair']!.last,
   ),
   ConversationModel(
     id: 'cv_robotics',
@@ -48,14 +48,14 @@ final List<ConversationModel> dummyConversations = [
     type: ConversationType.official,
     subject: 'Demo Day Sign-ups',
     unreadCount: 1,
-    messages: dummyMessages['cv_robotics']!,
+    lastMessage: dummyMessages['cv_robotics']!.last,
   ),
   ConversationModel(
     id: 'cv_jacket',
     participant: aminaToure,
     type: ConversationType.marketplace,
     listing: dummyListings.firstWhere((listing) => listing.id == 'l02'),
-    messages: dummyMessages['cv_jacket']!,
+    lastMessage: dummyMessages['cv_jacket']!.last,
   ),
 ];
 

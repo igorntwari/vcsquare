@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "281732041231-7u4fc2stqh6cs42tonqeb7cuumav36me.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.vsquare",
+            "certificate_hash": "87617ba68ebe9cc91b6d725688ae98dc9d3c68ee"
+          }
+        },
+        {
           "client_id": "281732041231-etml9nslsi25nvo32g0ak383ic6k95m1.apps.googleusercontent.com",
           "client_type": 3
         }

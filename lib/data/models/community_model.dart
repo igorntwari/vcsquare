@@ -1,4 +1,5 @@
 // Model representing a campus community or club.
+import 'firestore_helpers.dart';
 import 'user_model.dart';
 
 class CommunityModel {
@@ -11,7 +12,7 @@ class CommunityModel {
     required this.activity,
     required this.members,
     this.imagePath,
-    this.isJoined = false,
+    this.order = 0,
   });
 
   final String id;
@@ -28,7 +29,36 @@ class CommunityModel {
   // A few members shown as an avatar pile.
   final List<UserModel> members;
   final String? imagePath;
+  final int order;
 
-  // Whether the current user was already a member when Explore loaded.
-  final bool isJoined;
+  // communities/{id}. [members] are looked up from memberPreviewIds.
+  factory CommunityModel.fromFirestore(
+    String id,
+    FirestoreMap data, {
+    List<UserModel> members = const [],
+  }) => CommunityModel(
+    id: id,
+    name: readString(data['name']),
+    tag: readString(data['tag']),
+    description: readString(data['description']),
+    memberCount: readInt(data['memberCount']),
+    activity: readString(data['activity']),
+    members: members,
+    imagePath: data['imagePath'] as String?,
+    order: readInt(data['order']),
+  );
+
+  static List<String> memberPreviewIdsOf(FirestoreMap data) =>
+      readStringList(data['memberPreviewIds']);
+
+  FirestoreMap toFirestore() => {
+    'name': name,
+    'tag': tag,
+    'description': description,
+    'memberCount': memberCount,
+    'activity': activity,
+    'memberPreviewIds': [for (final member in members) member.id],
+    'imagePath': imagePath,
+    'order': order,
+  };
 }

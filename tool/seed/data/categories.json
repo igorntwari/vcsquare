@@ -1,0 +1,42 @@
+{
+  "electronics": {
+    "name": "Electronics",
+    "iconName": "laptop",
+    "order": 0
+  },
+  "furniture": {
+    "name": "Furniture",
+    "iconName": "chair_outlined",
+    "order": 1
+  },
+  "appliances": {
+    "name": "Appliances",
+    "iconName": "microwave_outlined",
+    "order": 2
+  },
+  "books": {
+    "name": "Books & Notes",
+    "iconName": "menu_book_outlined",
+    "order": 3
+  },
+  "clothing": {
+    "name": "Clothing",
+    "iconName": "checkroom_outlined",
+    "order": 4
+  },
+  "housing": {
+    "name": "Housing",
+    "iconName": "home_work_outlined",
+    "order": 5
+  },
+  "services": {
+    "name": "Services",
+    "iconName": "handyman_outlined",
+    "order": 6
+  },
+  "other": {
+    "name": "Other",
+    "iconName": "grid_view",
+    "order": 7
+  }
+}

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../media/app_image.dart';
 
 // Shows [imagePath] in a circle, or a person icon when there is no image yet.
 class UserAvatar extends StatelessWidget {
@@ -25,7 +26,7 @@ class UserAvatar extends StatelessWidget {
         color: AppColors.blueSurface,
         child: imagePath == null
             ? placeholder
-            : Image.asset(
+            : AppImage(
                 imagePath!,
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => placeholder,

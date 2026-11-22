@@ -111,7 +111,6 @@ const googleDevClub = UserModel(
   name: 'Google Developer Club',
   handle: '@ALU_GDG',
   type: AuthorType.club,
-  isJoined: true,
 );
 const afroDanceSociety = UserModel(
   id: 'c_dance',
