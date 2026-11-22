@@ -1,65 +1,71 @@
-// Inbox screen listing conversations.
+
+// Inbox screen listing live conversations.
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../data/dummy/dummy_conversations.dart';
 import '../../../data/dummy/dummy_users.dart';
 import '../../../data/models/conversation_model.dart';
+import '../../../data/models/user_model.dart';
+import '../../../data/repositories/repository_providers.dart';
 import '../../../shared/widgets/buttons/floating_pill_button.dart';
 import '../../../shared/widgets/chips/app_chip.dart';
 import '../../../shared/widgets/chips/filter_chip_bar.dart';
 import '../../../shared/widgets/feedback/empty_state.dart';
 import '../../../shared/widgets/inputs/app_search_bar.dart';
 import '../../../shared/widgets/layout/app_top_bar.dart';
+import '../providers/chats_providers.dart';
 import '../widgets/conversation_tile.dart';
+import '../widgets/new_chat_sheet.dart';
 import 'chat_screen.dart';
 
 enum _InboxFilter { all, marketplace, official, unread }
 
-class MessagesScreen extends StatefulWidget {
+class MessagesScreen extends ConsumerStatefulWidget {
   const MessagesScreen({super.key});
 
   @override
-  State<MessagesScreen> createState() => _MessagesScreenState();
+  ConsumerState<MessagesScreen> createState() => _MessagesScreenState();
 }
 
-class _MessagesScreenState extends State<MessagesScreen> {
+class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   _InboxFilter _filter = _InboxFilter.all;
   String _query = '';
 
-  // Conversations opened this session; their unread count is cleared.
-  final Set<String> _openedIds = {};
-
-  int _unreadCount(ConversationModel conversation) =>
-      _openedIds.contains(conversation.id) ? 0 : conversation.unreadCount;
-
-  List<ConversationModel> get _visibleConversations {
+  List<ConversationModel> _filtered(List<ConversationModel> all) {
     final query = _query.trim().toLowerCase();
-    return dummyConversations.where((conversation) {
+
+    return all.where((conversation) {
+      // Hide conversations without messages.
+      if (conversation.lastMessage.text.isEmpty) return false;
+
       final matchesFilter = switch (_filter) {
         _InboxFilter.all => true,
         _InboxFilter.marketplace =>
           conversation.type == ConversationType.marketplace,
-        _InboxFilter.official => conversation.type == ConversationType.official,
-        _InboxFilter.unread => _unreadCount(conversation) > 0,
+        _InboxFilter.official =>
+          conversation.type == ConversationType.official,
+        _InboxFilter.unread => conversation.unreadCount > 0,
       };
+
       if (!matchesFilter) return false;
       if (query.isEmpty) return true;
+
       final haystack = [
         conversation.participant.name,
         conversation.subject ?? '',
         conversation.listing?.title ?? '',
         conversation.lastMessage.text,
       ].join(' ').toLowerCase();
+
       return haystack.contains(query);
     }).toList();
   }
 
   Future<void> _openChat(ConversationModel conversation) async {
-    setState(() => _openedIds.add(conversation.id));
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => ChatScreen(conversation: conversation),
@@ -67,9 +73,47 @@ class _MessagesScreenState extends State<MessagesScreen> {
     );
   }
 
+  Future<void> _newChat() async {
+    final repo = ref.read(chatsRepositoryProvider);
+    final me = currentChatUserId();
+
+    try {
+      final people = await repo.fetchPeople(me);
+
+      if (!mounted) return;
+
+      final picked = await showModalBottomSheet<UserModel>(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => NewChatSheet(people: people),
+      );
+
+      if (picked == null) return;
+
+      final conversation = await repo.openConversation(
+        userId: me,
+        other: picked,
+      );
+
+      if (!mounted) return;
+
+      await _openChat(conversation);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not start the chat. Try again.'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final conversations = _visibleConversations;
+    final inbox = ref.watch(conversationsProvider);
+    final conversations = _filtered(inbox.value ?? const []);
+    final loading = inbox.isLoading && !inbox.hasValue;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Column(
@@ -101,7 +145,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     ),
                   ),
                   SliverPadding(
-                    // Leaves room for the floating New Chat button.
                     padding: EdgeInsets.fromLTRB(
                       AppSpacing.lg,
                       AppSpacing.md,
@@ -109,12 +152,19 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       bottomInset + AppSpacing.xxxl + AppSpacing.xxl,
                     ),
                     sliver: conversations.isEmpty
-                        ? const SliverToBoxAdapter(
-                            child: EmptyState(
-                              icon: Icons.forum_outlined,
-                              title: AppStrings.noChatsTitle,
-                              message: AppStrings.noChatsMessage,
-                            ),
+                        ? SliverToBoxAdapter(
+                            child: loading
+                                ? const Padding(
+                                    padding: EdgeInsets.all(AppSpacing.xxl),
+                                    child: Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  )
+                                : const EmptyState(
+                                    icon: Icons.forum_outlined,
+                                    title: AppStrings.noChatsTitle,
+                                    message: AppStrings.noChatsMessage,
+                                  ),
                           )
                         : SliverList.separated(
                             itemCount: conversations.length,
@@ -122,10 +172,11 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                 const SizedBox(height: AppSpacing.sm),
                             itemBuilder: (context, index) {
                               final conversation = conversations[index];
+
                               return ConversationTile(
                                 conversation: conversation,
-                                currentUserId: dummyCurrentUser.id,
-                                unreadCount: _unreadCount(conversation),
+                                currentUserId: currentChatUserId(),
+                                unreadCount: conversation.unreadCount,
                                 onTap: () => _openChat(conversation),
                               );
                             },
@@ -139,7 +190,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 child: FloatingPillButton(
                   icon: Icons.add_comment_outlined,
                   label: AppStrings.newChat,
-                  onPressed: () {},
+                  onPressed: _newChat,
                 ),
               ),
             ],
@@ -149,7 +200,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
     );
   }
 
-  // Light search field with a round "new message" button beside it.
   Widget _buildSearchRow() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -171,7 +221,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           const SizedBox(width: AppSpacing.sm),
           IconButton(
             tooltip: AppStrings.newMessage,
-            onPressed: () {},
+            onPressed: _newChat,
             style: IconButton.styleFrom(
               backgroundColor: AppColors.primary,
               fixedSize: const Size.square(AppSizes.tapTarget),
@@ -187,3 +237,4 @@ class _MessagesScreenState extends State<MessagesScreen> {
     );
   }
 }
+
