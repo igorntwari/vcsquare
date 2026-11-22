@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/conversation_model.dart';
 import '../../models/firestore_helpers.dart';
 import '../../models/message_model.dart';
+import '../../models/user_model.dart';
 import '../firebase/firestore_collections.dart';
 import '../firebase/user_lookup.dart';
 import '../listings/firebase_listings_repository.dart';
@@ -24,23 +25,54 @@ class FirebaseChatsRepository implements ChatsRepository {
   CollectionReference<Map<String, dynamic>> _messagesOf(String id) =>
       _conversations.doc(id).collection(FirestoreCollections.messages);
 
+  // Needs the participantIds + updatedAt index in firestore.indexes.json.
+  Query<Map<String, dynamic>> _inboxQuery(String userId) => _conversations
+      .where('participantIds', arrayContains: userId)
+      .orderBy('updatedAt', descending: true);
+
   @override
   Future<List<ConversationModel>> fetchConversations(String userId) async {
-    // Needs the participantIds + updatedAt index in firestore.indexes.json.
-    final snapshot = await _conversations
-        .where('participantIds', arrayContains: userId)
-        .orderBy('updatedAt', descending: true)
-        .get();
-    final docs = snapshot.docs;
+    final snapshot = await _inboxQuery(userId).get();
+    return _toConversations(snapshot.docs, userId);
+  }
+
+  @override
+  Stream<List<ConversationModel>> watchConversations(String userId) =>
+      _inboxQuery(userId).snapshots().asyncMap(
+        (snapshot) => _toConversations(snapshot.docs, userId),
+      );
+
+  // Messages are immutable, so "read" is derived: our last message counts
+  // as read once the other person's unread count is back to 0.
+  Map<String, dynamic> _withReadStatus(Map<String, dynamic> raw, String me) {
+    final data = Map<String, dynamic>.from(raw);
+    final last = readMap(data['lastMessage']);
+    if (last == null || last['senderId'] != me) return data;
+    final otherId = ConversationModel.otherParticipantId(data, me);
+    final unread = readMap(data['unreadCounts']) ?? const {};
+    if (readInt(unread[otherId]) == 0) {
+      data['lastMessage'] = {...last, 'status': 'read'};
+    }
+    return data;
+  }
+
+  Future<List<ConversationModel>> _toConversations(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
+    String userId,
+  ) async {
+    final rows = [
+      for (final doc in docs)
+        (id: doc.id, data: _withReadStatus(doc.data(), userId)),
+    ];
 
     final participants = await _users.byIds([
-      for (final doc in docs)
-        ConversationModel.otherParticipantId(doc.data(), userId),
+      for (final row in rows)
+        ConversationModel.otherParticipantId(row.data, userId),
     ]);
 
     final listingIds = {
-      for (final doc in docs)
-        if (doc.data()['listingId'] case final String id) id,
+      for (final row in rows)
+        if (row.data['listingId'] case final String id) id,
     };
     final listingDocs = await Future.wait([
       for (final id in listingIds)
@@ -52,18 +84,18 @@ class FirebaseChatsRepository implements ChatsRepository {
     };
 
     return [
-      for (final doc in docs)
+      for (final row in rows)
         ConversationModel.fromFirestore(
-          doc.id,
-          doc.data(),
+          row.id,
+          row.data,
           currentUserId: userId,
           participant:
               participants[ConversationModel.otherParticipantId(
-                doc.data(),
+                row.data,
                 userId,
               )] ??
               UserLookup.placeholder(''),
-          listing: listings[doc.data()['listingId']],
+          listing: listings[row.data['listingId']],
         ),
     ];
   }
@@ -86,6 +118,10 @@ class FirebaseChatsRepository implements ChatsRepository {
     required String senderId,
     required String text,
   }) async {
+    final clean = text.trim();
+    if (clean.isEmpty) return;
+    final body = clean.length > 2000 ? clean.substring(0, 2000) : clean;
+
     final conversation = _conversations.doc(conversationId);
     final snapshot = await conversation.get();
     final otherId = ConversationModel.otherParticipantId(
@@ -94,7 +130,7 @@ class FirebaseChatsRepository implements ChatsRepository {
     );
     final message = MessageModel(
       id: '',
-      text: text,
+      text: body,
       sentAt: DateTime.now(),
       senderId: senderId,
       status: MessageStatus.sent,
@@ -117,5 +153,76 @@ class FirebaseChatsRepository implements ChatsRepository {
     required String userId,
   }) => _conversations.doc(conversationId).update({
     'unreadCounts.$userId': 0,
+  });
+
+  @override
+  Future<List<UserModel>> fetchPeople(String userId) async {
+    final snapshot = await _db
+        .collection('users')
+        .where('type', isEqualTo: 'student')
+        .limit(100)
+        .get();
+    return [
+      for (final doc in snapshot.docs)
+        if (doc.id != userId) UserModel.fromFirestore(doc.id, doc.data()),
+    ];
+  }
+
+  @override
+  Future<ConversationModel> openConversation({
+    required String userId,
+    required UserModel other,
+  }) async {
+    // Same id for both people, so two taps never create two chats.
+    final id = ([userId, other.id]..sort()).join('_');
+    final ref = _conversations.doc(id);
+    final snapshot = await ref.get();
+
+    final fresh = <String, dynamic>{
+      'participantIds': [userId, other.id],
+      'type': ConversationType.peer.name,
+      'subject': null,
+      'listingId': null,
+      'lastMessage': <String, dynamic>{},
+      'updatedAt': writeDate(DateTime.now()),
+      'unreadCounts': {userId: 0, other.id: 0},
+      'mutedBy': <String>[],
+    };
+    if (!snapshot.exists) await ref.set(fresh);
+
+    return ConversationModel.fromFirestore(
+      id,
+      snapshot.data() ?? fresh,
+      currentUserId: userId,
+      participant: other,
+    );
+  }
+
+  @override
+  Stream<bool> watchMuted({
+    required String conversationId,
+    required String userId,
+  }) => _conversations.doc(conversationId).snapshots().map((snapshot) {
+    final muted = snapshot.data()?['mutedBy'];
+    return muted is List && muted.contains(userId);
+  });
+
+  @override
+  Future<void> setMuted({
+    required String conversationId,
+    required String userId,
+    required bool muted,
+  }) => _conversations.doc(conversationId).update({
+    'mutedBy': muted
+        ? FieldValue.arrayUnion([userId])
+        : FieldValue.arrayRemove([userId]),
+  });
+
+  @override
+  Future<void> blockUser({
+    required String userId,
+    required String blockedId,
+  }) => _db.doc('users/$userId/blocks/$blockedId').set({
+    'createdAt': writeDate(DateTime.now()),
   });
 }
