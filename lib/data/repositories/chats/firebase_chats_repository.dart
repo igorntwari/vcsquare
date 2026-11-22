@@ -53,7 +53,11 @@ class FirebaseChatsRepository implements ChatsRepository {
     List<ConversationModel> conversations,
     String userId,
   ) async {
-    final blocked = await readIdSet(_db, userId, FirestoreCollections.blocks);
+    final blocked = await readOptionalIdSet(
+      _db,
+      userId,
+      FirestoreCollections.blocks,
+    );
     if (blocked.isEmpty) return conversations;
     return [
       for (final conversation in conversations)

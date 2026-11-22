@@ -54,6 +54,22 @@ Future<Set<String>> readIdSet(
   return {for (final doc in snapshot.docs) doc.id};
 }
 
+// Like [readIdSet], but an empty set when the security rules refuse the
+// read. For optional lists (saved posts, blocks) whose rules may not be
+// deployed yet: a missing rule must not take down the whole screen.
+Future<Set<String>> readOptionalIdSet(
+  FirebaseFirestore db,
+  String userId,
+  String subcollection,
+) async {
+  try {
+    return await readIdSet(db, userId, subcollection);
+  } on FirebaseException catch (error) {
+    if (error.code != 'permission-denied') rethrow;
+    return {};
+  }
+}
+
 // Adds or removes users/{userId}/{subcollection}/{id}.
 Future<void> writeIdFlag(
   FirebaseFirestore db, {

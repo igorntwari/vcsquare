@@ -101,7 +101,7 @@ class FirebasePostsRepository implements PostsRepository {
 
   @override
   Future<Set<String>> fetchSavedPostIds(String userId) =>
-      readIdSet(_db, userId, FirestoreCollections.savedPosts);
+      readOptionalIdSet(_db, userId, FirestoreCollections.savedPosts);
 
   @override
   Future<void> setSaved({
