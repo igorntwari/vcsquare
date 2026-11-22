@@ -18,6 +18,7 @@ class PostAuthorHeader extends StatelessWidget {
     required this.timeAgo,
     this.audience,
     this.trailing,
+    this.onMoreOptions,
   });
 
   final UserModel author;
@@ -26,6 +27,9 @@ class PostAuthorHeader extends StatelessWidget {
 
   // Shown on the right. Defaults to a "more options" button.
   final Widget? trailing;
+
+  // Opens the post's options (copy, delete).
+  final VoidCallback? onMoreOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +87,7 @@ class PostAuthorHeader extends StatelessWidget {
         trailing ??
             IconButton(
               tooltip: AppStrings.moreOptions,
-              onPressed: () {},
+              onPressed: onMoreOptions,
               visualDensity: VisualDensity.compact,
               icon: const Icon(
                 Icons.more_horiz,

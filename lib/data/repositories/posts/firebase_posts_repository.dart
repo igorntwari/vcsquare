@@ -28,6 +28,9 @@ class FirebasePostsRepository implements PostsRepository {
   }
 
   @override
+  Future<void> deletePost(String postId) => _posts.doc(postId).delete();
+
+  @override
   Future<List<PostComment>> fetchComments(String postId) async {
     final snapshot = await _posts
         .doc(postId)

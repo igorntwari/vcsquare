@@ -67,6 +67,13 @@ void main() {
     expect(await repo.fetchSavedPostIds(me), isEmpty);
   });
 
+  test('posts: deletePost removes the document', () async {
+    final repo = FirebasePostsRepository(db);
+    await repo.deletePost('p01');
+    expect((await db.collection('posts').doc('p01').get()).exists, isFalse);
+    expect((await repo.fetchFeed()).any((p) => p.id == 'p01'), isFalse);
+  });
+
   test('listings, ordered categories and saved listings', () async {
     for (final c in dummyCategories.reversed) {
       await db.collection('categories').doc(c.id).set(c.toFirestore());

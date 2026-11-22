@@ -30,6 +30,7 @@ class PinnedAnnouncementCard extends StatelessWidget {
     this.onComment,
     this.onShare,
     this.onSave,
+    this.onMoreOptions,
   });
 
   final PostModel post;
@@ -42,6 +43,7 @@ class PinnedAnnouncementCard extends StatelessWidget {
   final VoidCallback? onComment;
   final VoidCallback? onShare;
   final VoidCallback? onSave;
+  final VoidCallback? onMoreOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +92,7 @@ class PinnedAnnouncementCard extends StatelessWidget {
                 PostAuthorHeader(
                   author: post.author,
                   timeAgo: Formatters.timeAgo(post.createdAt),
+                  onMoreOptions: onMoreOptions,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 PostBodyText(title: post.title, body: post.body),

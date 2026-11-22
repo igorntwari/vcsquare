@@ -437,3 +437,25 @@ describe('saved posts', () => {
     await assertFails(setDoc(saved(member(), 'nadia'), { createdAt: serverTimestamp() }));
   });
 });
+
+describe('deleting posts', () => {
+  const seed = () =>
+    env.withSecurityRulesDisabled((context) =>
+      setDoc(doc(context.firestore(), 'posts/mine'), {
+        authorId: 'amara',
+        likeCount: 0,
+        commentCount: 0,
+      }),
+    );
+
+  test('the author can delete their own post', async () => {
+    await seed();
+    await assertSucceeds(deleteDoc(doc(member(), 'posts/mine')));
+  });
+
+  test('nobody else can delete it', async () => {
+    await seed();
+    await assertFails(deleteDoc(doc(as('kofi', 'k.mensah@alustudent.com'), 'posts/mine')));
+    await assertFails(deleteDoc(doc(outsider(), 'posts/mine')));
+  });
+});

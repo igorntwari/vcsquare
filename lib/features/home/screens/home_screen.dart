@@ -23,6 +23,8 @@ import '../widgets/pinned_announcement_card.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_composer_bar.dart';
 
+enum _PostAction { copy, delete }
+
 // Top bar stays fixed; the header, filters and feed scroll beneath it.
 // Likes and club joins are kept here so every post from the same club
 // updates together, and saved through the repositories.
@@ -193,6 +195,77 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ..showSnackBar(const SnackBar(content: Text(AppStrings.postCopied)));
   }
 
+  // Copy for everyone; delete for the post's author.
+  Future<void> _openPostOptions(PostModel post) async {
+    final userId = ref.read(currentUserProvider).value?.id;
+    final isMine = userId != null && post.author.id == userId;
+    final action = await showModalBottomSheet<_PostAction>(
+      context: context,
+      useSafeArea: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.copy_outlined),
+              title: const Text(AppStrings.copyPostText),
+              onTap: () => Navigator.of(context).pop(_PostAction.copy),
+            ),
+            if (isMine)
+              ListTile(
+                leading: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.error,
+                ),
+                title: const Text(AppStrings.deletePost),
+                onTap: () => Navigator.of(context).pop(_PostAction.delete),
+              ),
+          ],
+        ),
+      ),
+    );
+    switch (action) {
+      case _PostAction.copy:
+        await _sharePost(post);
+      case _PostAction.delete:
+        await _deletePost(post);
+      case null:
+        break;
+    }
+  }
+
+  Future<void> _deletePost(PostModel post) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(AppStrings.confirmDeletePost),
+        content: const Text(AppStrings.confirmDeletePostBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(AppStrings.deletePost),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(postsRepositoryProvider).deletePost(post.id);
+    } catch (_) {
+      _showSaveFailed();
+      return;
+    }
+    _update(() => _posts = [..._posts.where((p) => p.id != post.id)]);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text(AppStrings.postDeleted)));
+  }
+
   Future<void> _openComments(PostModel post) async {
     final addedComment = await showModalBottomSheet<bool>(
       context: context,
@@ -354,6 +427,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         onShare: () => _sharePost(post),
         isSaved: _savedPostIds.contains(post.id),
         onSave: () => _toggleSave(post),
+        onMoreOptions: () => _openPostOptions(post),
       );
     }
     return PostCard(
@@ -367,6 +441,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onShare: () => _sharePost(post),
       isSaved: _savedPostIds.contains(post.id),
       onSave: () => _toggleSave(post),
+      onMoreOptions: () => _openPostOptions(post),
       selectedPollOption: _pollVoteOptions[post.id],
       onVote: (option) => _votePoll(post, option),
     );

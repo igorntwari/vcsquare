@@ -11,18 +11,32 @@ class SamplePostsRepository implements PostsRepository {
   final Set<String> _rsvpedPostIds = {};
   final Set<String> _savedPostIds = {};
   final List<PostModel> _createdPosts = [];
+  final Set<String> _deletedPostIds = {};
   final Map<String, List<PostComment>> _comments = {};
   final Map<String, Map<String, String>> _pollVotes = {};
 
   @override
-  Future<List<PostModel>> fetchFeed() async =>
-      [..._createdPosts.reversed, ...dummyPosts].map(_withComments).toList();
+  Future<List<PostModel>> fetchFeed() async => [
+    ..._createdPosts.reversed,
+    ...dummyPosts,
+  ].where(_isKept).map(_withComments).toList();
 
   @override
   Future<List<PostModel>> fetchPostsByAuthor(String authorId) async => [
     ..._createdPosts,
     ...dummyPosts,
-  ].where((post) => post.author.id == authorId).map(_withComments).toList();
+  ]
+      .where((post) => _isKept(post) && post.author.id == authorId)
+      .map(_withComments)
+      .toList();
+
+  bool _isKept(PostModel post) => !_deletedPostIds.contains(post.id);
+
+  @override
+  Future<void> deletePost(String postId) async {
+    _deletedPostIds.add(postId);
+    _createdPosts.removeWhere((post) => post.id == postId);
+  }
 
   @override
   Future<String> createPost(PostModel post) async {

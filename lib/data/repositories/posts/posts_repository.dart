@@ -11,6 +11,9 @@ abstract interface class PostsRepository {
 
   Future<String> createPost(PostModel post);
 
+  // Only the author may delete a post (enforced in firestore.rules).
+  Future<void> deletePost(String postId);
+
   Future<List<PostComment>> fetchComments(String postId);
 
   Future<void> addComment({

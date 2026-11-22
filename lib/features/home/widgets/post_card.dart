@@ -35,6 +35,7 @@ class PostCard extends StatelessWidget {
     this.onComment,
     this.onShare,
     this.onSave,
+    this.onMoreOptions,
     this.selectedPollOption,
     this.onVote,
   });
@@ -49,6 +50,7 @@ class PostCard extends StatelessWidget {
   final VoidCallback? onComment;
   final VoidCallback? onShare;
   final VoidCallback? onSave;
+  final VoidCallback? onMoreOptions;
   final String? selectedPollOption;
   final ValueChanged<String>? onVote;
 
@@ -63,6 +65,7 @@ class PostCard extends StatelessWidget {
           PostAuthorHeader(
             author: post.author,
             timeAgo: Formatters.timeAgo(post.createdAt),
+            onMoreOptions: onMoreOptions,
             audience: post.audience,
             trailing: post.author.isClub
                 ? FollowJoinButton(

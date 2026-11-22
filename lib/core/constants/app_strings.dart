@@ -87,6 +87,12 @@ abstract final class AppStrings {
   static const String removePostPhoto = 'Remove photo';
   static const String imageTooLarge = 'Choose an image smaller than 8 MB.';
   static const String postCopied = 'Post text copied to clipboard.';
+  static const String copyPostText = 'Copy text';
+  static const String deletePost = 'Delete post';
+  static const String confirmDeletePost = 'Delete this post?';
+  static const String confirmDeletePostBody =
+      'It will be removed from the feed for everyone. This can\'t be undone.';
+  static const String postDeleted = 'Post deleted.';
   static const String commentsTitle = 'Comments';
   static const String commentHint = 'Write a comment...';
   static const String noCommentsMessage = 'Be the first to comment.';

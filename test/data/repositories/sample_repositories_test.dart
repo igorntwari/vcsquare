@@ -39,6 +39,17 @@ void main() {
     expect(await repo.fetchSavedPostIds(me), isEmpty);
   });
 
+  test('posts: deleting removes the post from the feed', () async {
+    final repo = SamplePostsRepository();
+    final mine = (await repo.fetchPostsByAuthor(me)).first;
+    await repo.deletePost(mine.id);
+    expect((await repo.fetchFeed()).any((p) => p.id == mine.id), isFalse);
+    expect(
+      (await repo.fetchPostsByAuthor(me)).any((p) => p.id == mine.id),
+      isFalse,
+    );
+  });
+
   test('listings: categories, hubs and saved listings', () async {
     final repo = SampleListingsRepository();
     expect(await repo.fetchListings(), hasLength(dummyListings.length));
