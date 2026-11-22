@@ -10,6 +10,8 @@ import 'package:vsquare/data/dummy/dummy_listings.dart';
 import 'package:vsquare/data/dummy/dummy_posts.dart';
 import 'package:vsquare/data/dummy/dummy_profile.dart';
 import 'package:vsquare/data/dummy/dummy_users.dart';
+import 'package:vsquare/data/models/listing_draft_model.dart';
+import 'package:vsquare/data/models/listing_model.dart';
 import 'package:vsquare/data/repositories/chats/firebase_chats_repository.dart';
 import 'package:vsquare/data/repositories/explore/firebase_explore_repository.dart';
 import 'package:vsquare/data/repositories/listings/firebase_listings_repository.dart';
@@ -71,6 +73,62 @@ void main() {
 
     await repo.setSaved(userId: me, listingId: 'l03', saved: true);
     expect(await repo.fetchSavedListingIds(me), {'l03'});
+  });
+
+  test('listings: drafts and seller status updates persist', () async {
+    final repo = FirebaseListingsRepository(db);
+    final listing = dummyListings.first;
+    final updated = ListingModel(
+      id: listing.id,
+      title: listing.title,
+      details: listing.details,
+      priceRwf: listing.priceRwf,
+      condition: listing.condition,
+      categoryId: listing.categoryId,
+      seller: listing.seller,
+      createdAt: listing.createdAt,
+      distanceKm: listing.distanceKm,
+      imagePath: listing.imagePath,
+      photoUrls: listing.photoUrls,
+      pickupHubId: listing.pickupHubId,
+      negotiable: listing.negotiable,
+      status: 'sold',
+      tag: listing.tag,
+      tagStyle: listing.tagStyle,
+    );
+    await repo.updateListing(updated);
+    expect(
+      (await db.collection('listings').doc(listing.id).get())['status'],
+      'sold',
+    );
+
+    final id = await repo.saveDraft(
+      userId: me,
+      draft: ListingDraftModel(
+        id: '',
+        title: 'Desk',
+        description: 'Wooden desk',
+        priceText: '25000',
+        categoryId: 'furniture',
+        condition: listing.condition,
+        pickupHubId: 'library',
+        negotiable: true,
+        photoUrls: const [],
+        updatedAt: DateTime(2026),
+      ),
+    );
+    expect((await repo.fetchDrafts(me)).single.title, 'Desk');
+    await repo.deleteDraft(userId: me, draftId: id);
+    expect(await repo.fetchDrafts(me), isEmpty);
+    await repo.deleteListing(listing.id);
+    expect(
+      await db
+          .collection('listings')
+          .doc(listing.id)
+          .get()
+          .then((d) => d.exists),
+      isFalse,
+    );
   });
 
   test('communities resolve member previews; follows and joins', () async {

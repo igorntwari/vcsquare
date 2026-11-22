@@ -38,9 +38,9 @@ class FirebaseChatsRepository implements ChatsRepository {
 
   @override
   Stream<List<ConversationModel>> watchConversations(String userId) =>
-      _inboxQuery(userId).snapshots().asyncMap(
-        (snapshot) => _toConversations(snapshot.docs, userId),
-      );
+      _inboxQuery(userId)
+          .snapshots()
+          .asyncMap((snapshot) => _toConversations(snapshot.docs, userId));
 
   // Messages are immutable, so "read" is derived: our last message counts
   // as read once the other person's unread count is back to 0.
@@ -151,9 +151,7 @@ class FirebaseChatsRepository implements ChatsRepository {
   Future<void> markRead({
     required String conversationId,
     required String userId,
-  }) => _conversations.doc(conversationId).update({
-    'unreadCounts.$userId': 0,
-  });
+  }) => _conversations.doc(conversationId).update({'unreadCounts.$userId': 0});
 
   @override
   Future<List<UserModel>> fetchPeople(String userId) async {
@@ -219,10 +217,8 @@ class FirebaseChatsRepository implements ChatsRepository {
   });
 
   @override
-  Future<void> blockUser({
-    required String userId,
-    required String blockedId,
-  }) => _db.doc('users/$userId/blocks/$blockedId').set({
-    'createdAt': writeDate(DateTime.now()),
-  });
+  Future<void> blockUser({required String userId, required String blockedId}) =>
+      _db.doc('users/$userId/blocks/$blockedId').set({
+        'createdAt': writeDate(DateTime.now()),
+      });
 }

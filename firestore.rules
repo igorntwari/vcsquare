@@ -80,6 +80,27 @@ service cloud.firestore {
       match /savedListings/{listingId} {
         allow read, write: if isSelf(uid) && isMember();
       }
+      match /listingDrafts/{draftId} {
+        function validDraft(data) {
+          return data.keys().hasOnly([
+              'title', 'description', 'priceText', 'categoryId', 'condition',
+              'pickupHubId', 'negotiable', 'photoUrls', 'updatedAt'
+            ])
+            && data.title is string && data.title.size() <= 120
+            && data.description is string && data.description.size() <= 1000
+            && data.priceText is string && data.priceText.size() <= 12
+            && (data.categoryId == null || data.categoryId is string)
+            && (data.condition == null || data.condition is string)
+            && (data.pickupHubId == null || data.pickupHubId is string)
+            && data.negotiable is bool
+            && data.photoUrls is list && data.photoUrls.size() <= 6
+            && data.updatedAt == request.time;
+        }
+
+        allow read, delete: if isSelf(uid) && isMember();
+        allow create, update: if isSelf(uid) && isMember()
+          && validDraft(request.resource.data);
+      }
       match /memberships/{groupId} {
         allow read, write: if isSelf(uid) && isMember();
       }
@@ -230,6 +251,11 @@ service cloud.firestore {
       allow update: if isMember()
         && resource.data.sellerId == request.auth.uid
         && request.resource.data.sellerId == request.auth.uid
+        && onlyChanges([
+          'title', 'details', 'priceRwf', 'condition', 'categoryId',
+          'imagePath', 'photoUrls', 'pickupHubId', 'negotiable', 'status',
+          'tag', 'tagStyle'
+        ])
         && validListing(request.resource.data);
       allow delete: if isMember() && resource.data.sellerId == request.auth.uid;
     }
@@ -240,12 +266,27 @@ service cloud.firestore {
         return isMember() && request.auth.uid in data.participantIds;
       }
 
-      allow read: if isParticipant(resource.data);
+      // The only id added to or removed from the list is the caller's own.
+      function onlyTogglesSelf(before, after) {
+        return after is list
+          && after.toSet().difference(before.toSet())
+            .union(before.toSet().difference(after.toSet()))
+            .hasOnly([request.auth.uid]);
+      }
+
+      // Members may learn that a chat doesn't exist yet: openConversation
+      // checks for it before creating it, and resource is null until then.
+      allow read: if (isMember() && resource == null)
+        || isParticipant(resource.data);
       allow create: if isParticipant(request.resource.data)
         && request.resource.data.participantIds.size() == 2;
-      // Participants update lastMessage, updatedAt and unread counts.
+      // Participants update lastMessage, updatedAt and unread counts, and can
+      // add or remove only themselves in mutedBy.
       allow update: if isParticipant(resource.data)
-        && onlyChanges(['lastMessage', 'updatedAt', 'unreadCounts']);
+        && onlyChanges(['lastMessage', 'updatedAt', 'unreadCounts', 'mutedBy'])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['mutedBy'])
+          || onlyTogglesSelf(resource.data.get('mutedBy', []),
+              request.resource.data.mutedBy));
       allow delete: if false;
 
       match /messages/{messageId} {

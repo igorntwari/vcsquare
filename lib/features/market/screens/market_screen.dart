@@ -42,6 +42,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
   String? _selectedCategoryId;
   bool _verifiedOnly = false;
   bool _underBudget = false;
+  bool _myListingsOnly = false;
   String _searchQuery = '';
   _SortOrder _sortOrder = _SortOrder.latest;
 
@@ -124,7 +125,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
     final data = _data;
     final listings = data == null
         ? const <ListingModel>[]
-        : _visibleListings(data.listings);
+        : _visibleListings(_myListingsOnly ? data.myListings : data.listings);
     final categories = data?.categories ?? const [];
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
@@ -275,6 +276,12 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
             icon: Icons.location_on,
             backgroundColor: AppColors.locationPillBackground,
             foregroundColor: AppColors.textSecondary,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          AppChip(
+            label: AppStrings.myListings,
+            selected: _myListingsOnly,
+            onTap: () => setState(() => _myListingsOnly = !_myListingsOnly),
           ),
           const SizedBox(width: AppSpacing.sm),
           AppChip(

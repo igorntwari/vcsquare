@@ -17,6 +17,7 @@ import 'package:vsquare/data/models/category_model.dart';
 import 'package:vsquare/data/models/community_model.dart';
 import 'package:vsquare/data/models/conversation_model.dart';
 import 'package:vsquare/data/models/listing_model.dart';
+import 'package:vsquare/data/models/listing_draft_model.dart';
 import 'package:vsquare/data/models/message_model.dart';
 import 'package:vsquare/data/models/official_handle_model.dart';
 import 'package:vsquare/data/models/peer_suggestion_model.dart';
@@ -75,6 +76,24 @@ void main() {
       );
       expect(back.toFirestore(), data);
     }
+  });
+
+  test('ListingDraftModel round trips private draft fields', () {
+    final draft = ListingDraftModel(
+      id: 'draft1',
+      title: 'Desk',
+      description: 'Wooden desk',
+      priceText: '25000',
+      categoryId: 'furniture',
+      condition: ListingCondition.good,
+      pickupHubId: 'library',
+      negotiable: false,
+      photoUrls: const ['https://res.cloudinary.com/demo/desk.jpg'],
+      updatedAt: DateTime(2026, 11, 22),
+    );
+    final back = ListingDraftModel.fromFirestore(draft.id, draft.toFirestore());
+    expect(back.toFirestore(), draft.toFirestore());
+    expect(back.id, draft.id);
   });
 
   test('Fixed data stores icon names, not IconData', () {
