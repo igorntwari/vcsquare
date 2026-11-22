@@ -31,11 +31,18 @@ import '../widgets/settings_list_tile.dart';
 enum _ProfileTab { posts, listings, saved }
 
 class ProfileScreen extends ConsumerStatefulWidget {
-  const ProfileScreen({super.key, this.onEditProfile, this.onOpenSettings});
+  const ProfileScreen({
+    super.key,
+    this.onEditProfile,
+    this.onOpenSettings,
+    this.onOpenListing,
+  });
 
   final VoidCallback? onEditProfile;
 
   final VoidCallback? onOpenSettings;
+
+  final ValueChanged<ListingModel>? onOpenListing;
 
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
@@ -274,6 +281,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           listing: listing,
           isFavorite: _savedListingIds.contains(listing.id),
           onFavorite: () => _toggleSaved(userId, listing.id),
+          onTap: () => widget.onOpenListing?.call(listing),
         );
       },
     );

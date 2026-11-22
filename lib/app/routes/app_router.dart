@@ -19,6 +19,7 @@ import '../../features/explore/screens/community_detail_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/market/providers/market_providers.dart';
 import '../../features/market/screens/listing_detail_screen.dart';
+import '../../features/profile/providers/profile_providers.dart';
 import '../../features/market/screens/listing_preview_screen.dart';
 import '../../features/market/screens/market_screen.dart';
 import '../../features/market/screens/sell_item_screen.dart';
@@ -31,7 +32,6 @@ import '../../features/onboarding/screens/why_institutional_login_screen.dart';
 import '../../features/profile/screens/account_settings_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
-import '../../features/profile/providers/profile_providers.dart';
 import '../../features/profile/screens/student_profile_screen.dart';
 import '../../shared/widgets/navigation/main_shell.dart';
 import '../auth_gate.dart';
@@ -98,14 +98,16 @@ abstract final class AppRouter {
             if (kDebugMode) {
               debugPrint('[AppRouter] Pushing ${RouteNames.createPost}.');
             }
-            final result = await (navigatorKey.currentState ?? Navigator.of(context))
-                .pushNamed(RouteNames.createPost);
+            final result =
+                await (navigatorKey.currentState ?? Navigator.of(context))
+                    .pushNamed(RouteNames.createPost);
             if (result == true) ref.invalidate(exploreProvider);
             return result as bool?;
           },
         ),
         MarketScreen(
-          onSellItem: () => Navigator.of(context).pushNamed(RouteNames.sellItem),
+          onSellItem: () =>
+              Navigator.of(context).pushNamed(RouteNames.sellItem),
           onOpenListing: (listing) => Navigator.of(context).push(
             MaterialPageRoute<void>(
               builder: (_) => Consumer(
@@ -159,10 +161,22 @@ abstract final class AppRouter {
               Navigator.of(context).pushNamed(RouteNames.editProfile),
           onOpenSettings: () =>
               Navigator.of(context).pushNamed(RouteNames.accountSettings),
+          onOpenListing: (listing) async {
+            await Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => Consumer(
+                  builder: (context, ref, _) =>
+                      _listingDetail(context, ref, listing),
+                ),
+              ),
+            );
+            ref.invalidate(profileProvider);
+          },
         ),
       ],
     );
   }
+
   static Widget _listingDetail(
     BuildContext context,
     WidgetRef ref,
@@ -193,17 +207,25 @@ abstract final class AppRouter {
                 }
               }
             },
-      onMarkSold: () async {
+      onEdit: () =>
+          Navigator.of(context)
+              .pushNamed(RouteNames.sellItem, arguments: listing),
+      onToggleStatus: () async {
+        final nextStatus = listing.status == 'sold' ? 'active' : 'sold';
         await ref
             .read(listingsRepositoryProvider)
-            .updateListing(_withListingStatus(listing, 'sold'));
+            .updateListing(_withListingStatus(listing, nextStatus));
         ref.invalidate(marketProvider);
+        ref.invalidate(exploreProvider);
         ref.invalidate(profileProvider);
+        ref.invalidate(studentProfileProvider(listing.seller.id));
       },
       onDelete: () async {
         await ref.read(listingsRepositoryProvider).deleteListing(listing.id);
         ref.invalidate(marketProvider);
+        ref.invalidate(exploreProvider);
         ref.invalidate(profileProvider);
+        ref.invalidate(studentProfileProvider(listing.seller.id));
       },
     );
   }
@@ -228,6 +250,86 @@ abstract final class AppRouter {
         tagStyle: listing.tagStyle,
       );
 
+  static Widget _buildSellItemRoute(BuildContext context) {
+    final initialListing =
+        ModalRoute.of(context)?.settings.arguments as ListingModel?;
+    return SellItemScreen(
+      initialListing: initialListing,
+      onClose: () => Navigator.of(context).pop(),
+      onPreview: (draft) => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (previewContext) => Consumer(
+            builder: (context, ref, _) => ListingPreviewScreen(
+              draft: draft,
+              isEditing: initialListing != null,
+              onBack: () => Navigator.of(context).pop(),
+              onPublish: () async {
+                final seller = ref.read(currentUserProvider).value;
+                if (seller == null) throw StateError('No signed-in seller');
+                final navigator = Navigator.of(previewContext);
+                final existing = initialListing;
+                if (existing == null) {
+                  await ref
+                      .read(listingsRepositoryProvider)
+                      .createListing(
+                        ListingModel(
+                          id: '',
+                          title: draft.title,
+                          details: draft.description,
+                          priceRwf: draft.priceRwf,
+                          condition: draft.condition,
+                          categoryId: draft.categoryId,
+                          seller: seller,
+                          createdAt: DateTime.now(),
+                          distanceKm: 0,
+                          imagePath: draft.photoUrls.first,
+                          photoUrls: draft.photoUrls,
+                          pickupHubId: draft.pickupHubId,
+                          negotiable: draft.negotiable,
+                          tag: draft.pickupHubName,
+                        ),
+                      );
+                } else {
+                  await ref
+                      .read(listingsRepositoryProvider)
+                      .updateListing(
+                        existing.copyWith(
+                          title: draft.title,
+                          details: draft.description,
+                          priceRwf: draft.priceRwf,
+                          condition: draft.condition,
+                          categoryId: draft.categoryId,
+                          imagePath: draft.photoUrls.first,
+                          photoUrls: draft.photoUrls,
+                          pickupHubId: draft.pickupHubId,
+                          negotiable: draft.negotiable,
+                          tag: draft.pickupHubName,
+                        ),
+                      );
+                  ref.invalidate(studentProfileProvider(existing.seller.id));
+                }
+                if (draft.savedDraftId != null) {
+                  await ref
+                      .read(listingsRepositoryProvider)
+                      .deleteDraft(
+                        userId: seller.id,
+                        draftId: draft.savedDraftId!,
+                      );
+                }
+                ref.invalidate(marketProvider);
+                ref.invalidate(exploreProvider);
+                ref.invalidate(profileProvider);
+                navigator.pop();
+                navigator.pop();
+                if (existing != null) navigator.pop(true);
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   static final Map<String, WidgetBuilder> routes = {
     RouteNames.root: (context) => const AuthGate(),
     RouteNames.login: (context) => LoginScreen(
@@ -248,59 +350,7 @@ abstract final class AppRouter {
     ),
     RouteNames.createPost: (context) => const CreatePostScreen(),
     // Step 2 receives the current sell form as a preview draft.
-    RouteNames.sellItem: (context) => SellItemScreen(
-      onClose: () => Navigator.of(context).pop(),
-      onPreview: (draft) => Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (previewContext) => Consumer(
-            builder: (context, ref, _) => ListingPreviewScreen(
-              draft: draft,
-              onBack: () => Navigator.of(context).pop(),
-              onPublish: () async {
-                final seller = ref.read(currentUserProvider).value;
-                if (seller == null) throw StateError('No signed-in seller');
-                final navigator = Navigator.of(previewContext);
-                await ref
-                    .read(listingsRepositoryProvider)
-                    .createListing(
-                      ListingModel(
-                        id: '',
-                        title: draft.title,
-                        details: draft.description,
-                        priceRwf: draft.priceRwf,
-                        condition: draft.condition,
-                        categoryId: draft.categoryId,
-                        seller: seller,
-                        createdAt: DateTime.now(),
-                        distanceKm: 0,
-                        imagePath: draft.photoUrls.isEmpty
-                            ? null
-                            : draft.photoUrls.first,
-                        photoUrls: draft.photoUrls,
-                        pickupHubId: draft.pickupHubId,
-                        negotiable: draft.negotiable,
-                        tag: draft.pickupHubName,
-                      ),
-                    );
-                if (draft.savedDraftId != null) {
-                  await ref
-                      .read(listingsRepositoryProvider)
-                      .deleteDraft(
-                        userId: seller.id,
-                        draftId: draft.savedDraftId!,
-                      );
-                }
-                ref.invalidate(marketProvider);
-                ref.invalidate(exploreProvider);
-                ref.invalidate(profileProvider);
-                navigator.pop();
-                navigator.pop();
-              },
-            ),
-          ),
-        ),
-      ),
-    ),
+    RouteNames.sellItem: _buildSellItemRoute,
     RouteNames.notifications: (context) => NotificationsScreen(
       onBack: () => Navigator.of(context).pop(),
       onOpen: openFromNotification,

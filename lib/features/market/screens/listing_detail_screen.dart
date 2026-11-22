@@ -23,23 +23,35 @@ class ListingDetailScreen extends StatelessWidget {
     required this.listing,
     this.isOwner = false,
     this.onMessageSeller,
-    this.onMarkSold,
+    this.onEdit,
+    this.onToggleStatus,
     this.onDelete,
   });
 
   final ListingModel listing;
   final bool isOwner;
   final VoidCallback? onMessageSeller;
-  final Future<void> Function()? onMarkSold;
+  final VoidCallback? onEdit;
+  final Future<void> Function()? onToggleStatus;
   final Future<void> Function()? onDelete;
 
   Future<void> _handleOwnerAction(BuildContext context, String action) async {
-    if (action == 'sold') {
+    if (action == 'edit') {
+      onEdit?.call();
+      return;
+    }
+    if (action == 'status') {
       try {
-        await onMarkSold?.call();
+        await onToggleStatus?.call();
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(AppStrings.listingMarkedSold)),
+          SnackBar(
+            content: Text(
+              listing.status == 'sold'
+                  ? AppStrings.listingMarkedAvailable
+                  : AppStrings.listingMarkedSold,
+            ),
+          ),
         );
         Navigator.of(context).pop();
       } catch (_) {
@@ -103,11 +115,18 @@ class ListingDetailScreen extends StatelessWidget {
             PopupMenuButton<String>(
               onSelected: (action) => _handleOwnerAction(context, action),
               itemBuilder: (context) => [
-                if (listing.status != 'sold')
-                  const PopupMenuItem(
-                    value: 'sold',
-                    child: Text(AppStrings.markListingSold),
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Text(AppStrings.editListing),
+                ),
+                PopupMenuItem(
+                  value: 'status',
+                  child: Text(
+                    listing.status == 'sold'
+                        ? AppStrings.markAsAvailable
+                        : AppStrings.markAsSold,
                   ),
+                ),
                 const PopupMenuItem(
                   value: 'delete',
                   child: Text(AppStrings.deleteListing),
