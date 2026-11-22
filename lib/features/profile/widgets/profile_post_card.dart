@@ -20,12 +20,18 @@ class ProfilePostCard extends StatelessWidget {
     required this.isLiked,
     required this.likeCount,
     this.onLike,
+    this.onShare,
+    this.onMoreOptions,
   });
 
   final PostModel post;
   final bool isLiked;
   final int likeCount;
   final VoidCallback? onLike;
+  final VoidCallback? onShare;
+
+  // Hidden when null, e.g. on someone else's profile.
+  final VoidCallback? onMoreOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -67,16 +73,17 @@ class ProfilePostCard extends StatelessWidget {
                   ],
                 ),
               ),
-              IconButton(
-                tooltip: AppStrings.moreOptions,
-                onPressed: () {},
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(
-                  Icons.more_horiz,
-                  size: AppSizes.iconMd,
-                  color: AppColors.iconMuted,
+              if (onMoreOptions != null)
+                IconButton(
+                  tooltip: AppStrings.moreOptions,
+                  onPressed: onMoreOptions,
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(
+                    Icons.more_horiz,
+                    size: AppSizes.iconMd,
+                    color: AppColors.iconMuted,
+                  ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -159,7 +166,7 @@ class ProfilePostCard extends StatelessWidget {
               const Spacer(),
               IconButton(
                 tooltip: AppStrings.share,
-                onPressed: () {},
+                onPressed: onShare,
                 visualDensity: VisualDensity.compact,
                 icon: const Icon(
                   Icons.share_outlined,

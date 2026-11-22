@@ -1,5 +1,6 @@
 // Another student's profile, with a Follow button.
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_sizes.dart';
@@ -169,6 +170,12 @@ class _StudentProfileScreenState extends ConsumerState<StudentProfileScreen> {
     );
   }
 
+  Future<void> _copyPost(PostModel post) async {
+    final text = [post.title, post.body].whereType<String>().join('\n');
+    await Clipboard.setData(ClipboardData(text: text));
+    if (mounted) showAppSnackBar(context, AppStrings.postCopied);
+  }
+
   Widget _buildPosts(List<PostModel> posts) {
     if (posts.isEmpty) {
       return const SliverToBoxAdapter(
@@ -186,6 +193,7 @@ class _StudentProfileScreenState extends ConsumerState<StudentProfileScreen> {
         post: posts[index],
         isLiked: false,
         likeCount: posts[index].likeCount,
+        onShare: () => _copyPost(posts[index]),
       ),
     );
   }
