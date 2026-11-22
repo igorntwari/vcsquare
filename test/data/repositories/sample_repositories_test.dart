@@ -5,6 +5,7 @@ import 'package:vsquare/data/dummy/dummy_posts.dart';
 import 'package:vsquare/data/dummy/dummy_users.dart';
 import 'package:vsquare/data/models/listing_draft_model.dart';
 import 'package:vsquare/data/models/listing_model.dart';
+import 'package:vsquare/data/models/post_model.dart';
 import 'package:vsquare/data/repositories/auth/sample_auth_repository.dart';
 import 'package:vsquare/data/repositories/chats/sample_chats_repository.dart';
 import 'package:vsquare/data/repositories/explore/sample_explore_repository.dart';
@@ -31,6 +32,48 @@ void main() {
     await repo.setLiked(userId: me, postId: 'p01', liked: true);
     await repo.setLiked(userId: me, postId: 'p05', liked: false);
     expect(await repo.fetchLikedPostIds(me), {'p01', 'p16', 'p21'});
+
+    final countUpdates = repo.watchPostCounts('p01').take(2).toList();
+    await Future<void>.delayed(Duration.zero);
+    await repo.setLiked(userId: 'another-user', postId: 'p01', liked: true);
+    expect(
+      (await countUpdates).last.likeCount,
+      dummyPosts.firstWhere((p) => p.id == 'p01').likeCount + 1,
+    );
+
+    await repo.setPollVote(userId: me, postId: 'p01', option: 'Option 1');
+    await repo.setPollVote(
+      userId: 'another-user',
+      postId: 'p01',
+      option: 'Option 1',
+    );
+    expect(await repo.watchPollCounts('p01').first, {'Option 1': 2});
+    await repo.setPollVote(userId: me, postId: 'p01', option: 'Option 2');
+    expect(await repo.watchPollCounts('p01').first, {
+      'Option 1': 1,
+      'Option 2': 1,
+    });
+
+    final createdId = await repo.createPost(mine.first);
+    await repo.updatePost(
+      PostModel(
+        id: createdId,
+        author: mine.first.author,
+        createdAt: mine.first.createdAt,
+        body: 'Updated sample post',
+      ),
+    );
+    expect(
+      (await repo.fetchPostsByAuthor(me))
+          .firstWhere((post) => post.id == createdId)
+          .body,
+      'Updated sample post',
+    );
+    await repo.deletePost(createdId);
+    expect(
+      (await repo.fetchPostsByAuthor(me)).any((post) => post.id == createdId),
+      isFalse,
+    );
   });
 
   test('listings: categories, hubs and saved listings', () async {
@@ -41,6 +84,23 @@ void main() {
     expect(await repo.fetchSavedListingIds(me), {'l04', 'l06', 'l14'});
     await repo.setSaved(userId: me, listingId: 'l01', saved: true);
     expect(await repo.fetchSavedListingIds(me), contains('l01'));
+
+    final createdId = await repo.createListing(dummyListings.first);
+    final created = (await repo.fetchListingsBySeller(
+      dummyListings.first.seller.id,
+    )).firstWhere((listing) => listing.id == createdId);
+    await repo.updateListing(created.copyWith(title: 'Updated sample listing'));
+    expect(
+      (await repo.fetchListingsBySeller(dummyListings.first.seller.id))
+          .firstWhere((listing) => listing.id == createdId)
+          .title,
+      'Updated sample listing',
+    );
+    await repo.deleteListing(createdId);
+    expect(
+      (await repo.fetchListings()).any((listing) => listing.id == createdId),
+      isFalse,
+    );
   });
 
   test('listings: seller updates and removes listings and drafts', () async {
