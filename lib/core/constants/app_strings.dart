@@ -246,6 +246,10 @@ abstract final class AppStrings {
   static const String tabSaved = 'Saved Items';
   static const String accountVerification = 'ACCOUNT & CAMPUS VERIFICATION';
   static const String studentIdCardTitle = 'Digital Student ID Card';
+  static const String idProgram = 'Programme';
+  static const String idCampus = 'Campus';
+  static const String idCohort = 'Cohort';
+  static const String idVerifiedEmail = 'Verified email';
   static const String studentIdCardSubtitle =
       'Verified for Academic Year 2026–2027';
   static const String securitySettingsTitle = 'Account & Security Settings';

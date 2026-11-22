@@ -28,6 +28,7 @@ import '../widgets/profile_stats_row.dart';
 import '../widgets/profile_tab_bar.dart';
 import '../widgets/recognition_banner.dart';
 import '../widgets/settings_list_tile.dart';
+import '../widgets/student_id_sheet.dart';
 
 enum _ProfileTab { posts, listings, saved }
 
@@ -62,6 +63,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _showComingSoon() => showAppSnackBar(context, AppStrings.comingSoon);
+
+  void _openStudentId() {
+    final profile = _data?.profile;
+    if (profile == null) return;
+    showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: AppColors.surface,
+      builder: (_) => StudentIdSheet(profile: profile),
+    );
+  }
 
   void _showSaveFailed() {
     if (!mounted) return;
@@ -203,7 +215,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   label: AppStrings.studentId,
                   background: AppColors.blueSurface,
                   foreground: AppColors.textPrimary,
-                  onTap: _showComingSoon,
+                  onTap: _openStudentId,
                 ),
                 ProfileActionButton(
                   icon: Icons.edit_outlined,
@@ -372,7 +384,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   title: AppStrings.studentIdCardTitle,
                   subtitle: AppStrings.studentIdCardSubtitle,
                   isVerified: true,
-                  onTap: _showComingSoon,
+                  onTap: _openStudentId,
                 ),
                 SettingsListTile(
                   icon: Icons.manage_accounts_outlined,
