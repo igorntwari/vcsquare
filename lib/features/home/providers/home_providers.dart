@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/post_model.dart';
 import '../../../data/repositories/repository_providers.dart';
+import '../../../data/repositories/posts/posts_repository.dart';
 
 typedef HomeFeed = ({
   List<PostModel> posts,
@@ -44,3 +45,13 @@ final homeFeedProvider = FutureProvider<HomeFeed>((ref) async {
     followedIds: followed,
   );
 });
+
+final postPollCountsProvider = StreamProvider.autoDispose
+    .family<Map<String, int>, String>((ref, postId) {
+      return ref.watch(postsRepositoryProvider).watchPollCounts(postId);
+    });
+
+final postEngagementCountsProvider = StreamProvider.autoDispose
+    .family<PostEngagementCounts, String>((ref, postId) {
+      return ref.watch(postsRepositoryProvider).watchPostCounts(postId);
+    });

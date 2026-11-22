@@ -10,6 +10,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/optimistic_toggle.dart';
 import '../../../data/models/post_model.dart';
 import '../../../data/repositories/repository_providers.dart';
+import '../../explore/providers/explore_providers.dart';
 import '../../../shared/widgets/chips/app_chip.dart';
 import '../../../shared/widgets/chips/filter_chip_bar.dart';
 import '../../../shared/widgets/feedback/empty_state.dart';
@@ -19,6 +20,7 @@ import '../../../shared/widgets/inputs/app_search_bar.dart';
 import '../../../shared/widgets/layout/app_top_bar.dart';
 import '../providers/home_providers.dart';
 import 'post_comments_sheet.dart';
+import 'create_post_screen.dart';
 import '../widgets/pinned_announcement_card.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_composer_bar.dart';
@@ -152,11 +154,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final previous = _pollVoteOptions[post.id];
     setState(() => _pollVoteOptions[post.id] = option);
     try {
-      await ref.read(postsRepositoryProvider).setPollVote(
-        userId: userId,
-        postId: post.id,
-        option: option,
-      );
+      await ref
+          .read(postsRepositoryProvider)
+          .setPollVote(userId: userId, postId: post.id, option: option);
     } catch (_) {
       if (previous == null) {
         _pollVoteOptions.remove(post.id);
@@ -187,6 +187,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (addedComment == true) ref.invalidate(homeFeedProvider);
   }
 
+  Future<void> _editPost(PostModel post) async {
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => CreatePostScreen(initialPost: post)),
+    );
+    if (updated != true || !mounted) return;
+    ref.invalidate(homeFeedProvider);
+    ref.invalidate(exploreProvider);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text(AppStrings.postUpdated)));
+  }
+
+  Future<void> _deletePost(PostModel post) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text(AppStrings.deletePostConfirmTitle),
+        content: const Text(AppStrings.deletePostConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text(AppStrings.deletePost),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(postsRepositoryProvider).deletePost(post.id);
+      if (!mounted) return;
+      ref.invalidate(homeFeedProvider);
+      ref.invalidate(exploreProvider);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text(AppStrings.postDeleted)));
+    } catch (_) {
+      _showSaveFailed();
+    }
+  }
+
   // The stored count already includes the user's own like if it was there
   // when the feed loaded, so only adjust for changes since then.
   int _likeCount(PostModel post) {
@@ -205,10 +249,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       children: [
         AppTopBar(title: AppStrings.navHome, avatarImagePath: user?.avatarPath),
         Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => ref.refresh(homeFeedProvider.future),
           child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(
-                child: _buildHeader(user?.avatarPath, user?.isOnline ?? false),
+                  child: _buildHeader(
+                    user?.avatarPath,
+                    user?.isOnline ?? false,
+                  ),
               ),
               SliverToBoxAdapter(
                 child: Padding(
@@ -247,7 +297,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ? SliverToBoxAdapter(
                         child: feed.hasError
                             ? ErrorState(
-                                onRetry: () => ref.invalidate(homeFeedProvider),
+                                  onRetry: () =>
+                                      ref.invalidate(homeFeedProvider),
                               )
                             : const LoadingIndicator(),
                       )
@@ -269,6 +320,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ],
           ),
+        ),
         ),
       ],
     );
@@ -349,6 +401,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onShare: () => _sharePost(post),
       selectedPollOption: _pollVoteOptions[post.id],
       onVote: (option) => _votePoll(post, option),
+      onEdit: post.author.id == ref.read(currentUserProvider).value?.id
+          ? () => _editPost(post)
+          : null,
+      onDelete: post.author.id == ref.read(currentUserProvider).value?.id
+          ? () => _deletePost(post)
+          : null,
     );
   }
 }

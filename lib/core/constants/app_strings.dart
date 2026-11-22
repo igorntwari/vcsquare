@@ -87,6 +87,30 @@ abstract final class AppStrings {
   static const String removePostPhoto = 'Remove photo';
   static const String imageTooLarge = 'Choose an image smaller than 8 MB.';
   static const String postCopied = 'Post text copied to clipboard.';
+  static const String copyPostText = 'Copy post text';
+  static const String editPostTitle = 'Edit post';
+  static const String editPost = 'Edit post';
+  static const String deletePost = 'Delete post';
+  static const String deletePostConfirmTitle = 'Delete this post?';
+  static const String deletePostConfirmBody =
+      'This removes your post and its comments and poll votes.';
+  static const String postDeleted = 'Post deleted.';
+  static const String postUpdated = 'Post updated.';
+  static const String deleteListing = 'Delete listing';
+  static const String deleteListingConfirmTitle = 'Delete this listing?';
+  static const String deleteListingConfirmBody =
+      'This permanently removes your listing.';
+  static const String listingDeleted = 'Listing deleted.';
+  static const String listingUpdated = 'Listing updated.';
+  static const String markAsSold = 'Mark as sold';
+  static const String markAsAvailable = 'Mark as available';
+  static const String soldLabel = 'Sold';
+  static const String listingMarkedSold = 'Listing marked as sold.';
+  static const String listingMarkedAvailable = 'Listing marked as available.';
+  static const String editListing = 'Edit listing';
+  static String pollVoteCount(int count) =>
+      '$count ${count == 1 ? 'vote' : 'votes'}';
+  static String pollOptionPercent(int percent) => '$percent%';
   static const String commentsTitle = 'Comments';
   static const String commentHint = 'Write a comment...';
   static const String noCommentsMessage = 'Be the first to comment.';
@@ -126,9 +150,6 @@ abstract final class AppStrings {
   static const String messageSeller = 'Message seller';
   static const String myListings = 'My listings';
   static const String markListingSold = 'Mark as sold';
-  static const String deleteListing = 'Delete listing';
-  static const String listingMarkedSold = 'Listing marked as sold.';
-  static const String listingDeleted = 'Listing deleted.';
   static const String listingSold = 'Sold';
   static const String confirmDeleteListing = 'Delete this listing?';
   static const String noDraftsSaved = 'You have no saved drafts yet.';

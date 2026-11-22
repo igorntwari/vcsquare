@@ -35,6 +35,8 @@ class PostCard extends StatelessWidget {
     this.onShare,
     this.selectedPollOption,
     this.onVote,
+    this.onEdit,
+    this.onDelete,
   });
 
   final PostModel post;
@@ -47,6 +49,8 @@ class PostCard extends StatelessWidget {
   final VoidCallback? onShare;
   final String? selectedPollOption;
   final ValueChanged<String>? onVote;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +72,8 @@ class PostCard extends StatelessWidget {
                     onPressed: onJoin,
                   )
                 : null,
+            onEdit: onEdit,
+            onDelete: onDelete,
           ),
           const SizedBox(height: AppSpacing.sm),
           PostBodyText(title: post.title, body: post.body),
@@ -78,7 +84,9 @@ class PostCard extends StatelessWidget {
           if (post.poll != null) ...[
             const SizedBox(height: AppSpacing.md),
             PollCard(
+              postId: post.id,
               poll: post.poll!,
+              initialCounts: post.pollCounts,
               selectedOption: selectedPollOption,
               onVote: onVote,
             ),
@@ -88,6 +96,7 @@ class PostCard extends StatelessWidget {
             EventBannerCard(event: event),
           ],
           PostActionsRow(
+            postId: post.id,
             likeCount: likeCount,
             commentCount: post.commentCount,
             isLiked: isLiked,

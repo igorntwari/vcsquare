@@ -18,6 +18,8 @@ class PostAuthorHeader extends StatelessWidget {
     required this.timeAgo,
     this.audience,
     this.trailing,
+    this.onEdit,
+    this.onDelete,
   });
 
   final UserModel author;
@@ -26,6 +28,8 @@ class PostAuthorHeader extends StatelessWidget {
 
   // Shown on the right. Defaults to a "more options" button.
   final Widget? trailing;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -80,17 +84,33 @@ class PostAuthorHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
-        trailing ??
-            IconButton(
-              tooltip: AppStrings.moreOptions,
-              onPressed: () {},
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(
-                Icons.more_horiz,
-                size: AppSizes.iconMd,
-                color: AppColors.iconMuted,
-              ),
+        if (trailing != null)
+          trailing!
+        else if (onEdit != null || onDelete != null)
+          PopupMenuButton<String>(
+            tooltip: AppStrings.moreOptions,
+            onSelected: (value) {
+              if (value == 'edit') onEdit?.call();
+              if (value == 'delete') onDelete?.call();
+            },
+            itemBuilder: (context) => [
+              if (onEdit != null)
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Text(AppStrings.editPost),
+                ),
+              if (onDelete != null)
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text(AppStrings.deletePost),
+                ),
+            ],
+            icon: const Icon(
+              Icons.more_horiz,
+              size: AppSizes.iconMd,
+              color: AppColors.iconMuted,
             ),
+          ),
       ],
     );
   }

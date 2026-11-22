@@ -1,4 +1,6 @@
 // Sample-data posts. Likes are kept in memory until the app restarts.
+import 'dart:async';
+
 import '../../dummy/dummy_posts.dart';
 import '../../dummy/dummy_viewer_state.dart';
 import '../../models/post_model.dart';
@@ -12,6 +14,10 @@ class SamplePostsRepository implements PostsRepository {
   final List<PostModel> _createdPosts = [];
   final Map<String, List<PostComment>> _comments = {};
   final Map<String, Map<String, String>> _pollVotes = {};
+  final Map<String, StreamController<Map<String, int>>> _pollCountStreams = {};
+  final Map<String, StreamController<PostEngagementCounts>> _postCountStreams =
+      {};
+  final Map<String, int> _likeAdjustments = {};
 
   @override
   Future<List<PostModel>> fetchFeed() async =>
@@ -44,9 +50,73 @@ class SamplePostsRepository implements PostsRepository {
         event: post.event,
         commentPreview: post.commentPreview,
         poll: post.poll,
+        pollCounts: post.pollCounts,
+        pollTotal: post.pollTotal,
       ),
     );
     return id;
+  }
+
+  @override
+  Future<void> updatePost(PostModel post) async {
+    final index = _createdPosts.indexWhere((item) => item.id == post.id);
+    if (index >= 0) _createdPosts[index] = post;
+  }
+
+  @override
+  Future<void> deletePost(String postId) async {
+    _createdPosts.removeWhere((post) => post.id == postId);
+    _comments.remove(postId);
+    for (final votes in _pollVotes.values) {
+      votes.remove(postId);
+    }
+    _likedPostIds.remove(postId);
+    _rsvpedPostIds.remove(postId);
+  }
+
+  @override
+  Stream<Map<String, int>> watchPollCounts(String postId) =>
+      Stream<Map<String, int>>.multi((controller) {
+        controller.add(_pollCounts(postId));
+        controller.addStream(
+          _pollCountStreams
+              .putIfAbsent(
+                postId,
+                () => StreamController<Map<String, int>>.broadcast(),
+              )
+              .stream,
+        );
+      });
+
+  @override
+  Stream<PostEngagementCounts> watchPostCounts(String postId) =>
+      Stream<PostEngagementCounts>.multi((controller) {
+        controller.add(_postCounts(postId));
+        controller.addStream(
+          _postCountStreams
+              .putIfAbsent(
+                postId,
+                () => StreamController<PostEngagementCounts>.broadcast(),
+              )
+              .stream,
+        );
+      });
+
+  PostEngagementCounts _postCounts(String postId) {
+    PostModel? post;
+    for (final candidate in [..._createdPosts, ...dummyPosts]) {
+      if (candidate.id == postId) {
+        post = candidate;
+        break;
+      }
+    }
+    if (post == null) {
+      return const PostEngagementCounts(likeCount: 0, commentCount: 0);
+    }
+    return PostEngagementCounts(
+      likeCount: post.likeCount + (_likeAdjustments[postId] ?? 0),
+      commentCount: _withComments(post).commentCount,
+    );
   }
 
   @override
@@ -68,6 +138,7 @@ class SamplePostsRepository implements PostsRepository {
         createdAt: DateTime.now(),
       ),
     );
+    _postCountStreams[postId]?.add(_postCounts(postId));
   }
 
   PostModel _withComments(PostModel post) {
@@ -91,6 +162,8 @@ class SamplePostsRepository implements PostsRepository {
       event: post.event,
       commentPreview: CommentPreview(author: latest.author, text: latest.text),
       poll: post.poll,
+      pollCounts: post.pollCounts,
+      pollTotal: post.pollTotal,
     );
   }
 
@@ -105,8 +178,9 @@ class SamplePostsRepository implements PostsRepository {
   };
 
   @override
-  Future<Map<String, String>> fetchPollVotes(String userId) async =>
-      {...?_pollVotes[userId]};
+  Future<Map<String, String>> fetchPollVotes(String userId) async => {
+    ...?_pollVotes[userId],
+  };
 
   @override
   Future<void> setPollVote({
@@ -115,6 +189,18 @@ class SamplePostsRepository implements PostsRepository {
     required String option,
   }) async {
     _pollVotes.putIfAbsent(userId, () => {})[postId] = option;
+    _pollCountStreams[postId]?.add(_pollCounts(postId));
+  }
+
+  Map<String, int> _pollCounts(String postId) {
+    final counts = <String, int>{};
+    for (final votes in _pollVotes.values) {
+      final option = votes[postId];
+      if (option != null) {
+        counts.update(option, (count) => count + 1, ifAbsent: () => 1);
+      }
+    }
+    return counts;
   }
 
   @override
@@ -123,7 +209,15 @@ class SamplePostsRepository implements PostsRepository {
     required String postId,
     required bool liked,
   }) async {
+    final wasLiked = _likedPostIds.contains(postId);
+    if (wasLiked == liked) return;
     liked ? _likedPostIds.add(postId) : _likedPostIds.remove(postId);
+    _likeAdjustments.update(
+      postId,
+      (count) => count + (liked ? 1 : -1),
+      ifAbsent: () => liked ? 1 : -1,
+    );
+    _postCountStreams[postId]?.add(_postCounts(postId));
   }
 
   @override
