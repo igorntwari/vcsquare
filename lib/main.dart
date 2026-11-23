@@ -1,3 +1,5 @@
+// App entry point: starts Firebase and notifications, then runs the app
+// inside a Riverpod ProviderScope.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
