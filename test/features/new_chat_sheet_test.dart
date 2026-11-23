@@ -49,4 +49,14 @@ void main() {
     expect(find.text('Kofi Mensah'), findsOneWidget);
     expect(find.text('Amara Kamau'), findsNothing);
   });
-}
+
+  testWidgets('search also matches the handle', (tester) async {
+    await _openSheet(tester, onResult: (_) {});
+
+    await tester.enterText(find.byType(TextField), '@amara');
+    await tester.pump();
+
+    expect(find.text('Amara Kamau'), findsOneWidget);
+    expect(find.text('Kofi Mensah'), findsNothing);
+  });}
+
