@@ -211,7 +211,7 @@ The seller can edit the listing, mark it sold or available, or permanently delet
 
 **Index:** `participantIds CONTAINS, updatedAt DESC` (inbox).
 
-> `ChatsRepository` implements this. The Messages screens themselves are owned by another teammate and still read sample data.
+> `ChatsRepository` implements this, and the Messages screens read it through the providers in `features/messages/providers`.
 
 ## Fixed data (seeded, read-only in the app)
 
