@@ -31,5 +31,14 @@ void main() {
 
     expect(sent, ['hello']);
     expect(find.text('hello'), findsNothing);
+  });
+  testWidgets('the keyboard send action also sends', (tester) async {
+    final sent = await _pump(tester);
+    await tester.enterText(find.byType(TextField), 'hi');
+    await tester.testTextInput.receiveAction(TextInputAction.send);
+    await tester.pump();
+
+    expect(sent, ['hi']);
   });}
+
 
