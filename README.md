@@ -244,6 +244,8 @@ flutter test
 | `test/data/repositories/auth_*`, `firebase_auth_repository_test.dart` | Error mapping, sign-up/sign-in/reset/sign-out/delete account and profile edits against `firebase_auth_mocks` and `fake_cloud_firestore` |
 | `test/features/` | Each main screen renders its sample data and shows an error state when loading fails. Also the auth flow through the real routes and gate, edit profile, account actions, and layouts in landscape and on a small phone |
 | `test/data/repositories/notification_prefs_repository_test.dart`, `device_registry_test.dart`, `test/features/notification*_test.dart`, `push_sync_test.dart`, `main_shell_test.dart` | Notification settings saved and restored, topics applied, device token stored on sign-in and cleared on sign-out, inbox taps and tab switching |
+| `test/data/repositories/missing_rules_test.dart` | Home and Messages still load when the live rules don't allow `savedPosts` or `blocks` yet |
+| `test/features/event_details_sheet_test.dart`, `profile_post_actions_test.dart`, `student_id_sheet_test.dart` | Event details and RSVP, share/copy/delete on profile posts, and the digital student ID card |
 | `test/helpers/`, `test/flutter_test_config.dart` | Shared widget-test setup (phone-sized screen, real fonts, in-memory SharedPreferences) |
 | `test/seed_data_test.dart` | Seed JSON matches the sample data |
 
