@@ -196,6 +196,7 @@ The seller can edit the listing, mark it sold or available, or permanently delet
 | `lastMessage` | map | copy of the newest message: `{ text, sentAt, senderId, status }` |
 | `updatedAt` | timestamp | = `lastMessage.sentAt`; inbox sort |
 | `unreadCounts` | map<uid, int> | sender increments the other participant's count; opening the chat sets your own to 0 |
+| `mutedBy` | string[] | uids who muted this chat; each participant adds or removes only their own |
 
 ### conversations/{id}/messages/{messageId}
 
@@ -206,11 +207,11 @@ The seller can edit the listing, mark it sold or available, or permanently delet
 | `senderId` | string | must equal the writer's uid |
 | `status` | string | `sent` \| `read` |
 
-**Rules:** only participants read or write. Participants may update only `lastMessage`, `updatedAt` and `unreadCounts`. Messages can't be edited or deleted.
+**Rules:** only participants read or write. Participants may update only `lastMessage`, `updatedAt`, `unreadCounts` and `mutedBy`, and may add or remove only their own uid in `mutedBy`. Messages can't be edited or deleted.
 
 **Index:** `participantIds CONTAINS, updatedAt DESC` (inbox).
 
-> `ChatsRepository` implements this. The Messages screens themselves are owned by another teammate and still read sample data.
+> `ChatsRepository` implements this, and the Messages screens read it through the providers in `features/messages/providers`.
 
 ## Fixed data (seeded, read-only in the app)
 
