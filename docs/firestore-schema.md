@@ -207,7 +207,7 @@ The seller can edit the listing, mark it sold or available, or permanently delet
 | `senderId` | string | must equal the writer's uid |
 | `status` | string | `sent` \| `read` |
 
-**Rules:** only participants read or write. Participants may update only `lastMessage`, `updatedAt` and `unreadCounts`. Messages can't be edited or deleted.
+**Rules:** only participants read or write. Participants may update only `lastMessage`, `updatedAt`, `unreadCounts` and `mutedBy`, and may add or remove only their own uid in `mutedBy`. Messages can't be edited or deleted.
 
 **Index:** `participantIds CONTAINS, updatedAt DESC` (inbox).
 
