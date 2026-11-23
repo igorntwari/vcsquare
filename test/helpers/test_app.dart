@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vsquare/data/repositories/auth/sample_auth_repository.dart';
+import 'package:vsquare/data/repositories/repository_providers.dart';
 
 Future<void> pumpScreen(
   WidgetTester tester,
@@ -36,5 +38,31 @@ Future<void> loadAppFonts() async {
       loader.addFont(rootBundle.load('assets/fonts/$family-$weight.ttf'));
     }
     await loader.load();
+  }
+}
+
+// The sample account, signed in. Screens that need a user override
+// authRepositoryProvider with this.
+Future<SampleAuthRepository> signedInSampleAuth() async {
+  final auth = SampleAuthRepository();
+  await auth.signInWithEmail(
+    email: SampleAuthRepository.sampleEmail,
+    password: SampleAuthRepository.samplePassword,
+  );
+  return auth;
+}
+
+// In the app the shell keeps the signed-in user loaded. Screens tested on
+// their own need the same, or reads of the current user never finish.
+class WithSignedInUser extends ConsumerWidget {
+  const WithSignedInUser({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(currentUserProvider);
+    ref.watch(currentUserIdProvider);
+    return child;
   }
 }
