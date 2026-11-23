@@ -6,6 +6,15 @@ Virtual Campus Community: a closed social network and marketplace for African Le
 - Database schema: [docs/firestore-schema.md](docs/firestore-schema.md)
 - Images (photos, avatars) are hosted on Cloudinary, not Firebase Storage. The database stores the image URL.
 
+## Features
+
+- **Home feed**: posts and pinned announcements, with likes, saved posts, copy/delete options and event RSVPs.
+- **Market**: buy and sell listings with photos, drafts, saved listings and pickup hubs.
+- **Explore**: communities, official accounts and students on campus to follow.
+- **Messages**: one-to-one chats with unread counts, mute and block.
+- **Profile**: edit profile and photo, your posts, digital student ID, notification settings and account deletion.
+- **Notifications**: push notifications by topic and an in-app inbox.
+
 ## Run the app
 
 ```sh
