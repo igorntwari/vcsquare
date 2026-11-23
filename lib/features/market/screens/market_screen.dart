@@ -59,6 +59,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
   List<ListingModel> _visibleListings(List<ListingModel> all) {
     final query = _searchQuery.trim().toLowerCase();
     final listings = all.where((listing) {
+      if (listing.status != 'active') return false;
       final categoryNames =
           _data?.categories
               .where((category) => category.id == listing.categoryId)
@@ -138,7 +139,10 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
         Expanded(
           child: Stack(
             children: [
-              CustomScrollView(
+              RefreshIndicator(
+                onRefresh: () => ref.refresh(marketProvider.future),
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverToBoxAdapter(
                     child: ColoredBox(
@@ -168,7 +172,8 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                         if (data == null)
                           market.hasError
                               ? ErrorState(
-                                  onRetry: () => ref.invalidate(marketProvider),
+                                    onRetry: () =>
+                                        ref.invalidate(marketProvider),
                                 )
                               : const LoadingIndicator()
                         else
@@ -237,9 +242,12 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                       AppSpacing.lg,
                       bottomInset + AppSpacing.xxxl + AppSpacing.xxl,
                     ),
-                    sliver: const SliverToBoxAdapter(child: ExchangeTipCard()),
+                      sliver: const SliverToBoxAdapter(
+                        child: ExchangeTipCard(),
+                      ),
                   ),
                 ],
+              ),
               ),
               Positioned(
                 left: 0,

@@ -101,6 +101,7 @@ class PinnedAnnouncementCard extends StatelessWidget {
                   _buildCallout(post.event!),
                 ],
                 PostActionsRow(
+                  postId: post.id,
                   likeCount: likeCount,
                   commentCount: post.commentCount,
                   isLiked: isLiked,

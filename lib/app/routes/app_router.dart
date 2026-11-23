@@ -11,6 +11,7 @@ import '../../data/repositories/repository_providers.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/sign_up_screen.dart';
+import '../../features/explore/providers/explore_providers.dart';
 import '../../features/explore/screens/explore_screen.dart';
 import '../../features/home/screens/create_post_screen.dart';
 import '../../features/explore/screens/official_handle_detail_screen.dart';
@@ -18,6 +19,7 @@ import '../../features/explore/screens/community_detail_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/market/providers/market_providers.dart';
 import '../../features/market/screens/listing_detail_screen.dart';
+import '../../features/profile/providers/profile_providers.dart';
 import '../../features/market/screens/listing_preview_screen.dart';
 import '../../features/market/screens/market_screen.dart';
 import '../../features/market/screens/sell_item_screen.dart';
@@ -30,7 +32,6 @@ import '../../features/onboarding/screens/why_institutional_login_screen.dart';
 import '../../features/profile/screens/account_settings_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
-import '../../features/profile/providers/profile_providers.dart';
 import '../../features/profile/screens/student_profile_screen.dart';
 import '../../shared/widgets/navigation/main_shell.dart';
 import '../auth_gate.dart';
@@ -81,88 +82,100 @@ abstract final class AppRouter {
     shellTab.value = tab;
   }
 
-  static Widget buildMainShell(BuildContext context) => Consumer(
-    builder: (context, ref, _) {
-      final conversations = ref.watch(conversationsProvider).value ?? const [];
-      final unreadCount = conversations.fold<int>(
-        0,
-        (total, conversation) => total + conversation.unreadCount,
-      );
-      return MainShell(
-        messagesBadgeCount: unreadCount,
-        tabRequests: shellTab,
-        tabs: [
-          HomeScreen(
-            onCreatePost: () {
-              if (kDebugMode) {
-                debugPrint('[AppRouter] Pushing ${RouteNames.createPost}.');
-              }
-              return (navigatorKey.currentState ?? Navigator.of(context))
-                  .pushNamed(RouteNames.createPost)
-                  .then((result) => result as bool?);
-            },
+  static Widget buildMainShell(BuildContext context, WidgetRef ref) {
+    final conversations = ref.watch(conversationsProvider).value ?? const [];
+    final unreadCount = conversations.fold<int>(
+      0,
+      (total, conversation) => total + conversation.unreadCount,
+    );
+
+    return MainShell(
+      messagesBadgeCount: unreadCount,
+      tabRequests: shellTab,
+      tabs: [
+        HomeScreen(
+          onCreatePost: () async {
+            if (kDebugMode) {
+              debugPrint('[AppRouter] Pushing ${RouteNames.createPost}.');
+            }
+            final result =
+                await (navigatorKey.currentState ?? Navigator.of(context))
+                    .pushNamed(RouteNames.createPost);
+            if (result == true) ref.invalidate(exploreProvider);
+            return result as bool?;
+          },
+        ),
+        MarketScreen(
+          onSellItem: () =>
+              Navigator.of(context).pushNamed(RouteNames.sellItem),
+          onOpenListing: (listing) => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => Consumer(
+                builder: (context, ref, _) =>
+                    _listingDetail(context, ref, listing),
+              ),
+            ),
           ),
-          MarketScreen(
-            onSellItem: () =>
-                Navigator.of(context).pushNamed(RouteNames.sellItem),
-            onOpenListing: (listing) => Navigator.of(context).push(
+        ),
+        ExploreScreen(
+          onOpenCommunity: (community, isJoined, onJoin) =>
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => CommunityDetailScreen(
+                    community: community,
+                    isJoined: isJoined,
+                    onJoin: onJoin,
+                  ),
+                ),
+              ),
+          onOpenOfficialHandle: (handle, isFollowing, onFollow) =>
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => OfficialHandleDetailScreen(
+                    handle: handle,
+                    isFollowing: isFollowing,
+                    onFollow: onFollow,
+                  ),
+                ),
+              ),
+          onOpenStudent: (student) => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (studentContext) => StudentProfileScreen(
+                userId: student.id,
+                onBack: () => Navigator.of(studentContext).pop(),
+                onOpenListing: (listing) => Navigator.of(studentContext).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => Consumer(
+                      builder: (context, ref, _) =>
+                          _listingDetail(context, ref, listing),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const MessagesScreen(),
+        ProfileScreen(
+          onEditProfile: () =>
+              Navigator.of(context).pushNamed(RouteNames.editProfile),
+          onOpenSettings: () =>
+              Navigator.of(context).pushNamed(RouteNames.accountSettings),
+          onOpenListing: (listing) async {
+            await Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => Consumer(
                   builder: (context, ref, _) =>
                       _listingDetail(context, ref, listing),
                 ),
               ),
-            ),
-          ),
-          ExploreScreen(
-            onOpenCommunity: (community, isJoined, onJoin) =>
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => CommunityDetailScreen(
-                      community: community,
-                      isJoined: isJoined,
-                      onJoin: onJoin,
-                    ),
-                  ),
-                ),
-            onOpenOfficialHandle: (handle, isFollowing, onFollow) =>
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => OfficialHandleDetailScreen(
-                      handle: handle,
-                      isFollowing: isFollowing,
-                      onFollow: onFollow,
-                    ),
-                  ),
-                ),
-            onOpenStudent: (student) => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (studentContext) => StudentProfileScreen(
-                  userId: student.id,
-                  onBack: () => Navigator.of(studentContext).pop(),
-                  onOpenListing: (listing) => Navigator.of(studentContext).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => Consumer(
-                        builder: (context, ref, _) =>
-                            _listingDetail(context, ref, listing),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const MessagesScreen(),
-          ProfileScreen(
-            onEditProfile: () =>
-                Navigator.of(context).pushNamed(RouteNames.editProfile),
-            onOpenSettings: () =>
-                Navigator.of(context).pushNamed(RouteNames.accountSettings),
-          ),
-        ],
-      );
-    },
-  );
+            );
+            ref.invalidate(profileProvider);
+          },
+        ),
+      ],
+    );
+  }
 
   static Widget _listingDetail(
     BuildContext context,
@@ -194,17 +207,25 @@ abstract final class AppRouter {
                 }
               }
             },
-      onMarkSold: () async {
+      onEdit: () =>
+          Navigator.of(context)
+              .pushNamed(RouteNames.sellItem, arguments: listing),
+      onToggleStatus: () async {
+        final nextStatus = listing.status == 'sold' ? 'active' : 'sold';
         await ref
             .read(listingsRepositoryProvider)
-            .updateListing(_withListingStatus(listing, 'sold'));
+            .updateListing(_withListingStatus(listing, nextStatus));
         ref.invalidate(marketProvider);
+        ref.invalidate(exploreProvider);
         ref.invalidate(profileProvider);
+        ref.invalidate(studentProfileProvider(listing.seller.id));
       },
       onDelete: () async {
         await ref.read(listingsRepositoryProvider).deleteListing(listing.id);
         ref.invalidate(marketProvider);
+        ref.invalidate(exploreProvider);
         ref.invalidate(profileProvider);
+        ref.invalidate(studentProfileProvider(listing.seller.id));
       },
     );
   }
@@ -229,6 +250,86 @@ abstract final class AppRouter {
         tagStyle: listing.tagStyle,
       );
 
+  static Widget _buildSellItemRoute(BuildContext context) {
+    final initialListing =
+        ModalRoute.of(context)?.settings.arguments as ListingModel?;
+    return SellItemScreen(
+      initialListing: initialListing,
+      onClose: () => Navigator.of(context).pop(),
+      onPreview: (draft) => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (previewContext) => Consumer(
+            builder: (context, ref, _) => ListingPreviewScreen(
+              draft: draft,
+              isEditing: initialListing != null,
+              onBack: () => Navigator.of(context).pop(),
+              onPublish: () async {
+                final seller = ref.read(currentUserProvider).value;
+                if (seller == null) throw StateError('No signed-in seller');
+                final navigator = Navigator.of(previewContext);
+                final existing = initialListing;
+                if (existing == null) {
+                  await ref
+                      .read(listingsRepositoryProvider)
+                      .createListing(
+                        ListingModel(
+                          id: '',
+                          title: draft.title,
+                          details: draft.description,
+                          priceRwf: draft.priceRwf,
+                          condition: draft.condition,
+                          categoryId: draft.categoryId,
+                          seller: seller,
+                          createdAt: DateTime.now(),
+                          distanceKm: 0,
+                          imagePath: draft.photoUrls.first,
+                          photoUrls: draft.photoUrls,
+                          pickupHubId: draft.pickupHubId,
+                          negotiable: draft.negotiable,
+                          tag: draft.pickupHubName,
+                        ),
+                      );
+                } else {
+                  await ref
+                      .read(listingsRepositoryProvider)
+                      .updateListing(
+                        existing.copyWith(
+                          title: draft.title,
+                          details: draft.description,
+                          priceRwf: draft.priceRwf,
+                          condition: draft.condition,
+                          categoryId: draft.categoryId,
+                          imagePath: draft.photoUrls.first,
+                          photoUrls: draft.photoUrls,
+                          pickupHubId: draft.pickupHubId,
+                          negotiable: draft.negotiable,
+                          tag: draft.pickupHubName,
+                        ),
+                      );
+                  ref.invalidate(studentProfileProvider(existing.seller.id));
+                }
+                if (draft.savedDraftId != null) {
+                  await ref
+                      .read(listingsRepositoryProvider)
+                      .deleteDraft(
+                        userId: seller.id,
+                        draftId: draft.savedDraftId!,
+                      );
+                }
+                ref.invalidate(marketProvider);
+                ref.invalidate(exploreProvider);
+                ref.invalidate(profileProvider);
+                navigator.pop();
+                navigator.pop();
+                if (existing != null) navigator.pop(true);
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   static final Map<String, WidgetBuilder> routes = {
     RouteNames.root: (context) => const AuthGate(),
     RouteNames.login: (context) => LoginScreen(
@@ -249,58 +350,7 @@ abstract final class AppRouter {
     ),
     RouteNames.createPost: (context) => const CreatePostScreen(),
     // Step 2 receives the current sell form as a preview draft.
-    RouteNames.sellItem: (context) => SellItemScreen(
-      onClose: () => Navigator.of(context).pop(),
-      onPreview: (draft) => Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (previewContext) => Consumer(
-            builder: (context, ref, _) => ListingPreviewScreen(
-              draft: draft,
-              onBack: () => Navigator.of(context).pop(),
-              onPublish: () async {
-                final seller = ref.read(currentUserProvider).value;
-                if (seller == null) throw StateError('No signed-in seller');
-                final navigator = Navigator.of(previewContext);
-                await ref
-                    .read(listingsRepositoryProvider)
-                    .createListing(
-                      ListingModel(
-                        id: '',
-                        title: draft.title,
-                        details: draft.description,
-                        priceRwf: draft.priceRwf,
-                        condition: draft.condition,
-                        categoryId: draft.categoryId,
-                        seller: seller,
-                        createdAt: DateTime.now(),
-                        distanceKm: 0,
-                        imagePath: draft.photoUrls.isEmpty
-                            ? null
-                            : draft.photoUrls.first,
-                        photoUrls: draft.photoUrls,
-                        pickupHubId: draft.pickupHubId,
-                        negotiable: draft.negotiable,
-                        tag: draft.pickupHubName,
-                      ),
-                    );
-                if (draft.savedDraftId != null) {
-                  await ref
-                      .read(listingsRepositoryProvider)
-                      .deleteDraft(
-                        userId: seller.id,
-                        draftId: draft.savedDraftId!,
-                      );
-                }
-                ref.invalidate(marketProvider);
-                ref.invalidate(profileProvider);
-                navigator.pop();
-                navigator.pop();
-              },
-            ),
-          ),
-        ),
-      ),
-    ),
+    RouteNames.sellItem: _buildSellItemRoute,
     RouteNames.notifications: (context) => NotificationsScreen(
       onBack: () => Navigator.of(context).pop(),
       onOpen: openFromNotification,

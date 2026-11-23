@@ -68,10 +68,10 @@ abstract final class AppStrings {
       'Try another search or choose a different feed filter.';
   static const String searchFilter = 'Filter';
   static const String composerHint = 'Share an update, idea or question...';
+  static const String createPostButton = 'Create Post';
   static const String attachMedia = 'Attach media';
   static const String createPoll = 'Create poll';
   static const String createPostTitle = 'Create post';
-  static const String createPostButton = 'Create Post';
   static const String postAudience = 'Who can see this?';
   static const String audienceCampus = 'All Campus';
   static const String postBodyHint = 'What would you like to share?';
@@ -88,12 +88,27 @@ abstract final class AppStrings {
   static const String removePostPhoto = 'Remove photo';
   static const String imageTooLarge = 'Choose an image smaller than 8 MB.';
   static const String postCopied = 'Post text copied to clipboard.';
-  static const String copyPostText = 'Copy text';
+  static const String copyPostText = 'Copy post text';
+  static const String editPostTitle = 'Edit post';
+  static const String editPost = 'Edit post';
   static const String deletePost = 'Delete post';
   static const String confirmDeletePost = 'Delete this post?';
   static const String confirmDeletePostBody =
-      'It will be removed from the feed for everyone. This can\'t be undone.';
+      "It will be removed from the feed for everyone. This can't be undone.";
   static const String postDeleted = 'Post deleted.';
+  static const String postUpdated = 'Post updated.';
+  static const String deleteListing = 'Delete listing';
+  static const String deleteListingConfirmTitle = 'Delete this listing?';
+  static const String deleteListingConfirmBody =
+      'This permanently removes your listing.';
+  static const String listingDeleted = 'Listing deleted.';
+  static const String listingUpdated = 'Listing updated.';
+  static const String markAsSold = 'Mark as sold';
+  static const String markAsAvailable = 'Mark as available';
+  static const String soldLabel = 'Sold';
+  static const String listingMarkedSold = 'Listing marked as sold.';
+  static const String listingMarkedAvailable = 'Listing marked as available.';
+  static const String editListing = 'Edit listing';
   static const String commentsTitle = 'Comments';
   static const String commentHint = 'Write a comment...';
   static const String noCommentsMessage = 'Be the first to comment.';
@@ -116,6 +131,7 @@ abstract final class AppStrings {
   static const String rsvpNow = 'RSVP Now';
   static const String rsvped = 'Going';
   static const String cancelRsvp = 'Going · Tap to cancel';
+  static const String addToCalendar = 'Add to Calendar';
   static const String like = 'Like';
   static const String comment = 'Comment';
   static const String share = 'Share';
@@ -134,9 +150,6 @@ abstract final class AppStrings {
   static const String messageSeller = 'Message seller';
   static const String myListings = 'My listings';
   static const String markListingSold = 'Mark as sold';
-  static const String deleteListing = 'Delete listing';
-  static const String listingMarkedSold = 'Listing marked as sold.';
-  static const String listingDeleted = 'Listing deleted.';
   static const String listingSold = 'Sold';
   static const String confirmDeleteListing = 'Delete this listing?';
   static const String noDraftsSaved = 'You have no saved drafts yet.';
@@ -460,6 +473,18 @@ abstract final class AppStrings {
   static const String accountSection = 'ACCOUNT';
   static const String dangerSection = 'DANGER ZONE';
 
+  // Chat options menu
+  static const String muteChat = 'Mute notifications';
+  static const String unmuteChat = 'Unmute notifications';
+  static const String chatMuted = 'Chat muted.';
+  static const String chatUnmuted = 'Chat unmuted.';
+  static const String blockUser = 'Block';
+  static const String blockConfirmTitle = 'Block this person?';
+  static const String blockConfirmBody =
+      'They\'ll disappear from your inbox and you won\'t see this chat again.';
+  static const String userBlocked =
+      'Blocked. This chat is hidden from your inbox.';
+
   // Edit profile
   static const String saveChanges = 'SAVE CHANGES';
   static const String profileUpdated = 'Profile updated.';
@@ -508,16 +533,4 @@ abstract final class AppStrings {
   static const String notificationsOffTitle = 'Notifications are off';
   static const String notificationsOffMessage =
       'Turn them on for vsquare in your phone\'s Settings to get alerts.';
-
-  // Chat options menu
-  static const String muteChat = 'Mute notifications';
-  static const String unmuteChat = 'Unmute notifications';
-  static const String chatMuted = 'Chat muted.';
-  static const String chatUnmuted = 'Chat unmuted.';
-  static const String blockUser = 'Block';
-  static const String blockConfirmTitle = 'Block this person?';
-  static const String blockConfirmBody =
-      'They\'ll disappear from your inbox and you won\'t see this chat again.';
-  static const String userBlocked =
-      'Blocked. This chat is hidden from your inbox.';
 }

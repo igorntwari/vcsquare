@@ -77,7 +77,11 @@ beforeEach(async () => {
       bio: 'Hello',
     });
     await setDoc(doc(db, 'users/amara/peerSuggestions/kofi'), { mutualCount: 3 });
-    await setDoc(doc(db, 'posts/p1'), { authorId: 'kofi', likeCount: 3, commentCount: 0 });
+    await setDoc(doc(db, 'posts/p1'), {
+      authorId: 'kofi',
+      likeCount: 3,
+      commentCount: 0,
+    });
     await setDoc(doc(db, 'posts/p1/pollVotes/amara'), {
       userId: 'amara',
       option: 'Yes',

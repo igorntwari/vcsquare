@@ -99,6 +99,7 @@ class PostCard extends StatelessWidget {
             EventBannerCard(event: event),
           ],
           PostActionsRow(
+            postId: post.id,
             likeCount: likeCount,
             commentCount: post.commentCount,
             isLiked: isLiked,

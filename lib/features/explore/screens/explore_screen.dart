@@ -151,7 +151,10 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           avatarImagePath: user?.avatarPath,
         ),
         Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => ref.refresh(exploreProvider.future),
           child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(
                 child: ColoredBox(
@@ -259,7 +262,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       for (final community in data.communities) ...[
                         CommunityCard(
                           community: community,
-                          isJoined: _joinedCommunityIds.contains(community.id),
+                            isJoined: _joinedCommunityIds.contains(
+                              community.id,
+                            ),
                           onJoin: () => _toggleJoin(community.id),
                           onTap: () => widget.onOpenCommunity?.call(
                             community,
@@ -299,6 +304,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             ],
           ),
         ),
+        ),
       ],
     );
   }
@@ -309,7 +315,10 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         .where((post) => _matchesPost(post, query))
         .toList();
     final listings = data.listings
-        .where((listing) => _matchesListing(listing, query))
+        .where(
+          (listing) =>
+              listing.status == 'active' && _matchesListing(listing, query),
+        )
         .toList();
     final people = data.peerSuggestions.where((suggestion) {
       return _matches(query, [
