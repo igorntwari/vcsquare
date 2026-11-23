@@ -14,7 +14,7 @@ One-to-one chat between ALU students.
 
 - Mute adds your uid to `mutedBy` on the conversation.
 - Block writes `users/{uid}/blocks/{blockedUid}` and hides that chat from your inbox. The other person still sees it.
-- The inbox tick turns into a double tick once the other person's unread count is 0. Single bubbles stay on one tick because messages are immutable.
+- The inbox tick turns into a double tick once the other person's unread count is 0.
 
 ## Try it on two accounts
 
