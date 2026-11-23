@@ -116,6 +116,15 @@ Explore lists **Students on campus**: everyone who has signed up, newest first. 
 
 The older **People You May Know** list (with **Connect**) needs a backend to fill `peerSuggestions`, so it stays empty on the Spark plan.
 
+## Messaging
+
+Messages are one-to-one chats between students. Open **Messages → new chat**, pick a student, and the chat opens. A chat started from a Market listing shows that listing at the top.
+
+- Each pair of students has one chat, stored at `conversations/{uidA_uidB}` (the two ids sorted), so tapping twice never creates two chats. Messages live in `conversations/{id}/messages`.
+- Sending is one batched write: it adds the message, updates `lastMessage` and adds 1 to the other person's `unreadCounts`. Opening the chat resets your count to 0.
+- The ⋮ menu in a chat mutes it (your id goes in `mutedBy`) or blocks the other person (saved in `users/{uid}/blocks`). Blocked chats are hidden from your inbox.
+- Only the two participants can read a chat. Messages can't be edited or deleted, and `senderId` must be the signed-in user (see `firestore.rules`).
+
 ## Notifications
 
 Pushes come from Firebase Cloud Messaging. Every device is subscribed to the topic `all`. Signed-in users also follow the topics `announcements`, `marketplace` and `messages`, unless they turn them off under **Profile → ⚙ → Notification settings**. Those choices, and "Show alerts" for pushes arriving while the app is open, are saved on the device with SharedPreferences, so they survive a restart.
