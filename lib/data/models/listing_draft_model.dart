@@ -1,3 +1,5 @@
+// An unfinished listing saved in users/{uid}/listingDrafts. The price is
+// kept as typed text so a half-filled form can be restored exactly.
 import 'firestore_helpers.dart';
 import 'listing_model.dart';
 
