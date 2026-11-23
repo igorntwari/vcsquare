@@ -6,6 +6,15 @@ Virtual Campus Community: a closed social network and marketplace for African Le
 - Database schema: [docs/firestore-schema.md](docs/firestore-schema.md)
 - Images (photos, avatars) are hosted on Cloudinary, not Firebase Storage. The database stores the image URL.
 
+## Features
+
+- **Home feed**: posts and pinned announcements, with likes, saved posts, copy/delete options and event RSVPs.
+- **Market**: buy and sell listings with photos, drafts, saved listings and pickup hubs.
+- **Explore**: communities, official accounts and students on campus to follow.
+- **Messages**: one-to-one chats with unread counts, mute and block.
+- **Profile**: edit profile and photo, your posts, digital student ID, notification settings and account deletion.
+- **Notifications**: push notifications by topic and an in-app inbox.
+
 ## Run the app
 
 ```sh
@@ -115,6 +124,15 @@ The **auth gate** (`lib/app/auth_gate.dart`) is the app's root screen. It shows 
 Explore lists **Students on campus**: everyone who has signed up, newest first. Students can follow each other from that list, or from a student's profile page (tap a student). Follows are saved in `users/{uid}/following`. The Followers and Following numbers on profiles update live (see `docs/firestore-schema.md`). After pulling, deploy the indexes too: `firebase deploy --only firestore`.
 
 The older **People You May Know** list (with **Connect**) needs a backend to fill `peerSuggestions`, so it stays empty on the Spark plan.
+
+## Messaging
+
+Messages are one-to-one chats between students. Open **Messages → new chat**, pick a student, and the chat opens. A chat started from a Market listing shows that listing at the top.
+
+- Each pair of students has one chat, stored at `conversations/{uidA_uidB}` (the two ids sorted), so tapping twice never creates two chats. Messages live in `conversations/{id}/messages`.
+- Sending is one batched write: it adds the message, updates `lastMessage` and adds 1 to the other person's `unreadCounts`. Opening the chat resets your count to 0.
+- The ⋮ menu in a chat mutes it (your id goes in `mutedBy`) or blocks the other person (saved in `users/{uid}/blocks`). Blocked chats are hidden from your inbox.
+- Only the two participants can read a chat. Messages can't be edited or deleted, and `senderId` must be the signed-in user (see `firestore.rules`).
 
 ## Notifications
 
@@ -226,6 +244,8 @@ flutter test
 | `test/data/repositories/auth_*`, `firebase_auth_repository_test.dart` | Error mapping, sign-up/sign-in/reset/sign-out/delete account and profile edits against `firebase_auth_mocks` and `fake_cloud_firestore` |
 | `test/features/` | Each main screen renders its sample data and shows an error state when loading fails. Also the auth flow through the real routes and gate, edit profile, account actions, and layouts in landscape and on a small phone |
 | `test/data/repositories/notification_prefs_repository_test.dart`, `device_registry_test.dart`, `test/features/notification*_test.dart`, `push_sync_test.dart`, `main_shell_test.dart` | Notification settings saved and restored, topics applied, device token stored on sign-in and cleared on sign-out, inbox taps and tab switching |
+| `test/data/repositories/missing_rules_test.dart` | Home and Messages still load when the live rules don't allow `savedPosts` or `blocks` yet |
+| `test/features/event_details_sheet_test.dart`, `profile_post_actions_test.dart`, `student_id_sheet_test.dart` | Event details and RSVP, share/copy/delete on profile posts, and the digital student ID card |
 | `test/helpers/`, `test/flutter_test_config.dart` | Shared widget-test setup (phone-sized screen, real fonts, in-memory SharedPreferences) |
 | `test/seed_data_test.dart` | Seed JSON matches the sample data |
 
