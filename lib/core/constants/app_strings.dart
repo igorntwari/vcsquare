@@ -68,6 +68,7 @@ abstract final class AppStrings {
       'Try another search or choose a different feed filter.';
   static const String searchFilter = 'Filter';
   static const String composerHint = 'Share an update, idea or question...';
+  static const String createPostButton = 'Create Post';
   static const String attachMedia = 'Attach media';
   static const String createPoll = 'Create poll';
   static const String createPostTitle = 'Create post';
@@ -129,11 +130,13 @@ abstract final class AppStrings {
   static const String freeEntry = 'Free Entry';
   static const String rsvpNow = 'RSVP Now';
   static const String rsvped = 'Going';
+  static const String cancelRsvp = 'Going · Tap to cancel';
   static const String addToCalendar = 'Add to Calendar';
   static const String like = 'Like';
   static const String comment = 'Comment';
   static const String share = 'Share';
   static const String save = 'Save';
+  static const String unsavePost = 'Remove from saved';
   static const String moreOptions = 'More options';
   static const String timezone = 'CAT';
 
@@ -257,6 +260,10 @@ abstract final class AppStrings {
   static const String tabSaved = 'Saved Items';
   static const String accountVerification = 'ACCOUNT & CAMPUS VERIFICATION';
   static const String studentIdCardTitle = 'Digital Student ID Card';
+  static const String idProgram = 'Programme';
+  static const String idCampus = 'Campus';
+  static const String idCohort = 'Cohort';
+  static const String idVerifiedEmail = 'Verified email';
   static const String studentIdCardSubtitle =
       'Verified for Academic Year 2026–2027';
   static const String securitySettingsTitle = 'Account & Security Settings';
@@ -465,6 +472,18 @@ abstract final class AppStrings {
   static const String accountDeleted = 'Your account has been deleted.';
   static const String accountSection = 'ACCOUNT';
   static const String dangerSection = 'DANGER ZONE';
+
+  // Chat options menu
+  static const String muteChat = 'Mute notifications';
+  static const String unmuteChat = 'Unmute notifications';
+  static const String chatMuted = 'Chat muted.';
+  static const String chatUnmuted = 'Chat unmuted.';
+  static const String blockUser = 'Block';
+  static const String blockConfirmTitle = 'Block this person?';
+  static const String blockConfirmBody =
+      'They\'ll disappear from your inbox and you won\'t see this chat again.';
+  static const String userBlocked =
+      'Blocked. This chat is hidden from your inbox.';
 
   // Edit profile
   static const String saveChanges = 'SAVE CHANGES';
