@@ -66,5 +66,16 @@ void main() {
     await tester.pump();
 
     expect(find.text('No students found'), findsOneWidget);
+  });
+  testWidgets('tapping a student closes the sheet and returns them',
+      (tester) async {
+    UserModel? picked;
+    await _openSheet(tester, onResult: (user) => picked = user);
+
+    await tester.tap(find.text('Kofi Mensah'));
+    await tester.pumpAndSettle();
+
+    expect(picked?.id, 'kofi');
+    expect(find.byType(NewChatSheet), findsNothing);
   });}
 
