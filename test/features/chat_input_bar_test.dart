@@ -20,4 +20,16 @@ void main() {
     final button = tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.send));
     expect(button.onPressed, isNull);
   });
-}
+
+  testWidgets('sending passes trimmed text and clears the field',
+      (tester) async {
+    final sent = await _pump(tester);
+    await tester.enterText(find.byType(TextField), '  hello  ');
+    await tester.pump();
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.send));
+    await tester.pump();
+
+    expect(sent, ['hello']);
+    expect(find.text('hello'), findsNothing);
+  });}
+
