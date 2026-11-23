@@ -59,6 +59,21 @@ void main() {
     expect(await repo.fetchLikedPostIds(me), isEmpty);
   });
 
+  test('posts: saved posts live in users/{uid}/savedPosts', () async {
+    final repo = FirebasePostsRepository(db);
+    await repo.setSaved(userId: me, postId: 'p03', saved: true);
+    expect(await repo.fetchSavedPostIds(me), {'p03'});
+    await repo.setSaved(userId: me, postId: 'p03', saved: false);
+    expect(await repo.fetchSavedPostIds(me), isEmpty);
+  });
+
+  test('posts: deletePost removes the document', () async {
+    final repo = FirebasePostsRepository(db);
+    await repo.deletePost('p01');
+    expect((await db.collection('posts').doc('p01').get()).exists, isFalse);
+    expect((await repo.fetchFeed()).any((p) => p.id == 'p01'), isFalse);
+  });
+
   test('listings, ordered categories and saved listings', () async {
     for (final c in dummyCategories.reversed) {
       await db.collection('categories').doc(c.id).set(c.toFirestore());
@@ -183,5 +198,22 @@ void main() {
 
     await repo.markRead(conversationId: conversation.id, userId: me);
     expect((await repo.fetchConversations(me)).single.unreadCount, 0);
+  });
+
+  test('chats: blocking hides the conversation from the inbox', () async {
+    final conversation = dummyConversations.first;
+    await db
+        .collection('conversations')
+        .doc(conversation.id)
+        .set(conversation.toFirestore(currentUserId: me));
+    final repo = FirebaseChatsRepository(db);
+    expect(await repo.fetchConversations(me), hasLength(1));
+
+    await repo.blockUser(userId: me, blockedId: conversation.participant.id);
+    final block = await db
+        .doc('users/$me/blocks/${conversation.participant.id}')
+        .get();
+    expect(block.exists, isTrue);
+    expect(await repo.fetchConversations(me), isEmpty);
   });
 }

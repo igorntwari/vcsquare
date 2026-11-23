@@ -77,6 +77,9 @@ service cloud.firestore {
       match /eventRsvps/{postId} {
         allow read, write: if isSelf(uid) && isMember();
       }
+      match /savedPosts/{postId} {
+        allow read, write: if isSelf(uid) && isMember();
+      }
       match /savedListings/{listingId} {
         allow read, write: if isSelf(uid) && isMember();
       }
@@ -100,6 +103,10 @@ service cloud.firestore {
         allow read, delete: if isSelf(uid) && isMember();
         allow create, update: if isSelf(uid) && isMember()
           && validDraft(request.resource.data);
+      }
+      // People this user has blocked; hides their chats from the inbox.
+      match /blocks/{blockedId} {
+        allow read, write: if isSelf(uid) && isMember();
       }
       match /memberships/{groupId} {
         allow read, write: if isSelf(uid) && isMember();
@@ -132,9 +139,6 @@ service cloud.firestore {
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.likeCount == 0
         && request.resource.data.commentCount == 0
-        && request.resource.data.pollCounts is map
-        && request.resource.data.pollCounts.size() == 0
-        && request.resource.data.pollTotal == 0
         && (!('poll' in request.resource.data)
           || request.resource.data.poll == null
           || (request.resource.data.poll is map

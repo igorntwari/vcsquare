@@ -33,14 +33,37 @@ class FirebaseChatsRepository implements ChatsRepository {
   @override
   Future<List<ConversationModel>> fetchConversations(String userId) async {
     final snapshot = await _inboxQuery(userId).get();
-    return _toConversations(snapshot.docs, userId);
+    return _withoutBlocked(
+      await _toConversations(snapshot.docs, userId),
+      userId,
+    );
   }
 
   @override
   Stream<List<ConversationModel>> watchConversations(String userId) =>
-      _inboxQuery(userId)
-          .snapshots()
-          .asyncMap((snapshot) => _toConversations(snapshot.docs, userId));
+      _inboxQuery(userId).snapshots().asyncMap(
+        (snapshot) async => _withoutBlocked(
+          await _toConversations(snapshot.docs, userId),
+          userId,
+        ),
+      );
+
+  // Chats with people the user blocked stay out of the inbox.
+  Future<List<ConversationModel>> _withoutBlocked(
+    List<ConversationModel> conversations,
+    String userId,
+  ) async {
+    final blocked = await readOptionalIdSet(
+      _db,
+      userId,
+      FirestoreCollections.blocks,
+    );
+    if (blocked.isEmpty) return conversations;
+    return [
+      for (final conversation in conversations)
+        if (!blocked.contains(conversation.participant.id)) conversation,
+    ];
+  }
 
   // Messages are immutable, so "read" is derived: our last message counts
   // as read once the other person's unread count is back to 0.
@@ -218,7 +241,11 @@ class FirebaseChatsRepository implements ChatsRepository {
 
   @override
   Future<void> blockUser({required String userId, required String blockedId}) =>
-      _db.doc('users/$userId/blocks/$blockedId').set({
-        'createdAt': writeDate(DateTime.now()),
-      });
+      writeIdFlag(
+        _db,
+        userId: userId,
+        subcollection: FirestoreCollections.blocks,
+        id: blockedId,
+        value: true,
+      );
 }

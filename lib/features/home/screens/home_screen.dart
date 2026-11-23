@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -21,9 +22,11 @@ import '../../../shared/widgets/layout/app_top_bar.dart';
 import '../providers/home_providers.dart';
 import 'post_comments_sheet.dart';
 import 'create_post_screen.dart';
+import '../widgets/event_details_sheet.dart';
 import '../widgets/pinned_announcement_card.dart';
 import '../widgets/post_card.dart';
-import '../widgets/post_composer_bar.dart';
+
+enum _PostAction { copy, edit, delete }
 
 // Top bar stays fixed; the header, filters and feed scroll beneath it.
 // Likes and club joins are kept here so every post from the same club
@@ -43,6 +46,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<PostModel> _posts = const [];
   Set<String> _likedPostIds = {};
   Set<String> _rsvpedPostIds = {};
+  Set<String> _savedPostIds = {};
   Map<String, String> _pollVoteOptions = {};
   Set<String> _joinedClubIds = {};
   Set<String> _followedIds = {};
@@ -90,6 +94,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ];
     _likedPostIds = {...feed.likedPostIds};
     _rsvpedPostIds = {...feed.rsvpedPostIds};
+    _savedPostIds = {...feed.savedPostIds};
     _pollVoteOptions = {...feed.pollVoteOptions};
     _joinedClubIds = {...feed.joinedIds};
     _followedIds = {...feed.followedIds};
@@ -148,6 +153,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  void _toggleSave(PostModel post) {
+    final userId = ref.read(currentUserProvider).value?.id;
+    if (userId == null) return;
+    optimisticToggle(
+      ids: _savedPostIds,
+      id: post.id,
+      update: _update,
+      save: (saved) => ref
+          .read(postsRepositoryProvider)
+          .setSaved(userId: userId, postId: post.id, saved: saved),
+      onError: _showSaveFailed,
+    );
+  }
+
+  Future<void> _openEvent(PostModel post) async {
+    final event = post.event;
+    if (event == null) return;
+    final toggle = await showModalBottomSheet<bool>(
+      context: context,
+      useSafeArea: true,
+      builder: (_) => EventDetailsSheet(
+        event: event,
+        isRsvped: _rsvpedPostIds.contains(post.id),
+      ),
+    );
+    if (toggle == true) _toggleRsvp(post);
+  }
+
   Future<void> _votePoll(PostModel post, String option) async {
     final userId = ref.read(currentUserProvider).value?.id;
     if (userId == null || _pollVoteOptions[post.id] == option) return;
@@ -177,6 +210,86 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ..showSnackBar(const SnackBar(content: Text(AppStrings.postCopied)));
   }
 
+  // Copy for everyone; delete for the post's author.
+  Future<void> _openPostOptions(PostModel post) async {
+    final userId = ref.read(currentUserProvider).value?.id;
+    final isMine = userId != null && post.author.id == userId;
+    final action = await showModalBottomSheet<_PostAction>(
+      context: context,
+      useSafeArea: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.copy_outlined),
+              title: const Text(AppStrings.copyPostText),
+              onTap: () => Navigator.of(context).pop(_PostAction.copy),
+            ),
+            if (isMine)
+              ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text(AppStrings.editPost),
+                onTap: () => Navigator.of(context).pop(_PostAction.edit),
+              ),
+            if (isMine)
+              ListTile(
+                leading: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.error,
+                ),
+                title: const Text(AppStrings.deletePost),
+                onTap: () => Navigator.of(context).pop(_PostAction.delete),
+              ),
+          ],
+        ),
+      ),
+    );
+    switch (action) {
+      case _PostAction.copy:
+        await _sharePost(post);
+      case _PostAction.edit:
+        await _editPost(post);
+      case _PostAction.delete:
+        await _deletePost(post);
+      case null:
+        break;
+    }
+  }
+
+  Future<void> _deletePost(PostModel post) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(AppStrings.confirmDeletePost),
+        content: const Text(AppStrings.confirmDeletePostBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(AppStrings.deletePost),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(postsRepositoryProvider).deletePost(post.id);
+    } catch (_) {
+      _showSaveFailed();
+      return;
+    }
+    _update(() => _posts = [..._posts.where((p) => p.id != post.id)]);
+    ref.invalidate(exploreProvider);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text(AppStrings.postDeleted)));
+  }
+
   Future<void> _openComments(PostModel post) async {
     final addedComment = await showModalBottomSheet<bool>(
       context: context,
@@ -199,38 +312,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ..showSnackBar(const SnackBar(content: Text(AppStrings.postUpdated)));
   }
 
-  Future<void> _deletePost(PostModel post) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text(AppStrings.deletePostConfirmTitle),
-        content: const Text(AppStrings.deletePostConfirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text(AppStrings.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text(AppStrings.deletePost),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    try {
-      await ref.read(postsRepositoryProvider).deletePost(post.id);
-      if (!mounted) return;
-      ref.invalidate(homeFeedProvider);
-      ref.invalidate(exploreProvider);
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text(AppStrings.postDeleted)));
-    } catch (_) {
-      _showSaveFailed();
-    }
-  }
-
   // The stored count already includes the user's own like if it was there
   // when the feed loaded, so only adjust for changes since then.
   int _likeCount(PostModel post) {
@@ -245,89 +326,124 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final feed = ref.watch(homeFeedProvider);
     if (feed.value case final loaded?) _adopt(loaded);
 
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+
     return Column(
       children: [
         AppTopBar(title: AppStrings.navHome, avatarImagePath: user?.avatarPath),
         Expanded(
-          child: RefreshIndicator(
-            onRefresh: () => ref.refresh(homeFeedProvider.future),
-          child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(
-                  child: _buildHeader(
-                    user?.avatarPath,
-                    user?.isOnline ?? false,
+          child: Stack(
+            children: [
+              RefreshIndicator(
+                onRefresh: () => ref.refresh(homeFeedProvider.future),
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(child: _buildHeader()),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                      child: FilterChipBar(
+                        chips: [
+                          AppChip(
+                            label: AppStrings.filterAllCampus,
+                            icon: Icons.public,
+                          ),
+                          AppChip(label: AppStrings.filterMyFeed),
+                          AppChip(
+                            label: AppStrings.filterOfficialAnnouncements,
+                            dotColor: AppColors.accent,
+                          ),
+                          AppChip(label: AppStrings.filterStudentLife),
+                          AppChip(
+                            label: AppStrings.filterTechInnovation,
+                            icon: Icons.lightbulb_outline,
+                          ),
+                        ],
+                        onSelected: (index) =>
+                            setState(() => _selectedFeedFilter = index),
+                      ),
+                    ),
                   ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                  child: FilterChipBar(
-                    chips: [
-                      AppChip(
-                        label: AppStrings.filterAllCampus,
-                        icon: Icons.public,
-                      ),
-                      AppChip(label: AppStrings.filterMyFeed),
-                      AppChip(
-                        label: AppStrings.filterOfficialAnnouncements,
-                        dotColor: AppColors.accent,
-                      ),
-                      AppChip(label: AppStrings.filterStudentLife),
-                      AppChip(
-                        label: AppStrings.filterTechInnovation,
-                        icon: Icons.lightbulb_outline,
-                      ),
-                    ],
-                    onSelected: (index) =>
-                        setState(() => _selectedFeedFilter = index),
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      0,
+                      AppSpacing.lg,
+                      // Leaves room for the floating Create Post button and nav bar.
+                      bottomInset + AppSpacing.xxxl + AppSpacing.xxl,
+                    ),
+                    sliver: _feed == null
+                        ? SliverToBoxAdapter(
+                            child: feed.hasError
+                                ? ErrorState(
+                                    onRetry: () =>
+                                        ref.invalidate(homeFeedProvider),
+                                  )
+                                : const LoadingIndicator(),
+                          )
+                        : _visiblePosts.isEmpty
+                        ? const SliverToBoxAdapter(
+                            child: EmptyState(
+                              icon: Icons.search_off,
+                              title: AppStrings.noMatchingPostsTitle,
+                              message: AppStrings.noMatchingPostsMessage,
+                            ),
+                          )
+                        : SliverList.separated(
+                            itemCount: _visiblePosts.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: AppSpacing.lg),
+                            itemBuilder: (context, index) =>
+                                _buildPost(_visiblePosts[index]),
+                          ),
                   ),
+                ],
                 ),
               ),
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  0,
-                  AppSpacing.lg,
-                  // Clears the floating bottom nav bar.
-                  MediaQuery.paddingOf(context).bottom + AppSpacing.lg,
+              // Round "new post" button in the bottom-right corner.
+              Positioned(
+                right: AppSpacing.lg,
+                bottom: bottomInset + AppSpacing.lg,
+                child: FloatingActionButton(
+                  // Other tabs stay mounted in the shell; avoid a Hero clash.
+                  heroTag: null,
+                  tooltip: AppStrings.createPostButton,
+                  onPressed: _createPost,
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: AppColors.textOnDark,
+                  shape: const CircleBorder(),
+                  child: const Icon(Icons.add, size: AppSizes.iconLg),
                 ),
-                sliver: _feed == null
-                    ? SliverToBoxAdapter(
-                        child: feed.hasError
-                            ? ErrorState(
-                                  onRetry: () =>
-                                      ref.invalidate(homeFeedProvider),
-                              )
-                            : const LoadingIndicator(),
-                      )
-                    : _visiblePosts.isEmpty
-                    ? const SliverToBoxAdapter(
-                        child: EmptyState(
-                          icon: Icons.search_off,
-                          title: AppStrings.noMatchingPostsTitle,
-                          message: AppStrings.noMatchingPostsMessage,
-                        ),
-                      )
-                    : SliverList.separated(
-                        itemCount: _visiblePosts.length,
-                        separatorBuilder: (_, _) =>
-                            const SizedBox(height: AppSpacing.lg),
-                        itemBuilder: (context, index) =>
-                            _buildPost(_visiblePosts[index]),
-                      ),
               ),
             ],
           ),
-        ),
         ),
       ],
     );
   }
 
-  // Search and composer on the navy band that continues the top bar.
-  Widget _buildHeader(String? avatarPath, bool isOnline) {
+  // Opens Create post; refreshes the feed if a post was published.
+  Future<void> _createPost() async {
+    if (kDebugMode) {
+      debugPrint('[Home] Create Post tapped; opening create-post route.');
+    }
+    final created = await widget.onCreatePost();
+    if (kDebugMode) {
+      debugPrint('[Home] Create-post route returned: $created');
+    }
+    if (created != true) return;
+    ref.invalidate(homeFeedProvider);
+    ref.invalidate(exploreProvider);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text(AppStrings.postPublished)));
+  }
+
+  // Search on the navy band that continues the top bar. Posts are created
+  // from the floating Create Post button.
+  Widget _buildHeader() {
     return ColoredBox(
       color: AppColors.topBarBackground,
       child: Padding(
@@ -342,31 +458,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             AppSearchBar(
               hintText: AppStrings.searchHint,
               onChanged: (value) => setState(() => _searchQuery = value),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            PostComposerBar(
-              avatarImagePath: avatarPath,
-              isOnline: isOnline,
-              onComposeTap: () async {
-                if (kDebugMode) {
-                  debugPrint(
-                    '[Home] Composer tapped; opening create-post route.',
-                  );
-                }
-                final created = await widget.onCreatePost();
-                if (kDebugMode) {
-                  debugPrint('[Home] Create-post route returned: $created');
-                }
-                if (created == true) {
-                  ref.invalidate(homeFeedProvider);
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      const SnackBar(content: Text(AppStrings.postPublished)),
-                    );
-                }
-              },
             ),
           ],
         ),
@@ -388,6 +479,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         onRsvp: () => _toggleRsvp(post),
         onComment: () => _openComments(post),
         onShare: () => _sharePost(post),
+        isSaved: _savedPostIds.contains(post.id),
+        onSave: () => _toggleSave(post),
+        onMoreOptions: () => _openPostOptions(post),
       );
     }
     return PostCard(
@@ -399,14 +493,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onJoin: () => _toggleJoin(post),
       onComment: () => _openComments(post),
       onShare: () => _sharePost(post),
+      isSaved: _savedPostIds.contains(post.id),
+      onSave: () => _toggleSave(post),
+      onMoreOptions: () => _openPostOptions(post),
+      isRsvped: _rsvpedPostIds.contains(post.id),
+      onEventTap: () => _openEvent(post),
       selectedPollOption: _pollVoteOptions[post.id],
       onVote: (option) => _votePoll(post, option),
-      onEdit: post.author.id == ref.read(currentUserProvider).value?.id
-          ? () => _editPost(post)
-          : null,
-      onDelete: post.author.id == ref.read(currentUserProvider).value?.id
-          ? () => _deletePost(post)
-          : null,
     );
   }
 }

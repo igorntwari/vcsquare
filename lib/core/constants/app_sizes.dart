@@ -165,6 +165,9 @@ abstract final class AppSizes {
   // Square icon box on settings tiles.
   static const double settingsIconBox = 36;
 
+  // Label column on the digital student ID card.
+  static const double idLabelWidth = 96;
+
   // Images inside profile post cards.
   static const double profilePostImageHeight = 128;
 

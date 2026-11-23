@@ -37,15 +37,6 @@ class FirebasePostsRepository implements PostsRepository {
   Future<void> deletePost(String postId) => _posts.doc(postId).delete();
 
   @override
-  Stream<Map<String, int>> watchPollCounts(String postId) =>
-      _posts.doc(postId).snapshots().map((snapshot) {
-        final counts = readMap(snapshot.data()?['pollCounts']) ?? const {};
-        return {
-          for (final entry in counts.entries) entry.key: readInt(entry.value),
-        };
-      });
-
-  @override
   Stream<PostEngagementCounts> watchPostCounts(String postId) =>
       _posts.doc(postId).snapshots().map((snapshot) {
         final data = snapshot.data();
@@ -125,6 +116,23 @@ class FirebasePostsRepository implements PostsRepository {
       readIdSet(_db, userId, FirestoreCollections.eventRsvps);
 
   @override
+  Future<Set<String>> fetchSavedPostIds(String userId) =>
+      readOptionalIdSet(_db, userId, FirestoreCollections.savedPosts);
+
+  @override
+  Future<void> setSaved({
+    required String userId,
+    required String postId,
+    required bool saved,
+  }) => writeIdFlag(
+    _db,
+    userId: userId,
+    subcollection: FirestoreCollections.savedPosts,
+    id: postId,
+    value: saved,
+  );
+
+  @override
   Future<Map<String, String>> fetchPollVotes(String userId) async {
     final snapshot = await _db
         .collectionGroup(FirestoreCollections.pollVotes)
@@ -141,15 +149,11 @@ class FirebasePostsRepository implements PostsRepository {
     required String userId,
     required String postId,
     required String option,
-  }) => _posts
-      .doc(postId)
-      .collection(FirestoreCollections.pollVotes)
-      .doc(userId)
-      .set({
-        'userId': userId,
-        'option': option,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+  }) => _posts.doc(postId).collection(FirestoreCollections.pollVotes).doc(userId).set({
+    'userId': userId,
+    'option': option,
+    'createdAt': FieldValue.serverTimestamp(),
+  });
 
   @override
   Future<void> setLiked({

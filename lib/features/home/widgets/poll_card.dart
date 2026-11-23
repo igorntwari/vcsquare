@@ -1,37 +1,25 @@
 // Small in-feed poll with one changeable vote per signed-in member.
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/models/post_poll.dart';
-import '../providers/home_providers.dart';
 
-class PollCard extends ConsumerWidget {
+class PollCard extends StatelessWidget {
   const PollCard({
     super.key,
-    required this.postId,
     required this.poll,
-    required this.initialCounts,
     this.selectedOption,
     this.onVote,
   });
 
-  final String postId;
   final PostPoll poll;
-  final Map<String, int> initialCounts;
   final String? selectedOption;
   final ValueChanged<String>? onVote;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final counts =
-        ref.watch(postPollCountsProvider(postId)).value ?? initialCounts;
-    final total = counts.values.fold<int>(0, (sum, count) => sum + count);
-    final showResults = selectedOption != null && total > 0;
-
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -56,13 +44,6 @@ class PollCard extends ConsumerWidget {
               child: Row(
                 children: [
                   Expanded(child: Text(option)),
-                  if (showResults) ...[
-                    Text(
-                      '${counts[option] ?? 0} · ${AppStrings.pollOptionPercent(((counts[option] ?? 0) * 100 / total).round())}',
-                      style: AppTypography.label,
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                  ],
                   if (selectedOption == option)
                     const Icon(Icons.check_circle, size: 18),
                 ],
@@ -71,9 +52,7 @@ class PollCard extends ConsumerWidget {
           ),
         if (selectedOption != null)
           Text(
-            showResults
-                ? '${AppStrings.pollVoteRecorded} · ${AppStrings.pollVoteCount(total)}'
-                : AppStrings.pollVoteRecorded,
+            AppStrings.pollVoteRecorded,
             style: AppTypography.bodySmall,
           ),
       ],

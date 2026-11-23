@@ -22,8 +22,6 @@ class PostModel {
     this.event,
     this.commentPreview,
     this.poll,
-    this.pollCounts = const {},
-    this.pollTotal = 0,
   });
 
   final String id;
@@ -53,8 +51,6 @@ class PostModel {
   final EventModel? event;
   final CommentPreview? commentPreview;
   final PostPoll? poll;
-  final Map<String, int> pollCounts;
-  final int pollTotal;
 
   // posts/{id}. [author] and the comment author are looked up from
   // authorId and commentPreview.authorId.
@@ -66,7 +62,6 @@ class PostModel {
   }) {
     final event = readMap(data['event']);
     final comment = readMap(data['commentPreview']);
-    final pollCounts = readMap(data['pollCounts']) ?? <String, dynamic>{};
     return PostModel(
       id: id,
       author: author,
@@ -91,10 +86,6 @@ class PostModel {
       poll: readMap(data['poll']) == null
           ? null
           : PostPoll.fromFirestore(readMap(data['poll'])!),
-      pollCounts: {
-        for (final entry in pollCounts.entries) entry.key: readInt(entry.value),
-      },
-      pollTotal: readInt(data['pollTotal']),
     );
   }
 
@@ -114,8 +105,6 @@ class PostModel {
     'event': event?.toFirestore(),
     'commentPreview': commentPreview?.toFirestore(),
     'poll': poll?.toFirestore(),
-    'pollCounts': pollCounts,
-    'pollTotal': pollTotal,
   };
 }
 

@@ -1,4 +1,4 @@
-// Row of like, comment and share actions on a post.
+// Row of like, comment, share and save actions on a post.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,9 +18,11 @@ class PostActionsRow extends ConsumerWidget {
     required this.likeCount,
     required this.commentCount,
     required this.isLiked,
+    this.isSaved = false,
     this.onLike,
     this.onComment,
     this.onShare,
+    this.onSave,
     this.trailing,
   });
 
@@ -28,9 +30,11 @@ class PostActionsRow extends ConsumerWidget {
   final int likeCount;
   final int commentCount;
   final bool isLiked;
+  final bool isSaved;
   final VoidCallback? onLike;
   final VoidCallback? onComment;
   final VoidCallback? onShare;
+  final VoidCallback? onSave;
 
   // Shown on the right (e.g. "Mandatory Read"). Defaults to a save button.
   final Widget? trailing;
@@ -80,13 +84,14 @@ class PostActionsRow extends ConsumerWidget {
           const Spacer(),
           trailing ??
               IconButton(
-                tooltip: AppStrings.save,
-                onPressed: () {},
+                tooltip: isSaved ? AppStrings.unsavePost : AppStrings.save,
+                onPressed: onSave,
+                isSelected: isSaved,
                 visualDensity: VisualDensity.compact,
-                icon: const Icon(
-                  Icons.bookmark_border,
+                icon: Icon(
+                  isSaved ? Icons.bookmark : Icons.bookmark_border,
                   size: AppSizes.iconMd,
-                  color: AppColors.textSecondary,
+                  color: isSaved ? AppColors.primary : AppColors.textSecondary,
                 ),
               ),
         ],

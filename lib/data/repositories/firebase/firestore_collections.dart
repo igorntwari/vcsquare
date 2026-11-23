@@ -17,6 +17,7 @@ abstract final class FirestoreCollections {
   // users/{uid}/... per-user state, readable and writable only by that user.
   static const String likedPosts = 'likedPosts';
   static const String eventRsvps = 'eventRsvps';
+  static const String savedPosts = 'savedPosts';
   static const String pollVotes = 'pollVotes';
   static const String savedListings = 'savedListings';
   static const String listingDrafts = 'listingDrafts';
@@ -25,4 +26,5 @@ abstract final class FirestoreCollections {
   static const String peerSuggestions = 'peerSuggestions';
   static const String connectionRequests = 'connectionRequests';
   static const String devices = 'devices';
+  static const String blocks = 'blocks';
 }

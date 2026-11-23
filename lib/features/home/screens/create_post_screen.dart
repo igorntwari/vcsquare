@@ -112,8 +112,6 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             event: existing.event,
             commentPreview: existing.commentPreview,
             poll: existing.poll,
-            pollCounts: existing.pollCounts,
-            pollTotal: existing.pollTotal,
           ),
         );
       }

@@ -37,8 +37,10 @@ So an account made outside the app with someone else's address, or never verifie
 users/{uid}
   ├─ likedPosts/{postId}
   ├─ eventRsvps/{postId}
+  ├─ savedPosts/{postId}
   ├─ savedListings/{listingId}
   ├─ listingDrafts/{draftId}
+  ├─ blocks/{blockedUid}
   ├─ memberships/{communityOrClubId}
   ├─ following/{officialHandleOrUserId}
   ├─ peerSuggestions/{otherUid}
@@ -100,11 +102,13 @@ Each document is `{ createdAt: timestamp }`. Only the id matters.
 | --- | --- | --- |
 | `likedPosts` | post id | `PostModel.isLiked` |
 | `eventRsvps` | event post id | event attendance |
+| `savedPosts` | post id | Posts bookmarked with the save button on Home |
 | `savedListings` | listing id | `ListingModel.isFavorited` |
 | `memberships` | community id or club user id | `CommunityModel.isJoined`, `UserModel.isJoined` |
 | `following` | official handle id or user id | `OfficialHandleModel.isFollowing`, and students you follow. A student follow also stores `targetId` (the student's uid) and `type: "user"`. Readable by any member, so follower and following counts work. Only the owner writes; `targetId` must equal the document id and can't be yourself. |
 | `devices` | the device's FCM token | written by the app on sign-in and deleted on sign-out (`FirebaseDeviceRegistry`). Fields: `platform`, `updatedAt` (timestamp). Owner-only. |
 | `listingDrafts` | draft id | Private marketplace drafts: title, description, priceText, categoryId, condition, pickupHubId, negotiable, photoUrls, updatedAt. Owner-only; photo URLs point to Cloudinary. |
+| `blocks` | blocked user's uid | People the user blocked from the chat menu. Their conversations are left out of the inbox. Owner-only. |
 | `peerSuggestions` | suggested user's uid | backend-written; the owner can only delete them (account deletion). Fields: `program`, `focus`, `mutualCount` (int), `sharedInterest` |
 
 **Follower and following counts** are counted live by the app (`FirebaseFollowRepository`), because the stored counters need a backend:
@@ -138,8 +142,6 @@ The Firebase query for a user's sent pending requests filters by `senderId` and 
 | `event` | map? | `{ title, startsAt: timestamp, venue, label?, note?, priceRwf?: int, showAsBanner: bool }` |
 | `commentPreview` | map? | `{ authorId, text }` (latest comment) |
 | `poll` | map? | `{ question: string, options: string[] }`; 2–6 options |
-| `pollCounts` | map<string, int> | Starts empty; public per-option aggregate, updated by the `home_market` Cloud Function; vote documents remain private |
-| `pollTotal` | int | Starts at 0; sum of `pollCounts`, updated by the `home_market` Cloud Function |
 
 **Rules:** verified ALU members read. The author creates, edits content and deletes. Any member may change `likeCount` by exactly ±1 or add a comment while incrementing `commentCount` and updating `commentPreview` in the same transaction. Likes and comments are global post counts. They update transactionally, and visible Home cards listen for count changes from other members.
 
@@ -155,7 +157,7 @@ The Firebase query for a user's sent pending requests filters by `senderId` and 
 
 ### posts/{postId}/pollVotes/{voteId}
 
-Each verified member has one vote document, keyed by their uid, with `userId`, `option` (the selected option text) and `createdAt`. A member can change or delete their own vote. Polls are optional on posts; the composer requires a question and at least two options. The `home_market` Cloud Function updates public per-option `pollCounts` and `pollTotal` when a vote is created, changed or deleted. It also recursively removes comments and poll votes when an author deletes a post.
+Each verified member has one vote document, keyed by their uid, with `userId`, `option` (the selected option text) and `createdAt`. A member can change or delete their own vote. Polls are optional on posts; the composer requires a question and at least two options. This workstream stores each user's vote but does not publish aggregate poll results.
 
 ## listings/{listingId}
 
@@ -237,6 +239,6 @@ Home and Market photos are selected from the device and uploaded to **Cloudinary
 
 ## Not built yet
 
-- `AccountDataEraser` must remove a deleted user's `pollVotes` and sent/received `connectionRequests`. Deleting a post must also handle its `comments` and `pollVotes` subcollections because Firestore does not cascade deletes.
+- `AccountDataEraser` must remove a deleted user's `pollVotes` and sent/received `connectionRequests`. Firestore does not cascade-delete a post's `comments` and `pollVotes` subcollections; recursive cleanup is deferred because it requires a deployed backend function.
 - Cloud Functions for the counters (`followerCount`, `followingCount`, `memberCount`), `peerSuggestions` and `trendingTopics`.
 - Notifications are stored on the device only (see `NotificationService`), not in Firestore.

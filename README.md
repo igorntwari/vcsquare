@@ -35,7 +35,8 @@ flutter run --dart-define=USE_FIREBASE=true --dart-define=USE_EMULATORS=true
    or **VCSquared · Firebase Emulator** to start Auth/Firestore locally, seed
    the fixed campus data, and run against the emulator.
 
-The emulator launch requires the Firebase CLI, Java 11+, Node.js, and npm.
+The emulator launch requires the Firebase CLI, Java 21+, Node.js, and npm
+(see [Installing Java](#installing-java)).
 The first launch installs the seed tool's locked dependencies. To prepare it
 manually instead, run `firebase emulators:start` from the repository root, then
 `npm ci && npm run seed` from `tool/seed`. Emulator mode is explicitly enabled
@@ -137,27 +138,35 @@ The emulators let you test against Auth and Firestore on your own machine, witho
 | --- | --- |
 | Auth | 9099 |
 | Firestore | 8080 |
-| Functions | 5001 |
 | Emulator UI | 4000 |
 
-You need the Firebase CLI (`npm install -g firebase-tools`), Node.js 22 and Java 21+.
+You need the Firebase CLI (`npm install -g firebase-tools`) and Java 21+ (see [Installing Java](#installing-java)).
 
 ```sh
-# Install the isolated Home/Market backend dependencies once, then return to
-# the repository root.
-cd functions/home_market && npm install && cd ../..
+# 1. Start the emulators (leave this running)
+firebase emulators:start
 
-# Terminal 1: start the emulators and leave them running.
-firebase emulators:start --only auth,firestore,functions
-
-# Terminal 2, from the repository root: seed the fixed data.
+# 2. Seed the fixed data (categories, pickup hubs, official accounts, communities)
 cd tool/seed && npm install && npm run seed
 
-# Run the app against the emulators.
+# 3. Run the app against them
 flutter run --dart-define=USE_FIREBASE=true --dart-define=USE_EMULATORS=true
 ```
 
 Open http://localhost:4000 to browse and edit the data. Emulator data is wiped when you stop it. To keep it between runs, use `firebase emulators:start --import=.emulator-data --export-on-exit`.
+
+### Installing Java
+
+The emulators stop with "Unable to locate a Java Runtime" when Java is missing. On macOS:
+
+```sh
+brew install openjdk@21
+# Homebrew doesn't put this Java on your PATH. Add these lines to ~/.zshrc:
+export JAVA_HOME=/opt/homebrew/opt/openjdk@21
+export PATH="$JAVA_HOME/bin:$PATH"
+```
+
+Open a new terminal and check with `java -version`.
 
 ## Seeding the live project
 
@@ -188,7 +197,7 @@ Profile photos (Profile → ⚙ → Edit profile → Change photo) use the same 
 
 ## Testing the security rules
 
-`tool/rules_test` runs `firestore.rules` against the Firestore emulator. It covers who can read, profile create/update/delete, ALU-only access and verified-only access. It needs Node and Java 21+.
+`tool/rules_test` runs `firestore.rules` against the Firestore emulator. It covers who can read, profile create/update/delete, ALU-only access, verified-only access, chats, blocks, saved posts and post deletion. It needs Node and Java 21+.
 
 ```sh
 cd tool/rules_test && npm install && npm test
@@ -201,14 +210,6 @@ cd tool/rules_test && npm install && npm test
 ```sh
 firebase deploy --only firestore:rules,firestore:indexes
 ```
-
-The Home/Market Cloud Functions use Node.js 22 and are isolated in their own `home_market` codebase. They maintain poll result totals and recursively clean up post comments and votes after a post is deleted. Deploy only this codebase with:
-
-```sh
-firebase deploy --only functions:home_market --project vcsquared-131f0
-```
-
-Production Cloud Functions deployment requires the Firebase Blaze plan and a linked billing account. Use the Functions emulator for local testing. This deployment target does not deploy the separate functions in `functions/index.js` owned by other workstreams.
 
 ## Tests and CI
 

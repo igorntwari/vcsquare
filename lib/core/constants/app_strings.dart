@@ -91,9 +91,9 @@ abstract final class AppStrings {
   static const String editPostTitle = 'Edit post';
   static const String editPost = 'Edit post';
   static const String deletePost = 'Delete post';
-  static const String deletePostConfirmTitle = 'Delete this post?';
-  static const String deletePostConfirmBody =
-      'This removes your post and its comments and poll votes.';
+  static const String confirmDeletePost = 'Delete this post?';
+  static const String confirmDeletePostBody =
+      "It will be removed from the feed for everyone. This can't be undone.";
   static const String postDeleted = 'Post deleted.';
   static const String postUpdated = 'Post updated.';
   static const String deleteListing = 'Delete listing';
@@ -108,9 +108,6 @@ abstract final class AppStrings {
   static const String listingMarkedSold = 'Listing marked as sold.';
   static const String listingMarkedAvailable = 'Listing marked as available.';
   static const String editListing = 'Edit listing';
-  static String pollVoteCount(int count) =>
-      '$count ${count == 1 ? 'vote' : 'votes'}';
-  static String pollOptionPercent(int percent) => '$percent%';
   static const String commentsTitle = 'Comments';
   static const String commentHint = 'Write a comment...';
   static const String noCommentsMessage = 'Be the first to comment.';

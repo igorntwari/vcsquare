@@ -1,5 +1,6 @@
 // User profile screen.
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_sizes.dart';
@@ -27,6 +28,7 @@ import '../widgets/profile_stats_row.dart';
 import '../widgets/profile_tab_bar.dart';
 import '../widgets/recognition_banner.dart';
 import '../widgets/settings_list_tile.dart';
+import '../widgets/student_id_sheet.dart';
 
 enum _ProfileTab { posts, listings, saved }
 
@@ -69,6 +71,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   void _showComingSoon() => showAppSnackBar(context, AppStrings.comingSoon);
 
+  void _openStudentId() {
+    final profile = _data?.profile;
+    if (profile == null) return;
+    showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: AppColors.surface,
+      builder: (_) => StudentIdSheet(profile: profile),
+    );
+  }
+
   void _showSaveFailed() {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -95,6 +108,66 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         .setSaved(userId: userId, listingId: listingId, saved: saved),
     onError: _showSaveFailed,
   );
+
+  Future<void> _copyPost(PostModel post) async {
+    final text = [post.title, post.body].whereType<String>().join('\n');
+    await Clipboard.setData(ClipboardData(text: text));
+    if (mounted) showAppSnackBar(context, AppStrings.postCopied);
+  }
+
+  // These are the user's own posts, so the sheet offers copy and delete.
+  Future<void> _openPostOptions(PostModel post) async {
+    final delete = await showModalBottomSheet<bool>(
+      context: context,
+      useSafeArea: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.copy_outlined),
+              title: const Text(AppStrings.copyPostText),
+              onTap: () => Navigator.of(context).pop(false),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: AppColors.error),
+              title: const Text(AppStrings.deletePost),
+              onTap: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (delete == false) return _copyPost(post);
+    if (delete != true || !mounted) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(AppStrings.confirmDeletePost),
+        content: const Text(AppStrings.confirmDeletePostBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(AppStrings.deletePost),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(postsRepositoryProvider).deletePost(post.id);
+    } catch (_) {
+      _showSaveFailed();
+      return;
+    }
+    ref.invalidate(profileProvider);
+    if (mounted) showAppSnackBar(context, AppStrings.postDeleted);
+  }
 
   // The stored count already includes the user's own like if it was there
   // when the profile loaded, so only adjust for changes since then.
@@ -149,7 +222,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   label: AppStrings.studentId,
                   background: AppColors.blueSurface,
                   foreground: AppColors.textPrimary,
-                  onTap: _showComingSoon,
+                  onTap: _openStudentId,
                 ),
                 ProfileActionButton(
                   icon: Icons.edit_outlined,
@@ -247,6 +320,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           isLiked: _likedPostIds.contains(post.id),
           likeCount: _likeCount(post),
           onLike: () => _toggleLike(userId, post.id),
+          onShare: () => _copyPost(post),
+          onMoreOptions: () => _openPostOptions(post),
         );
       },
     );
@@ -317,7 +392,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   title: AppStrings.studentIdCardTitle,
                   subtitle: AppStrings.studentIdCardSubtitle,
                   isVerified: true,
-                  onTap: _showComingSoon,
+                  onTap: _openStudentId,
                 ),
                 SettingsListTile(
                   icon: Icons.manage_accounts_outlined,

@@ -23,9 +23,8 @@ abstract interface class PostsRepository {
 
   Future<void> updatePost(PostModel post);
 
+  // Only the author may delete a post (enforced in firestore.rules).
   Future<void> deletePost(String postId);
-
-  Stream<Map<String, int>> watchPollCounts(String postId);
 
   Stream<PostEngagementCounts> watchPostCounts(String postId);
 
@@ -40,6 +39,9 @@ abstract interface class PostsRepository {
   Future<Set<String>> fetchLikedPostIds(String userId);
 
   Future<Set<String>> fetchRsvpedPostIds(String userId);
+
+  // Posts the user bookmarked with the save button.
+  Future<Set<String>> fetchSavedPostIds(String userId);
 
   Future<Map<String, String>> fetchPollVotes(String userId);
 
@@ -60,5 +62,11 @@ abstract interface class PostsRepository {
     required String userId,
     required String postId,
     required bool rsvped,
+  });
+
+  Future<void> setSaved({
+    required String userId,
+    required String postId,
+    required bool saved,
   });
 }

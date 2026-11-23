@@ -33,26 +33,19 @@ void main() {
     await repo.setLiked(userId: me, postId: 'p05', liked: false);
     expect(await repo.fetchLikedPostIds(me), {'p01', 'p16', 'p21'});
 
-    final countUpdates = repo.watchPostCounts('p01').take(2).toList();
+    final countUpdates = repo.watchPostCounts('p02').take(2).toList();
     await Future<void>.delayed(Duration.zero);
-    await repo.setLiked(userId: 'another-user', postId: 'p01', liked: true);
+    await repo.setLiked(userId: 'another-user', postId: 'p02', liked: true);
     expect(
       (await countUpdates).last.likeCount,
-      dummyPosts.firstWhere((p) => p.id == 'p01').likeCount + 1,
+      dummyPosts.firstWhere((post) => post.id == 'p02').likeCount + 1,
     );
 
-    await repo.setPollVote(userId: me, postId: 'p01', option: 'Option 1');
-    await repo.setPollVote(
-      userId: 'another-user',
-      postId: 'p01',
-      option: 'Option 1',
-    );
-    expect(await repo.watchPollCounts('p01').first, {'Option 1': 2});
-    await repo.setPollVote(userId: me, postId: 'p01', option: 'Option 2');
-    expect(await repo.watchPollCounts('p01').first, {
-      'Option 1': 1,
-      'Option 2': 1,
-    });
+    expect(await repo.fetchSavedPostIds(me), isEmpty);
+    await repo.setSaved(userId: me, postId: 'p02', saved: true);
+    expect(await repo.fetchSavedPostIds(me), {'p02'});
+    await repo.setSaved(userId: me, postId: 'p02', saved: false);
+    expect(await repo.fetchSavedPostIds(me), isEmpty);
 
     final createdId = await repo.createPost(mine.first);
     await repo.updatePost(
@@ -76,6 +69,17 @@ void main() {
     );
   });
 
+  test('posts: deleting removes the post from the feed', () async {
+    final repo = SamplePostsRepository();
+    final mine = (await repo.fetchPostsByAuthor(me)).first;
+    await repo.deletePost(mine.id);
+    expect((await repo.fetchFeed()).any((p) => p.id == mine.id), isFalse);
+    expect(
+      (await repo.fetchPostsByAuthor(me)).any((p) => p.id == mine.id),
+      isFalse,
+    );
+  });
+
   test('listings: categories, hubs and saved listings', () async {
     final repo = SampleListingsRepository();
     expect(await repo.fetchListings(), hasLength(dummyListings.length));
@@ -84,23 +88,23 @@ void main() {
     expect(await repo.fetchSavedListingIds(me), {'l04', 'l06', 'l14'});
     await repo.setSaved(userId: me, listingId: 'l01', saved: true);
     expect(await repo.fetchSavedListingIds(me), contains('l01'));
+  });
 
-    final createdId = await repo.createListing(dummyListings.first);
-    final created = (await repo.fetchListingsBySeller(
-      dummyListings.first.seller.id,
-    )).firstWhere((listing) => listing.id == createdId);
-    await repo.updateListing(created.copyWith(title: 'Updated sample listing'));
+  test('listings: seller can create and edit a listing', () async {
+    final repo = SampleListingsRepository();
+    final source = dummyListings.first;
+    final id = await repo.createListing(source);
+    final created = (await repo.fetchListingsBySeller(source.seller.id))
+        .firstWhere((listing) => listing.id == id);
+    await repo.updateListing(created.copyWith(title: 'Updated listing'));
     expect(
-      (await repo.fetchListingsBySeller(dummyListings.first.seller.id))
-          .firstWhere((listing) => listing.id == createdId)
+      (await repo.fetchListingsBySeller(source.seller.id))
+          .firstWhere((listing) => listing.id == id)
           .title,
-      'Updated sample listing',
+      'Updated listing',
     );
-    await repo.deleteListing(createdId);
-    expect(
-      (await repo.fetchListings()).any((listing) => listing.id == createdId),
-      isFalse,
-    );
+    await repo.deleteListing(id);
+    expect((await repo.fetchListings()).any((listing) => listing.id == id), isFalse);
   });
 
   test('listings: seller updates and removes listings and drafts', () async {
@@ -187,5 +191,20 @@ void main() {
     final after = await repo.fetchConversations(me);
     expect(after.first.unreadCount, 0);
     expect(after.first.lastMessage.text, 'Hello');
+  });
+
+  test('chats: mute toggles and blocking hides the conversation', () async {
+    final repo = SampleChatsRepository();
+    final first = (await repo.fetchConversations(me)).first;
+
+    await repo.setMuted(conversationId: first.id, userId: me, muted: true);
+    expect(
+      await repo.watchMuted(conversationId: first.id, userId: me).first,
+      isTrue,
+    );
+
+    await repo.blockUser(userId: me, blockedId: first.participant.id);
+    final after = await repo.fetchConversations(me);
+    expect(after.any((c) => c.participant.id == first.participant.id), isFalse);
   });
 }
