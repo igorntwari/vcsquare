@@ -58,5 +58,13 @@ void main() {
 
     expect(find.text('Amara Kamau'), findsOneWidget);
     expect(find.text('Kofi Mensah'), findsNothing);
+  });
+  testWidgets('shows a message when nobody matches', (tester) async {
+    await _openSheet(tester, onResult: (_) {});
+
+    await tester.enterText(find.byType(TextField), 'zzz');
+    await tester.pump();
+
+    expect(find.text('No students found'), findsOneWidget);
   });}
 
