@@ -1,3 +1,5 @@
+// Bottom sheet listing students to start a chat with, filtered by name or
+// handle. Tapping a student closes the sheet and returns that user.
 
 import 'package:flutter/material.dart';
 
