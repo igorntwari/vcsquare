@@ -51,7 +51,7 @@ class AuthGate extends ConsumerWidget {
       AuthStage.needsVerification => VerifyEmailScreen(
         email: account.value!.email,
       ),
-      AuthStage.signedIn => AppRouter.buildMainShell(context),
+      AuthStage.signedIn => AppRouter.buildMainShell(context, ref),
     };
   }
 }

@@ -32,8 +32,14 @@ import '../widgets/price_input.dart';
 // Step 1 of 2: photos, title, category, condition, price, pickup hub and
 // description. The completion percentage updates as fields are filled.
 class SellItemScreen extends ConsumerStatefulWidget {
-  const SellItemScreen({super.key, this.onClose, this.onPreview});
+  const SellItemScreen({
+    super.key,
+    this.initialListing,
+    this.onClose,
+    this.onPreview,
+  });
 
+  final ListingModel? initialListing;
   final VoidCallback? onClose;
   final ValueChanged<ListingDraft>? onPreview;
 
@@ -62,6 +68,22 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
     AppStrings.quickAddWarranty,
     AppStrings.quickAddMovingOut,
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    final listing = widget.initialListing;
+    if (listing != null) {
+      _titleController.text = listing.title;
+      _priceController.text = listing.priceRwf.toString();
+      _descriptionController.text = listing.details;
+      _photos.addAll(listing.photoUrls);
+      _categoryId = listing.categoryId;
+      _condition = listing.condition;
+      _hubId = listing.pickupHubId;
+      _negotiable = listing.negotiable;
+    }
+  }
 
   @override
   void dispose() {
@@ -287,7 +309,11 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
       final photoUrls = <String>[];
       for (final path in _photos) {
         photoUrls.add(
-          _uploadedPhotoUrls[path] ??= await _uploader.upload(XFile(path)),
+          path.startsWith('https://')
+              ? path
+              : _uploadedPhotoUrls[path] ??= await _uploader.upload(
+                  XFile(path),
+                ),
         );
       }
       if (!mounted) return;
@@ -384,7 +410,9 @@ class _SellItemScreenState extends ConsumerState<SellItemScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppStrings.sellAnItem,
+                      widget.initialListing == null
+                          ? AppStrings.sellAnItem
+                          : AppStrings.editListing,
                       style: AppTypography.headingMedium.copyWith(
                         color: AppColors.textPrimary,
                       ),

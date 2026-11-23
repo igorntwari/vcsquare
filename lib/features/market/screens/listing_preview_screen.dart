@@ -18,11 +18,13 @@ class ListingPreviewScreen extends StatefulWidget {
   const ListingPreviewScreen({
     super.key,
     required this.draft,
+    this.isEditing = false,
     this.onBack,
     this.onPublish,
   });
 
   final ListingDraft draft;
+  final bool isEditing;
   final VoidCallback? onBack;
   final Future<void> Function()? onPublish;
 
@@ -193,7 +195,9 @@ class _ListingPreviewScreenState extends State<ListingPreviewScreen> {
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: PrimaryButton(
-            label: AppStrings.publishListing,
+            label: widget.isEditing
+                ? AppStrings.saveChanges
+                : AppStrings.publishListing,
             icon: Icons.check,
             onPressed: _isPublishing ? null : _publish,
           ),

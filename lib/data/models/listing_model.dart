@@ -54,6 +54,39 @@ class ListingModel {
   final String? tag;
   final ListingTagStyle tagStyle;
 
+  ListingModel copyWith({
+    String? title,
+    String? details,
+    int? priceRwf,
+    ListingCondition? condition,
+    String? categoryId,
+    DateTime? createdAt,
+    double? distanceKm,
+    String? imagePath,
+    List<String>? photoUrls,
+    String? pickupHubId,
+    bool? negotiable,
+    String? status,
+    String? tag,
+  }) => ListingModel(
+    id: id,
+    title: title ?? this.title,
+    details: details ?? this.details,
+    priceRwf: priceRwf ?? this.priceRwf,
+    condition: condition ?? this.condition,
+    categoryId: categoryId ?? this.categoryId,
+    seller: seller,
+    createdAt: createdAt ?? this.createdAt,
+    distanceKm: distanceKm ?? this.distanceKm,
+    imagePath: imagePath ?? this.imagePath,
+    photoUrls: photoUrls ?? this.photoUrls,
+    pickupHubId: pickupHubId ?? this.pickupHubId,
+    negotiable: negotiable ?? this.negotiable,
+    status: status ?? this.status,
+    tag: tag ?? this.tag,
+    tagStyle: tagStyle,
+  );
+
   // listings/{id}. [seller] is looked up from sellerId.
   factory ListingModel.fromFirestore(
     String id,

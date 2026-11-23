@@ -15,7 +15,9 @@ import '../../../shared/widgets/avatars/user_avatar.dart';
 import '../../../shared/widgets/inputs/app_text_area.dart';
 
 class CreatePostScreen extends ConsumerStatefulWidget {
-  const CreatePostScreen({super.key});
+  const CreatePostScreen({super.key, this.initialPost});
+
+  final PostModel? initialPost;
 
   @override
   ConsumerState<CreatePostScreen> createState() => _CreatePostScreenState();
@@ -26,6 +28,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   final ImagePicker _imagePicker = ImagePicker();
   final CloudinaryUploadService _uploader = CloudinaryUploadService();
   XFile? _photo;
+  String? _existingImagePath;
   final TextEditingController _pollQuestionController = TextEditingController();
   final List<TextEditingController> _pollOptions = [
     TextEditingController(),
@@ -34,6 +37,16 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   static const String _audienceValue = 'Everyone';
   bool _isPublishing = false;
   bool _isPoll = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final post = widget.initialPost;
+    if (post != null) {
+      _bodyController.text = post.body;
+      _existingImagePath = post.imagePath;
+    }
+  }
 
   @override
   void dispose() {
@@ -54,7 +67,8 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         .where((option) => option.isNotEmpty)
         .toList();
     final question = _pollQuestionController.text.trim();
-    if ((body.isEmpty && !_isPoll) ||
+    final editingPoll = widget.initialPost?.poll != null;
+    if ((body.isEmpty && !_isPoll && !editingPoll) ||
         (_isPoll && (question.isEmpty || options.length < 2)) ||
         user == null ||
         _isPublishing) {
@@ -63,21 +77,44 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
     setState(() => _isPublishing = true);
     try {
       final imageUrl = _photo == null ? null : await _uploader.upload(_photo!);
-      await ref
-          .read(postsRepositoryProvider)
-          .createPost(
-            PostModel(
-              id: '',
-              author: user,
-              createdAt: DateTime.now(),
-              body: body,
-              audience: _audienceValue,
-              imagePath: imageUrl,
-              poll: _isPoll
-                  ? PostPoll(question: question, options: options)
-                  : null,
-            ),
-          );
+      final posts = ref.read(postsRepositoryProvider);
+      final existing = widget.initialPost;
+      if (existing == null) {
+        await posts.createPost(
+          PostModel(
+            id: '',
+            author: user,
+            createdAt: DateTime.now(),
+            body: body,
+            audience: _audienceValue,
+            imagePath: imageUrl,
+            poll: _isPoll
+                ? PostPoll(question: question, options: options)
+                : null,
+          ),
+        );
+      } else {
+        await posts.updatePost(
+          PostModel(
+            id: existing.id,
+            author: existing.author,
+            createdAt: existing.createdAt,
+            body: body,
+            title: existing.title,
+            topic: existing.topic,
+            audience: existing.audience,
+            imagePath: imageUrl ?? _existingImagePath,
+            imageCaption: existing.imageCaption,
+            likeCount: existing.likeCount,
+            commentCount: existing.commentCount,
+            isPinned: existing.isPinned,
+            isMandatoryRead: existing.isMandatoryRead,
+            event: existing.event,
+            commentPreview: existing.commentPreview,
+            poll: existing.poll,
+          ),
+        );
+      }
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (error) {
@@ -125,11 +162,16 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                           .where((field) => field.text.trim().isNotEmpty)
                           .length >=
                       2
-            : _bodyController.text.trim().isNotEmpty) &&
+            : (_bodyController.text.trim().isNotEmpty ||
+                  widget.initialPost?.poll != null)) &&
         !_isPublishing;
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.createPostTitle),
+        title: Text(
+          widget.initialPost == null
+              ? AppStrings.createPostTitle
+              : AppStrings.editPostTitle,
+        ),
         leading: IconButton(
           tooltip: AppStrings.close,
           onPressed: () => Navigator.of(context).pop(),
@@ -143,7 +185,11 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                     dimension: 18,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text(AppStrings.publishPost),
+                : Text(
+                    widget.initialPost == null
+                        ? AppStrings.publishPost
+                        : AppStrings.saveChanges,
+                  ),
           ),
           const SizedBox(width: AppSpacing.sm),
         ],
@@ -177,7 +223,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             icon: const Icon(Icons.add_a_photo_outlined),
             label: const Text(AppStrings.addPostPhoto),
           ),
-          if (_photo != null) ...[
+          if (_photo != null || _existingImagePath != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Stack(
               alignment: Alignment.topRight,
@@ -185,7 +231,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: AppImage(
-                    _photo!.path,
+                    _photo?.path ?? _existingImagePath!,
                     height: 220,
                     width: double.infinity,
                     errorBuilder: (_, _, _) => const SizedBox.shrink(),
@@ -193,20 +239,24 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                 ),
                 IconButton.filledTonal(
                   tooltip: AppStrings.removePostPhoto,
-                  onPressed: () => setState(() => _photo = null),
+                  onPressed: () => setState(() {
+                    _photo = null;
+                    _existingImagePath = null;
+                  }),
                   icon: const Icon(Icons.close),
                 ),
               ],
             ),
           ],
           const SizedBox(height: AppSpacing.lg),
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            title: const Text(AppStrings.createPoll),
-            value: _isPoll,
-            onChanged: (value) => setState(() => _isPoll = value),
-          ),
-          if (_isPoll) ...[
+          if (widget.initialPost == null)
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              title: const Text(AppStrings.createPoll),
+              value: _isPoll,
+              onChanged: (value) => setState(() => _isPoll = value),
+            ),
+          if (widget.initialPost == null && _isPoll) ...[
             TextField(
               controller: _pollQuestionController,
               decoration: const InputDecoration(

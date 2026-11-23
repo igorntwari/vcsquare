@@ -52,6 +52,16 @@ class ListingCard extends StatelessWidget {
                   fit: StackFit.expand,
                   children: [
                     _buildPhoto(),
+                    if (listing.status == 'sold')
+                      const Positioned(
+                        bottom: AppSpacing.sm,
+                        left: AppSpacing.sm,
+                        child: StatusTag(
+                          label: AppStrings.soldLabel,
+                          backgroundColor: AppColors.redSurface,
+                          foregroundColor: AppColors.accent,
+                        ),
+                      ),
                     if (listing.tag != null)
                       Positioned(
                         top: AppSpacing.sm,

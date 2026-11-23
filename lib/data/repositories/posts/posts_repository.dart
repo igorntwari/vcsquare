@@ -3,6 +3,16 @@ import '../../models/post_model.dart';
 import '../../models/user_model.dart';
 import 'post_comment.dart';
 
+class PostEngagementCounts {
+  const PostEngagementCounts({
+    required this.likeCount,
+    required this.commentCount,
+  });
+
+  final int likeCount;
+  final int commentCount;
+}
+
 abstract interface class PostsRepository {
   // Newest first. The Home screen moves pinned posts to the top.
   Future<List<PostModel>> fetchFeed();
@@ -11,8 +21,12 @@ abstract interface class PostsRepository {
 
   Future<String> createPost(PostModel post);
 
+  Future<void> updatePost(PostModel post);
+
   // Only the author may delete a post (enforced in firestore.rules).
   Future<void> deletePost(String postId);
+
+  Stream<PostEngagementCounts> watchPostCounts(String postId);
 
   Future<List<PostComment>> fetchComments(String postId);
 

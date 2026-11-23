@@ -1,4 +1,6 @@
 // Sample-data posts. Likes are kept in memory until the app restarts.
+import 'dart:async';
+
 import '../../dummy/dummy_posts.dart';
 import '../../dummy/dummy_viewer_state.dart';
 import '../../models/post_model.dart';
@@ -14,6 +16,9 @@ class SamplePostsRepository implements PostsRepository {
   final Set<String> _deletedPostIds = {};
   final Map<String, List<PostComment>> _comments = {};
   final Map<String, Map<String, String>> _pollVotes = {};
+  final Map<String, StreamController<PostEngagementCounts>> _postCountStreams =
+      {};
+  final Map<String, int> _likeAdjustments = {};
 
   @override
   Future<List<PostModel>> fetchFeed() async => [
@@ -36,6 +41,12 @@ class SamplePostsRepository implements PostsRepository {
   Future<void> deletePost(String postId) async {
     _deletedPostIds.add(postId);
     _createdPosts.removeWhere((post) => post.id == postId);
+  }
+
+  @override
+  Future<void> updatePost(PostModel post) async {
+    final index = _createdPosts.indexWhere((item) => item.id == post.id);
+    if (index >= 0) _createdPosts[index] = post;
   }
 
   @override
@@ -82,6 +93,38 @@ class SamplePostsRepository implements PostsRepository {
         text: text,
         createdAt: DateTime.now(),
       ),
+    );
+    _postCountStreams[postId]?.add(_postCounts(postId));
+  }
+
+  @override
+  Stream<PostEngagementCounts> watchPostCounts(String postId) =>
+      Stream<PostEngagementCounts>.multi((controller) {
+        controller.add(_postCounts(postId));
+        controller.addStream(
+          _postCountStreams
+              .putIfAbsent(
+                postId,
+                () => StreamController<PostEngagementCounts>.broadcast(),
+              )
+              .stream,
+        );
+      });
+
+  PostEngagementCounts _postCounts(String postId) {
+    PostModel? post;
+    for (final candidate in [..._createdPosts, ...dummyPosts]) {
+      if (candidate.id == postId) {
+        post = candidate;
+        break;
+      }
+    }
+    if (post == null) {
+      return const PostEngagementCounts(likeCount: 0, commentCount: 0);
+    }
+    return PostEngagementCounts(
+      likeCount: post.likeCount + (_likeAdjustments[postId] ?? 0),
+      commentCount: _withComments(post).commentCount,
     );
   }
 
@@ -152,7 +195,15 @@ class SamplePostsRepository implements PostsRepository {
     required String postId,
     required bool liked,
   }) async {
+    final wasLiked = _likedPostIds.contains(postId);
+    if (wasLiked == liked) return;
     liked ? _likedPostIds.add(postId) : _likedPostIds.remove(postId);
+    _likeAdjustments.update(
+      postId,
+      (count) => count + (liked ? 1 : -1),
+      ifAbsent: () => liked ? 1 : -1,
+    );
+    _postCountStreams[postId]?.add(_postCounts(postId));
   }
 
   @override

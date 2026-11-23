@@ -143,7 +143,7 @@ The Firebase query for a user's sent pending requests filters by `senderId` and 
 | `commentPreview` | map? | `{ authorId, text }` (latest comment) |
 | `poll` | map? | `{ question: string, options: string[] }`; 2–6 options |
 
-**Rules:** verified ALU members read. The author creates (with counts at 0), edits content and deletes. Any member may change `likeCount` by exactly ±1 or add a comment while incrementing `commentCount` and updating `commentPreview` in the same transaction.
+**Rules:** verified ALU members read. The author creates, edits content and deletes. Any member may change `likeCount` by exactly ±1 or add a comment while incrementing `commentCount` and updating `commentPreview` in the same transaction. Likes and comments are global post counts. They update transactionally, and visible Home cards listen for count changes from other members.
 
 **Index:** `authorId ASC, createdAt DESC` (Profile → My Posts).
 
@@ -157,7 +157,7 @@ The Firebase query for a user's sent pending requests filters by `senderId` and 
 
 ### posts/{postId}/pollVotes/{voteId}
 
-Each verified member has one vote document, keyed by their uid, with `userId`, `option` (the selected option text) and `createdAt`. A member can change or delete their own vote. Polls are optional on posts; the composer requires a question and at least two options. This version does not include close times or public result totals.
+Each verified member has one vote document, keyed by their uid, with `userId`, `option` (the selected option text) and `createdAt`. A member can change or delete their own vote. Polls are optional on posts; the composer requires a question and at least two options. This workstream stores each user's vote but does not publish aggregate poll results.
 
 ## listings/{listingId}
 
@@ -180,6 +180,8 @@ Each verified member has one vote document, keyed by their uid, with `userId`, `
 | `tagStyle` | string | `dark` \| `accent` \| `light` |
 
 **Rules:** members read. Only the seller creates, updates (and can't change `sellerId`) or deletes.
+
+The seller can edit the listing, mark it sold or available, or permanently delete it. Sold listings stay on the seller's profile with a Sold label, and are hidden from Market and Explore search results.
 
 **Index:** `sellerId ASC, createdAt DESC` (Profile → Listings).
 
@@ -237,6 +239,6 @@ Home and Market photos are selected from the device and uploaded to **Cloudinary
 
 ## Not built yet
 
-- `AccountDataEraser` must remove a deleted user's `pollVotes` and sent/received `connectionRequests`. Deleting a post must also handle its `comments` and `pollVotes` subcollections because Firestore does not cascade deletes.
+- `AccountDataEraser` must remove a deleted user's `pollVotes` and sent/received `connectionRequests`. Firestore does not cascade-delete a post's `comments` and `pollVotes` subcollections; recursive cleanup is deferred because it requires a deployed backend function.
 - Cloud Functions for the counters (`followerCount`, `followingCount`, `memberCount`), `peerSuggestions` and `trendingTopics`.
 - Notifications are stored on the device only (see `NotificationService`), not in Firestore.

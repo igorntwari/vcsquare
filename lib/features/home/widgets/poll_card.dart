@@ -1,6 +1,5 @@
 // Small in-feed poll with one changeable vote per signed-in member.
 import 'package:flutter/material.dart';
-
 import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -20,38 +19,43 @@ class PollCard extends StatelessWidget {
   final ValueChanged<String>? onVote;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(poll.question, style: AppTypography.titleLarge),
-      const SizedBox(height: AppSpacing.sm),
-      for (final option in poll.options)
-        Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-          child: OutlinedButton(
-            onPressed: onVote == null ? null : () => onVote!(option),
-            style: OutlinedButton.styleFrom(
-              alignment: Alignment.centerLeft,
-              foregroundColor: selectedOption == option
-                  ? AppColors.primary
-                  : AppColors.textPrimary,
-              side: BorderSide(
-                color: selectedOption == option
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(poll.question, style: AppTypography.titleLarge),
+        const SizedBox(height: AppSpacing.sm),
+        for (final option in poll.options)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+            child: OutlinedButton(
+              onPressed: onVote == null ? null : () => onVote!(option),
+              style: OutlinedButton.styleFrom(
+                alignment: Alignment.centerLeft,
+                foregroundColor: selectedOption == option
                     ? AppColors.primary
-                    : AppColors.divider,
+                    : AppColors.textPrimary,
+                side: BorderSide(
+                  color: selectedOption == option
+                      ? AppColors.primary
+                      : AppColors.divider,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(child: Text(option)),
+                  if (selectedOption == option)
+                    const Icon(Icons.check_circle, size: 18),
+                ],
               ),
             ),
-            child: Row(
-              children: [
-                Expanded(child: Text(option)),
-                if (selectedOption == option)
-                  const Icon(Icons.check_circle, size: 18),
-              ],
-            ),
           ),
-        ),
-      if (selectedOption != null)
-        Text(AppStrings.pollVoteRecorded, style: AppTypography.bodySmall),
-    ],
-  );
+        if (selectedOption != null)
+          Text(
+            AppStrings.pollVoteRecorded,
+            style: AppTypography.bodySmall,
+          ),
+      ],
+    );
+  }
 }

@@ -11,6 +11,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/optimistic_toggle.dart';
 import '../../../data/models/post_model.dart';
 import '../../../data/repositories/repository_providers.dart';
+import '../../explore/providers/explore_providers.dart';
 import '../../../shared/widgets/chips/app_chip.dart';
 import '../../../shared/widgets/chips/filter_chip_bar.dart';
 import '../../../shared/widgets/feedback/empty_state.dart';
@@ -20,11 +21,12 @@ import '../../../shared/widgets/inputs/app_search_bar.dart';
 import '../../../shared/widgets/layout/app_top_bar.dart';
 import '../providers/home_providers.dart';
 import 'post_comments_sheet.dart';
+import 'create_post_screen.dart';
 import '../widgets/event_details_sheet.dart';
 import '../widgets/pinned_announcement_card.dart';
 import '../widgets/post_card.dart';
 
-enum _PostAction { copy, delete }
+enum _PostAction { copy, edit, delete }
 
 // Top bar stays fixed; the header, filters and feed scroll beneath it.
 // Likes and club joins are kept here so every post from the same club
@@ -226,6 +228,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             if (isMine)
               ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text(AppStrings.editPost),
+                onTap: () => Navigator.of(context).pop(_PostAction.edit),
+              ),
+            if (isMine)
+              ListTile(
                 leading: const Icon(
                   Icons.delete_outline,
                   color: AppColors.error,
@@ -240,6 +248,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     switch (action) {
       case _PostAction.copy:
         await _sharePost(post);
+      case _PostAction.edit:
+        await _editPost(post);
       case _PostAction.delete:
         await _deletePost(post);
       case null:
@@ -273,6 +283,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       return;
     }
     _update(() => _posts = [..._posts.where((p) => p.id != post.id)]);
+    ref.invalidate(exploreProvider);
     if (!mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -287,6 +298,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       builder: (_) => PostCommentsSheet(post: post),
     );
     if (addedComment == true) ref.invalidate(homeFeedProvider);
+  }
+
+  Future<void> _editPost(PostModel post) async {
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => CreatePostScreen(initialPost: post)),
+    );
+    if (updated != true || !mounted) return;
+    ref.invalidate(homeFeedProvider);
+    ref.invalidate(exploreProvider);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text(AppStrings.postUpdated)));
   }
 
   // The stored count already includes the user's own like if it was there
@@ -311,7 +334,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         Expanded(
           child: Stack(
             children: [
-              CustomScrollView(
+              RefreshIndicator(
+                onRefresh: () => ref.refresh(homeFeedProvider.future),
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverToBoxAdapter(child: _buildHeader()),
                   SliverToBoxAdapter(
@@ -373,6 +399,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                   ),
                 ],
+                ),
               ),
               // Round "new post" button in the bottom-right corner.
               Positioned(
@@ -407,6 +434,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
     if (created != true) return;
     ref.invalidate(homeFeedProvider);
+    ref.invalidate(exploreProvider);
     if (!mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
