@@ -196,6 +196,7 @@ The seller can edit the listing, mark it sold or available, or permanently delet
 | `lastMessage` | map | copy of the newest message: `{ text, sentAt, senderId, status }` |
 | `updatedAt` | timestamp | = `lastMessage.sentAt`; inbox sort |
 | `unreadCounts` | map<uid, int> | sender increments the other participant's count; opening the chat sets your own to 0 |
+| `mutedBy` | string[] | uids who muted this chat; each participant adds or removes only their own |
 
 ### conversations/{id}/messages/{messageId}
 
